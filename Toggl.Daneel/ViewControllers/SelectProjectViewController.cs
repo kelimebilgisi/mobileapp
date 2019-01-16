@@ -2,8 +2,6 @@
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
-using Toggl.Foundation;
-using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Daneel.Extensions.Reactive;
@@ -115,16 +113,6 @@ namespace Toggl.Daneel.ViewControllers
         {
             BottomConstraint.Constant = 0;
             UIView.Animate(Animation.Timings.EnterTiming, () => View.LayoutIfNeeded());
-        }
-
-        private void toggleTaskSuggestions(ProjectSuggestion parameter)
-        {
-            var offset = ProjectsTableView.ContentOffset;
-            var frameHeight = ProjectsTableView.Frame.Height;
-
-            ViewModel.ToggleTaskSuggestionsCommand.Execute(parameter);
-
-            ProjectsTableView.CorrectOffset(offset, frameHeight);
         }
     }
 }
