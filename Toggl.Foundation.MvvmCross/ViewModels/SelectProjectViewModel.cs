@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.Services;
+using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Helper.Constants;
@@ -41,25 +43,22 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private long? taskId;
         private long? projectId;
         private long workspaceId;
-        private bool shouldShowProjectCreationSuggestion;
         private IStopwatch navigationFromEditTimeEntryViewModelStopwatch;
-
-        private List<IThreadSafeWorkspace> allWorkspaces = new List<IThreadSafeWorkspace>();
 
         public string Text { get; set; } = "";
 
         [DependsOn(nameof(Text))]
-        public bool UsesFilter => !string.IsNullOrEmpty(Text.Trim());
+        public bool UsesFilterOld => !string.IsNullOrEmpty(Text.Trim());
 
         [DependsOn(nameof(Text))]
-        public bool SuggestCreation
+        public bool SuggestCreationOld
         {
             get
             {
                 if (!shouldShowProjectCreationSuggestion)
                     return false;
 
-                if (!UsesFilter)
+                if (!UsesFilterOld)
                     return false;
 
                 var text = Text.Trim();
@@ -68,21 +67,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 if (!isOfAllowedLength)
                     return false;
 
-                return true;
+                var hasNoExactMatches = SuggestionsOld.None(ws => ws.Any(s => s is ProjectSuggestion ps && ps.ProjectName == text));
+                return hasNoExactMatches;
             }
         }
 
-        public bool UseGrouping { get; private set; }
-
-        public bool IsEmpty { get; set; } = false;
-
-        [DependsOn(nameof(IsEmpty))]
-        public string PlaceholderText
-            => IsEmpty
-            ? Resources.EnterProject
-            : Resources.AddFilterProjects;
-
-        public IMvxAsyncCommand CloseCommand { get; }
+        public bool IsEmptyOld { get; set; } = false;
 
         public IMvxAsyncCommand CreateProjectCommand { get; }
 
@@ -90,11 +80,38 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IMvxAsyncCommand<AutocompleteSuggestion> SelectProjectCommand { get; }
 
-        public MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>> Suggestions { get; }
-            = new MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>>();
+        public NestableObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>, AutocompleteSuggestion> SuggestionsOld { get; }
+            = new NestableObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>, AutocompleteSuggestion>();
+
+        /*
+         * The new stuff goes below
+         */
+        private List<IThreadSafeWorkspace> allWorkspaces = new List<IThreadSafeWorkspace>();
+        private bool shouldShowProjectCreationSuggestion;
+
+        public bool UseGrouping { get; private set; }
+
+        public ObservableGroupedOrderedCollection<AutocompleteSuggestion> Suggestions { get; }
+
+        public ISubject<string> FilterText { get; } = new BehaviorSubject<string>(string.Empty);
+
+        public IObservable<bool> IsEmpty { get; }
+
+        public IObservable<bool> SuggestCreation { get; }
+
+        public IObservable<bool> UsesFilter { get; }
+
+        public IObservable<string> PlaceholderText { get; }
+
+        public UIAction Close { get; }
+
+        public InputAction<ProjectSuggestion> ToggleTaskSuggestions { get; }
+
+        public InputAction<AutocompleteSuggestion> SelectProject { get; }
 
         public SelectProjectViewModel(
             ITogglDataSource dataSource,
+            IRxActionFactory rxActionFactory,
             IInteractorFactory interactorFactory,
             IMvxNavigationService navigationService,
             IDialogService dialogService,
@@ -103,6 +120,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(dialogService, nameof(dialogService));
+            Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
@@ -115,10 +133,51 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.schedulerProvider = schedulerProvider;
             this.stopwatchProvider = stopwatchProvider;
 
-            CloseCommand = new MvxAsyncCommand(close);
             CreateProjectCommand = new MvxAsyncCommand(createProject);
             SelectProjectCommand = new MvxAsyncCommand<AutocompleteSuggestion>(selectProject);
             ToggleTaskSuggestionsCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+
+            Suggestions = new ObservableGroupedOrderedCollection<AutocompleteSuggestion>(
+                indexKey: getIndexKey,
+                orderingKey: getOrderingKey,
+                groupingKey: suggestion => suggestion.WorkspaceId
+            );
+
+            Close = rxActionFactory.FromAsync(close);
+            ToggleTaskSuggestions = rxActionFactory.FromAction<ProjectSuggestion>(toggleTaskSuggestions);
+            SelectProject = rxActionFactory.FromAsync<AutocompleteSuggestion>(selectProject);
+
+            IsEmpty = dataSource.Projects.GetAll().Select(projects => projects.None());
+            PlaceholderText = IsEmpty.Select(isEmpty => isEmpty ? Resources.EnterProject : Resources.AddFilterProjects);
+            SuggestCreation = FilterText.Select(shouldSuggestCreation);
+
+            FilterText.Select(text => text.SplitToQueryWords())
+                      .ObserveOn(schedulerProvider.BackgroundScheduler)
+                      .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
+                      .SubscribeOn(schedulerProvider.MainScheduler)
+                      .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
+                      .Select(setSelectedProject)
+                      .Subscribe(Suggestions.ReplaceWith);
+        }
+
+        private IComparable getIndexKey(AutocompleteSuggestion autocompleteSuggestion)
+        {
+            if (autocompleteSuggestion is ProjectSuggestion projectSuggestion)
+                return projectSuggestion.ProjectId;
+            if (autocompleteSuggestion is TaskSuggestion taskSuggestion)
+                return taskSuggestion.TaskId;
+
+            throw new Exception($"Unexpected {nameof(AutocompleteSuggestion)} encountered in ${nameof(Suggestions)}");
+        }
+
+        private IComparable getOrderingKey(AutocompleteSuggestion autocompleteSuggestion)
+        {
+            if (autocompleteSuggestion is ProjectSuggestion projectSuggestion)
+                return projectSuggestion.ProjectName;
+            if (autocompleteSuggestion is TaskSuggestion taskSuggestion)
+                return $"{taskSuggestion.ProjectName}{taskSuggestion.Name}";
+
+            throw new Exception($"Unexpected {nameof(AutocompleteSuggestion)} encountered in ${nameof(Suggestions)}");
         }
 
         public override void Prepare(SelectProjectParameter parameter)
@@ -143,17 +202,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             dataSource.Projects
                       .GetAll()
                       .Select(projects => projects.Any())
-                      .Subscribe(hasProjects => IsEmpty = !hasProjects);
-
-            infoSubject.AsObservable()
-                       .StartWith(Text)
-                       .Select(text => text.SplitToQueryWords())
-                       .ObserveOn(schedulerProvider.BackgroundScheduler)
-                       .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
-                       .SubscribeOn(schedulerProvider.MainScheduler)
-                       .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
-                       .Select(setSelectedProject)
-                       .Subscribe(onSuggestions);
+                      .Subscribe(hasProjects => IsEmptyOld = !hasProjects);
         }
 
         public override void ViewAppeared()
@@ -175,19 +224,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private void OnTextChanged()
         {
             infoSubject.OnNext(Text);
-        }
-
-        private void onSuggestions(IEnumerable<ProjectSuggestion> suggestions)
-        {
-            var workspaces = groupByWorkspace(suggestions, !UsesFilter);
-            if (!UsesFilter)
-                workspaces = addMissingWorkspacesTo(workspaces);
-
-            workspaces = workspaces
-                .OrderByDescending(ws => ws.WorkspaceId == workspaceId)
-                .ThenBy(ws => ws.WorkspaceName);
-
-            Suggestions.ReplaceWith(workspaces);
         }
 
         private IEnumerable<WorkspaceGroupedSuggestionsCollection> addMissingWorkspacesTo(IEnumerable<WorkspaceGroupedSuggestionsCollection> workspaces)
@@ -220,7 +256,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task createProject()
         {
-            if (!SuggestCreation) return;
+            if (!SuggestCreationOld) return;
 
             var createdProjectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(Text.Trim());
             if (createdProjectId == null) return;
@@ -282,21 +318,21 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void toggleTaskSuggestions(ProjectSuggestion projectSuggestion)
         {
-            var grouping = Suggestions.FirstOrDefault(s => s.WorkspaceId == projectSuggestion.WorkspaceId);
+            var grouping = Suggestions.FirstOrDefault(g => g.FirstOrDefault()?.WorkspaceId == projectSuggestion.WorkspaceId);
+
             if (grouping == null) return;
+            if (!grouping.Contains(projectSuggestion)) return;
 
-            var suggestionIndex = grouping.IndexOf(projectSuggestion);
-            if (suggestionIndex < 0) return;
-
-            projectSuggestion.TasksVisible = !projectSuggestion.TasksVisible;
-
-            var groupingIndex = Suggestions.IndexOf(grouping);
-            Suggestions.Remove(grouping);
-            Suggestions.Insert(groupingIndex,
-                new WorkspaceGroupedCollection<AutocompleteSuggestion>(
-                    grouping.WorkspaceName, grouping.WorkspaceId, getSuggestionsWithTasks(grouping)
-                )
-            );
+            if (!projectSuggestion.TasksVisible)
+            {
+                projectSuggestion.TasksVisible = true;
+                Suggestions.AddItems(projectSuggestion.Tasks);
+            }
+            else
+            {
+                projectSuggestion.TasksVisible = false;
+                Suggestions.RemoveItems(projectSuggestion.Tasks);
+            }
         }
 
         private IEnumerable<AutocompleteSuggestion> getSuggestionsWithTasks(
@@ -317,6 +353,26 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         yield return taskSuggestion;
                 }
             }
+        }
+
+        private bool shouldSuggestCreation(string text)
+        {
+            if (!shouldShowProjectCreationSuggestion)
+                return false;
+
+            if (!UsesFilterOld)
+                return false;
+
+            text = text.Trim();
+
+            var isOfAllowedLength = text.LengthInBytes() <= MaxProjectNameLengthInBytes;
+            if (!isOfAllowedLength)
+                return false;
+
+
+            //TODO: don't use old Suggestions list
+            var hasNoExactMatches = SuggestionsOld.None(ws => ws.Any(s => s is ProjectSuggestion ps && ps.ProjectName == text));
+            return hasNoExactMatches;
         }
     }
 }

@@ -731,7 +731,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
                 await ViewModel.Initialize();
 
-                ViewModel.IsEmpty.Should().BeFalse();
+                ViewModel.IsEmptyOld.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -752,7 +752,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Text = "Anything";
 
-                ViewModel.IsEmpty.Should().BeFalse();
+                ViewModel.IsEmptyOld.Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -763,7 +763,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
                 await ViewModel.Initialize();
 
-                ViewModel.IsEmpty.Should().BeTrue();
+                ViewModel.IsEmptyOld.Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -773,7 +773,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
 
-                ViewModel.IsEmpty.Should().BeFalse();
+                ViewModel.IsEmptyOld.Should().BeFalse();
             }
         }
     }

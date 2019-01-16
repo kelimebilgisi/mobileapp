@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
@@ -107,9 +108,37 @@ namespace Toggl.Daneel.ViewSources
                 case ReloadCollectionChange reload:
                     tableView.ReloadData();
                     break;
+
+                case AddMultipleRowsCollectionChange<TModel> addMultipleRowsChange:
+                    addMultipleRows(addMultipleRowsChange);
+                    addMultipleRowsChange.AddedRowChanges
+                        .Select(rowChange => rowChange.Index.Section)
+                        .Distinct()
+                        .Do(affectedSections.Add);
+                    break;
+
+                case RemoveMultipleRowsCollectionChange removeMultipleRowsCollectionChange:
+                    removeMultipleRows(removeMultipleRowsCollectionChange);
+                    removeMultipleRowsCollectionChange.RemovedIndexes
+                        .Select(index => index.Section)
+                        .Distinct()
+                        .Do(affectedSections.Add);
+                    break;
             }
 
             return affectedSections;
+        }
+
+        private void removeMultipleRows(RemoveMultipleRowsCollectionChange collectionChange)
+        {
+            var nsIndexes = collectionChange.RemovedIndexes.Select(index => index.ToIndexPath()).ToArray();
+            tableView.DeleteRows(nsIndexes, UITableViewRowAnimation.Automatic);
+        }
+
+        private void addMultipleRows(AddMultipleRowsCollectionChange<TModel> addMultipleRowsChange)
+        {
+            var nsIndexes = addMultipleRowsChange.AddedRowChanges.Select(c => c.Index.ToIndexPath()).ToArray();
+            tableView.InsertRows(nsIndexes, UITableViewRowAnimation.Automatic);
         }
 
         private void insertSection(InsertSectionCollectionChange<TModel> change)

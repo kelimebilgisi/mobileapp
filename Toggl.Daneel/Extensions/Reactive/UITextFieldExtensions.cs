@@ -45,5 +45,8 @@ namespace Toggl.Daneel.Extensions.Reactive
                 });
             });
         }
+
+        public static Action<string> PlaceholderText(this IReactive<UITextField> reactive)
+            => placeholderText => reactive.Base.Placeholder = placeholderText;
     }
 }

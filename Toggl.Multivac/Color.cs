@@ -52,5 +52,8 @@ namespace Toggl.Multivac
         {
             return $"{{a={Alpha}, r={Red}, g={Green}, b={Blue}}}";
         }
+
+        public override int GetHashCode()
+            => HashCode.From(Alpha, Red, Green, Blue);
     }
 }

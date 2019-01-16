@@ -1,7 +1,4 @@
 ﻿using System.Threading.Tasks;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Commands;
-using MvvmCross.Platforms.Ios.Binding;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
@@ -9,14 +6,19 @@ using Toggl.Foundation;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Daneel.Extensions.Reactive;
 using UIKit;
+using System;
+using System.Reactive.Linq;
+using static Toggl.Multivac.Extensions.ReactiveExtensions;
+using Toggl.Daneel.Views.StartTimeEntry;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
     public sealed partial class SelectProjectViewController : KeyboardAwareViewController<SelectProjectViewModel>, IDismissableViewController
     {
-        public SelectProjectViewController() 
+        public SelectProjectViewController()
             : base(nameof(SelectProjectViewController))
         {
         }
@@ -25,66 +27,81 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            TitleLabel.Text = Resources.Projects;
-            TextField.Placeholder = Resources.AddFilterProjects;
-            EmptyStateLabel.Text = Resources.EmptyProjectText;
-            
-            var source = new SelectProjectTableViewSource(ProjectsTableView);
-            ProjectsTableView.Source = source;
-            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+            var source = new SelectProjectTableViewSource(ViewModel.Suggestions, ReactiveProjectSuggestionViewCell.Key);
+            source.ToggleTaskSuggestions = ViewModel.ToggleTaskSuggestions;
+            source.SelectProject = ViewModel.SelectProject;
+            source.UseGrouping = ViewModel.UseGrouping;
+            ProjectsTableView.TableFooterView = new UIView();
+            ProjectsTableView.RegisterNibForCellReuse(ReactiveProjectSuggestionViewCell.Nib, ReactiveProjectSuggestionViewCell.Key);
+            ProjectsTableView.RegisterNibForCellReuse(ReactiveTaskSuggestionViewCell.Nib, ReactiveTaskSuggestionViewCell.Key);
+            ProjectsTableView.RegisterNibForHeaderFooterViewReuse(ReactiveWorkspaceHeaderViewCell.Nib, ReactiveWorkspaceHeaderViewCell.Key);
+            ProjectsTableView.Rx()
+                .Bind(source)
+                .DisposedBy(DisposeBag);
 
-            var bindingSet = this.CreateBindingSet<SelectProjectViewController, SelectProjectViewModel>();
+            ViewModel.IsEmpty
+                .Subscribe(EmptyStateLabel.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(EmptyStateLabel)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.IsEmpty);
+            ViewModel.IsEmpty
+                .Subscribe(EmptyStateImage.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(EmptyStateImage)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.IsEmpty);
+            ViewModel.PlaceholderText
+                .Subscribe(TextField.Rx().PlaceholderText())
+                .DisposedBy(DisposeBag);
 
-            //Table view
-            bindingSet.Bind(source)
-                      .For(v => v.ObservableCollection)
-                      .To(vm => vm.Suggestions);
+            TextField.Rx().Text()
+                .Subscribe(ViewModel.FilterText)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(source)
-                      .For(v => v.CreateCommand)
-                      .To(vm => vm.CreateProjectCommand);
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(source)
-                      .For(v => v.SuggestCreation)
-                      .To(vm => vm.SuggestCreation);
+            source.ItemSelected.Subscribe(ViewModel.SelectProject.Inputs);
 
-            bindingSet.Bind(source)
-                      .For(v => v.UseGrouping)
-                      .To(vm => vm.UseGrouping);
+            //var source = new SelectProjectTableViewSourceOld(ProjectsTableView);
+            //ProjectsTableView.Source = source;
+            //source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
-            bindingSet.Bind(source)
-                      .For(v => v.Text)
-                      .To(vm => vm.Text);
-            
-            //Text
-            bindingSet.Bind(TextField).To(vm => vm.Text);
+            ////Table view
+            //bindingSet.Bind(source)
+            //          .For(v => v.ObservableCollection)
+            //          .To(vm => vm.Suggestions);
 
-            bindingSet.Bind(TextField)
-                      .For(v => v.BindPlaceholder())
-                      .To(vm => vm.PlaceholderText);
+            //bindingSet.Bind(source)
+            //          .For(v => v.CreateCommand)
+            //          .To(vm => vm.CreateProjectCommand);
 
-            //Commands
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
-            bindingSet.Bind(source)
-                      .For(s => s.SelectionChangedCommand)
-                      .To(vm => vm.SelectProjectCommand);
-            
-            bindingSet.Apply();
+            //bindingSet.Bind(source)
+            //          .For(v => v.SuggestCreation)
+            //          .To(vm => vm.SuggestCreation);
+
+            //bindingSet.Bind(source)
+            //          .For(v => v.UseGrouping)
+            //          .To(vm => vm.UseGrouping);
+
+            //bindingSet.Bind(source)
+            //          .For(v => v.Text)
+            //          .To(vm => vm.Text);
+
+            ////Text
+            //bindingSet.Bind(TextField).To(vm => vm.Text);
+
+            ////Commands
+            //bindingSet.Bind(source)
+            //.For(s => s.SelectionChangedCommand)
+            //.To(vm => vm.SelectProjectCommand);
+
+            //bindingSet.Apply();
 
             TextField.BecomeFirstResponder();
         }
 
         public async Task<bool> Dismiss()
         {
-            await ViewModel.CloseCommand.ExecuteAsync();
+            await ViewModel.Close.Execute();
             return true;
         }
 

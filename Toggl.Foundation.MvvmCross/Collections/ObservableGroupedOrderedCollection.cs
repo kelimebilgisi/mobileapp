@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Toggl.Foundation.MvvmCross.Collections.Changes;
@@ -124,6 +125,40 @@ namespace Toggl.Foundation.MvvmCross.Collections
             collectionChangesSubject.OnNext(new RemoveRowCollectionChange(index));
 
             return item;
+        }
+
+        public TItem RemoveItemAt(SectionedIndex index)
+            => RemoveItemAt(index.Section, index.Row);
+
+        public void AddItems(IEnumerable<TItem> items)
+        {
+            var affectedIndexes = collection.InsertItems(items)
+                .Select(tuple => tuple.index);
+
+            if (affectedIndexes.Count() != items.Count())
+                throw new Exception();
+
+            var collectionChange = new AddMultipleRowsCollectionChange<TItem>(
+                affectedIndexes.Zip(items, (index, item) => new AddRowCollectionChange<TItem>(index, item)).ToArray()
+            );
+
+            collectionChangesSubject.OnNext(collectionChange);
+        }
+
+        public void RemoveItems(IEnumerable<TItem> items)
+        {
+            var indexes = items
+                .Select(IndexOf)
+                .Where(index => index != null)
+                .Select(index => index.Value)
+                .OrderByDescending(index => index.Section)
+                .ThenByDescending(index => index.Row)
+                .ToArray();
+
+            collection.RemoveItemsAt(indexes);
+
+            var collectionChange = new RemoveMultipleRowsCollectionChange(indexes);
+            collectionChangesSubject.OnNext(collectionChange);
         }
     }
 }

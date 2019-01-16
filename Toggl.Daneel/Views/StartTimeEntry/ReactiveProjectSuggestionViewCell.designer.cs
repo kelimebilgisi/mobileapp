@@ -7,20 +7,18 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Toggl.Daneel.Views
+namespace Toggl.Daneel.Views.StartTimeEntry
 {
-	[Register ("StartTimeEntryProjectsViewCell")]
-	partial class ProjectSuggestionViewCell
+	[Register ("ReactiveProjectSuggestionViewCell")]
+	partial class ReactiveProjectSuggestionViewCell
 	{
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UILabel AmountOfTasksLabel { get; set; }
 
 		[Outlet]
 		UIKit.UIView BottomSeparatorView { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UILabel ClientNameLabel { get; set; }
 
 		[Outlet]
@@ -30,26 +28,21 @@ namespace Toggl.Daneel.Views
 		UIKit.NSLayoutConstraint FadeViewTrailingConstraint { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UIView ProjectDotView { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UILabel ProjectNameLabel { get; set; }
 
 		[Outlet]
 		UIKit.UIView SelectedProjectView { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UIImageView ToggleTaskImage { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UIButton ToggleTasksButton { get; set; }
 
 		[Outlet]
-		[GeneratedCode ("iOS Designer", "1.0")]
 		UIKit.UIView TopSeparatorView { get; set; }
 		
 		void ReleaseDesignerOutlets ()

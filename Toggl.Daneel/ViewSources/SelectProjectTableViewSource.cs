@@ -1,57 +1,54 @@
 ﻿using System;
+using System.Linq;
 using Foundation;
-using MvvmCross.Commands;
-using MvvmCross.ViewModels;
-using MvvmCross.Plugin.Color.Platforms.Ios;
-using Toggl.Daneel.Views;
+using Toggl.Daneel.Views.StartTimeEntry;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Collections;
-using Toggl.Foundation.MvvmCross.Helper;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class SelectProjectTableViewSource : CreateSuggestionGroupedTableViewSource<AutocompleteSuggestion>
+    public sealed class SelectProjectTableViewSource : ReactiveSectionedListTableViewSource<AutocompleteSuggestion, ReactiveProjectSuggestionViewCell>
     {
-        private const string taskCellIdentifier = nameof(TaskSuggestionViewCell);
-        private const string headerCellIdentifier = nameof(WorkspaceHeaderViewCell);
-        private const string projectCellIdentifier = nameof(ProjectSuggestionViewCell);
+        private const int headerHeight = 40;
 
-        public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
-
-        public SelectProjectTableViewSource(UITableView tableView)
-            : base(tableView, projectCellIdentifier, headerCellIdentifier)
-        {
-            UseAnimations = false;
-
-            tableView.TableFooterView = new UIView();
-            tableView.SeparatorStyle = UITableViewCellSeparatorStyle.None;
-            tableView.SeparatorColor = Color.StartTimeEntry.SeparatorColor.ToNativeColor();
-            tableView.RegisterNibForCellReuse(TaskSuggestionViewCell.Nib, taskCellIdentifier);
-            tableView.RegisterNibForCellReuse(ProjectSuggestionViewCell.Nib, projectCellIdentifier);
-            tableView.RegisterNibForHeaderFooterViewReuse(WorkspaceHeaderViewCell.Nib, headerCellIdentifier);
-        }
+        public InputAction<ProjectSuggestion> ToggleTaskSuggestions { get; set; }
+        public InputAction<AutocompleteSuggestion> SelectProject { get; set; }
 
         public bool UseGrouping { get; set; }
 
+        public SelectProjectTableViewSource(ObservableGroupedOrderedCollection<AutocompleteSuggestion> items, string cellIdentifier)
+            : base(items, cellIdentifier)
+        {
+        }
+
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
         {
-            var cell = base.GetCell(tableView, indexPath);
+            var item = getItemAt(indexPath);
+            var cell = tableView.DequeueReusableCell(getCellIdentifierFor(item));
+
             cell.LayoutMargins = UIEdgeInsets.Zero;
             cell.SeparatorInset = UIEdgeInsets.Zero;
             cell.PreservesSuperviewLayoutMargins = false;
 
-            if (cell is ProjectSuggestionViewCell projectCell)
+            if (cell is ReactiveTaskSuggestionViewCell taskCell)
             {
-                projectCell.ToggleTasksCommand = ToggleTasksCommand;
+                taskCell.Item = (TaskSuggestion)item;
+            }
+            
+            if (cell is ReactiveProjectSuggestionViewCell projectCell)
+            {
+                projectCell.Item = item;
+                projectCell.ToggleTaskSuggestions = ToggleTaskSuggestions;
 
                 var previousItemPath = NSIndexPath.FromItemSection(indexPath.Item - 1, indexPath.Section);
-                var previous = GetItemAt(previousItemPath);
+                var previous = getItemAt(previousItemPath);
                 var previousIsTask = previous is TaskSuggestion;
                 projectCell.TopSeparatorHidden = !previousIsTask;
 
                 var nextItemPath = NSIndexPath.FromItemSection(indexPath.Item + 1, indexPath.Section);
-                var next = GetItemAt(nextItemPath);
+                var next = getItemAt(nextItemPath);
                 var isLastItemInSection = next == null;
                 var isLastSection = indexPath.Section == tableView.NumberOfSections() - 1;
                 projectCell.BottomSeparatorHidden = isLastItemInSection && !isLastSection;
@@ -60,34 +57,51 @@ namespace Toggl.Daneel.ViewSources
             return cell;
         }
 
-        public override nfloat GetHeightForHeader(UITableView tableView, nint section)
-            => UseGrouping ? base.GetHeightForHeader(tableView, section) : 0;
-
-        public override UIView GetViewForHeader(UITableView tableView, nint section)
-            => UseGrouping ? base.GetViewForHeader(tableView, section) : null;
-
-        public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath) => 48;
-
-        protected override UITableViewCell GetOrCreateCellFor(UITableView tableView, NSIndexPath indexPath, object item)
-            => tableView.DequeueReusableCell(getIdentifier(item), indexPath);
-
-        private string getIdentifier(object item)
+        private AutocompleteSuggestion getItemAt(NSIndexPath indexPath)
         {
-            if (item is string)
-                return CreateEntityCellIdentifier;
+            if (indexPath.Section < 0 || indexPath.Row < 0)
+                return null;
 
-            if (item is ProjectSuggestion)
-                return projectCellIdentifier;
+            if (indexPath.Section >= DisplayedItems.Count)
+                return null;
 
-            if (item is TaskSuggestion)
-                return taskCellIdentifier;
+            var section = DisplayedItems.ElementAtOrDefault(indexPath.Section);
 
-            throw new ArgumentException($"{nameof(item)} must be either of type {nameof(ProjectSuggestion)} or {nameof(TaskSuggestion)}.");
+            if (indexPath.Row >= section.Count)
+                return null;
+
+            return section.ElementAtOrDefault(indexPath.Row);
         }
 
-        protected override object GetCreateSuggestionItem() => $"Create project \"{Text}\"";
+        private string getCellIdentifierFor(AutocompleteSuggestion item)
+        {
+            switch(item)
+            {
+                case ProjectSuggestion _:
+                    return ReactiveProjectSuggestionViewCell.Key;
+                case TaskSuggestion _:
+                    return ReactiveTaskSuggestionViewCell.Key;
+                default:
+                    throw new Exception();
+            }
+        }
 
-        protected override WorkspaceGroupedCollection<AutocompleteSuggestion> CloneCollection(WorkspaceGroupedCollection<AutocompleteSuggestion> collection)
-            => new WorkspaceGroupedCollection<AutocompleteSuggestion>(collection.WorkspaceName, collection.WorkspaceId, collection);
+        public override UIView GetViewForHeader(UITableView tableView, nint section)
+        {
+            if (!UseGrouping) return null;
+
+            var header = (ReactiveWorkspaceHeaderViewCell)tableView.DequeueReusableHeaderFooterView(ReactiveWorkspaceHeaderViewCell.Key);
+            header.WorkspaceName = DisplayedItems[(int)section].First().WorkspaceName;
+            return header;
+        }
+
+        public override nfloat GetHeightForHeader(UITableView tableView, nint section)
+            => UseGrouping ? headerHeight : 0;
+
+        public override void RefreshHeader(UITableView tableView, int section)
+        {
+            if (tableView.GetHeaderView(section) is ReactiveWorkspaceHeaderViewCell header)
+                header.WorkspaceName = DisplayedItems[section].First().WorkspaceName;
+        }
     }
 }

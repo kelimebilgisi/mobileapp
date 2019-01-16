@@ -643,10 +643,9 @@
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
     <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
-    <InterfaceDefinition Include="Views\Tag\CreateTagViewCell.xib" />
-    <InterfaceDefinition Include="Views\Tag\NewTagViewCell.xib" />
-    <InterfaceDefinition Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.xib" />
-    <InterfaceDefinition Include="Cells\TimeEntriesLog\TimeEntriesLogViewCell.xib" />
+    <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.xib" />
+    <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.xib" />
+    <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -711,9 +710,8 @@
     <Compile Include="ViewControllers\SyncFailuresViewController.cs" />
     <Compile Include="ViewSources\Generic\CollectionView\ReloadCollectionViewSource.cs" />
     <Compile Include="ViewSources\Generic\ReactiveSectionedListTableViewSource.cs" />
-    <Compile Include="ViewSources\Generic\MutableSectionedListTableViewSource.cs" />
-    <Compile Include="ViewSources\Generic\TableView\BaseTableViewSource.cs" />
-    <Compile Include="ViewSources\SelectProjectTableViewSource.cs" />
+    <Compile Include="ViewSources\Generic\SectionedListTableViewSource.cs" />
+    <Compile Include="ViewSources\SelectProjectTableViewSourceOld.cs" />
     <Compile Include="Binding\TextFieldSecureTextEntryTargetBinding.cs" />
     <Compile Include="Binding\BarButtonAnimatedEnabledTargetBinding.cs" />
     <Compile Include="Binding\TextFieldFocusTargetBinding.cs" />
@@ -1170,14 +1168,18 @@
       <DependentUpon>NewTagViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
-    <Compile Include="ViewSources\Generic\TableView\CustomTableViewSource.cs" />
-    <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.cs" />
-    <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.designer.cs">
-      <DependentUpon>TimeEntriesLogHeaderView.cs</DependentUpon>
+    <Compile Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.cs" />
+    <Compile Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.designer.cs">
+      <DependentUpon>ReactiveProjectSuggestionViewCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogViewCell.cs" />
-    <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogViewCell.designer.cs">
-      <DependentUpon>TimeEntriesLogViewCell.cs</DependentUpon>
+    <Compile Include="ViewSources\SelectProjectTableViewSource.cs" />
+    <Compile Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.cs" />
+    <Compile Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.designer.cs">
+      <DependentUpon>ReactiveWorkspaceHeaderViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.cs" />
+    <Compile Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.designer.cs">
+      <DependentUpon>ReactiveTaskSuggestionViewCell.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
