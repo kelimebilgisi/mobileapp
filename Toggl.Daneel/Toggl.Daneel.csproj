@@ -646,6 +646,7 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.xib" />
+    <InterfaceDefinition Include="Views\EntityCreation\CreateEntityViewcell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -1180,6 +1181,10 @@
     <Compile Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.cs" />
     <Compile Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.designer.cs">
       <DependentUpon>ReactiveTaskSuggestionViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EntityCreation\CreateEntityViewcell.cs" />
+    <Compile Include="Views\EntityCreation\CreateEntityViewcell.designer.cs">
+      <DependentUpon>CreateEntityViewcell.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
