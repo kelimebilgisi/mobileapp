@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation.Autocomplete.Suggestions;
@@ -24,8 +23,6 @@ using static Toggl.Foundation.Helper.Constants;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
-    using WorkspaceGroupedSuggestionsCollection = WorkspaceGroupedCollection<AutocompleteSuggestion>;
-
     [Preserve(AllMembers = true)]
     public sealed class SelectProjectViewModel
         : MvxViewModel<SelectProjectParameter, SelectProjectParameter>
@@ -42,14 +39,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private long workspaceId;
         private IStopwatch navigationFromEditTimeEntryViewModelStopwatch;
 
-        public IMvxAsyncCommand CreateProjectCommand { get; }
-
-        public NestableObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>, AutocompleteSuggestion> SuggestionsOld { get; }
-            = new NestableObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>, AutocompleteSuggestion>();
-
-        /*
-         * The new stuff goes below
-         */
         private List<IThreadSafeWorkspace> allWorkspaces = new List<IThreadSafeWorkspace>();
         private bool shouldShowProjectCreationSuggestion;
 
@@ -206,35 +195,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 return s;
             });
         }
-
-        private IEnumerable<WorkspaceGroupedSuggestionsCollection> addMissingWorkspacesTo(IEnumerable<WorkspaceGroupedSuggestionsCollection> workspaces)
-        {
-            var usedWorkspaceIds = new HashSet<long>(workspaces.Select(ws => ws.WorkspaceId));
-
-            var unusedWorkspaces = allWorkspaces
-                .Where(ws => !usedWorkspaceIds.Contains(ws.Id))
-                .Select(workspaceGroupedSuggestionCollection);
-
-            return workspaces.Concat(unusedWorkspaces);
-        }
-
-        private WorkspaceGroupedSuggestionsCollection workspaceGroupedSuggestionCollection(IThreadSafeWorkspace workspace)
-            => new WorkspaceGroupedSuggestionsCollection(
-                workspace.Name,
-                workspace.Id,
-                new[] { ProjectSuggestion.NoProject(workspace.Id, workspace.Name) });
-
-        private IEnumerable<WorkspaceGroupedSuggestionsCollection> groupByWorkspace(IEnumerable<ProjectSuggestion> suggestions, bool prependNoProjectItem)
-        {
-            var sortedSuggestions = suggestions.OrderBy(ps => ps.ProjectName);
-
-            var groupedSuggestions = prependNoProjectItem
-                ? sortedSuggestions.GroupByWorkspaceAddingNoProject()
-                : sortedSuggestions.GroupByWorkspace();
-
-            return groupedSuggestions;
-        }
-
         private async Task createProject(string name)
         {
             var createdProjectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(name);
@@ -317,26 +277,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             {
                 projectSuggestion.TasksVisible = false;
                 Suggestions.RemoveItems(projectSuggestion.Tasks);
-            }
-        }
-
-        private IEnumerable<AutocompleteSuggestion> getSuggestionsWithTasks(
-            IEnumerable<AutocompleteSuggestion> suggestions)
-        {
-            foreach (var suggestion in suggestions)
-            {
-                if (suggestion is TaskSuggestion) continue;
-
-                yield return suggestion;
-
-                if (suggestion is ProjectSuggestion projectSuggestion && projectSuggestion.TasksVisible)
-                {
-                    var orderedTasks = projectSuggestion.Tasks
-                        .OrderBy(t => t.Name);
-
-                    foreach (var taskSuggestion in orderedTasks)
-                        yield return taskSuggestion;
-                }
             }
         }
     }

@@ -10,7 +10,6 @@ using System;
 using System.Reactive.Linq;
 using static Toggl.Multivac.Extensions.ReactiveExtensions;
 using Toggl.Daneel.Views.StartTimeEntry;
-using Toggl.Daneel.Views.EntityCreation;
 
 namespace Toggl.Daneel.ViewControllers
 {
@@ -26,18 +25,14 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var source = new SelectProjectTableViewSource(ProjectsTableView, ViewModel.Suggestions, ReactiveProjectSuggestionViewCell.Key);
-            source.ToggleTaskSuggestions = ViewModel.ToggleTaskSuggestions;
+            var source = new SelectProjectTableViewSource(ViewModel.Suggestions, ReactiveProjectSuggestionViewCell.Key);
             source.UseGrouping = ViewModel.UseGrouping;
+            source.RegisterViewCells(ProjectsTableView);
 
             ProjectsTableView.TableFooterView = new UIView();
-            ProjectsTableView.RegisterNibForCellReuse(ReactiveProjectSuggestionViewCell.Nib, ReactiveProjectSuggestionViewCell.Key);
-            ProjectsTableView.RegisterNibForCellReuse(ReactiveTaskSuggestionViewCell.Nib, ReactiveTaskSuggestionViewCell.Key);
-            ProjectsTableView.RegisterNibForCellReuse(CreateEntityViewcell.Nib, CreateEntityViewcell.Key);
-            ProjectsTableView.RegisterNibForHeaderFooterViewReuse(ReactiveWorkspaceHeaderViewCell.Nib, ReactiveWorkspaceHeaderViewCell.Key);
 
             ProjectsTableView.Rx()
-                .Bind(source, ViewModel.CreateEntitySuggestion.Select(x => x != null))
+                .Bind(source, ViewModel.CreateEntitySuggestion.Select(createEntitySuggestion => createEntitySuggestion != null))
                 .DisposedBy(DisposeBag);
 
             ViewModel.IsEmpty
@@ -53,7 +48,7 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(DisposeBag);
 
             ViewModel.CreateEntitySuggestion
-                .Subscribe(createEntitySuggestion => source.CreateEntitySuggestion = createEntitySuggestion)
+                .Subscribe(source.OnCreateEntitySuggestion)
                 .DisposedBy(DisposeBag);
 
             TextField.Rx().Text()
@@ -66,6 +61,10 @@ namespace Toggl.Daneel.ViewControllers
 
             source.ItemSelected
                 .Subscribe(ViewModel.SelectProject.Inputs)
+                .DisposedBy(DisposeBag);
+
+            source.ToggleTaskSuggestion
+                .Subscribe(ViewModel.ToggleTaskSuggestions.Inputs)
                 .DisposedBy(DisposeBag);
 
             TextField.BecomeFirstResponder();

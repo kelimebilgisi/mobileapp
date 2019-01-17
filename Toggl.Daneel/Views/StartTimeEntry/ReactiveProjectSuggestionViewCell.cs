@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using Foundation;
 using Toggl.Daneel.Cells;
 using Toggl.Daneel.Extensions;
@@ -31,7 +33,8 @@ namespace Toggl.Daneel.Views.StartTimeEntry
             set => BottomSeparatorView.Hidden = value;
         }
 
-        public InputAction<ProjectSuggestion> ToggleTaskSuggestions { get; set; }
+        private ISubject<ProjectSuggestion> toggleTaskSuggestionsSubject = new Subject<ProjectSuggestion>();
+        public IObservable<ProjectSuggestion> ToggleTaskSuggestions => toggleTaskSuggestionsSubject.AsObservable();
 
         static ReactiveProjectSuggestionViewCell()
         {
@@ -104,7 +107,7 @@ namespace Toggl.Daneel.Views.StartTimeEntry
         private void toggleTaskSuggestions(object sender, EventArgs e)
         {
             if (Item is ProjectSuggestion projectSuggestion)
-                ToggleTaskSuggestions?.Execute(projectSuggestion);
+                toggleTaskSuggestionsSubject.OnNext(projectSuggestion);
         }
     }
 }
