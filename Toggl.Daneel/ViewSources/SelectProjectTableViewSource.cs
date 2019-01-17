@@ -107,16 +107,13 @@ namespace Toggl.Daneel.ViewSources
 
         private object getItemAt(NSIndexPath indexPath)
         {
-            if (!suggestCreation) return baseGetItemAt(indexPath);
+            if (suggestCreation)
+            {
+                if (indexPath.Section == 0)
+                    return createEntitySuggestion;
+                indexPath = indexPath.WithSection(indexPath.Section - 1);
+            }
 
-            if (indexPath.Section == 0)
-                return createEntitySuggestion;
-
-            return DisplayedItems.ElementAtOrDefault(indexPath.Section - 1)?.ElementAtOrDefault((int)indexPath.Item);
-        }
-
-        private object baseGetItemAt(NSIndexPath indexPath)
-        {
             if (indexPath.Section < 0 || indexPath.Row < 0)
                 return null;
 
@@ -151,25 +148,23 @@ namespace Toggl.Daneel.ViewSources
 
         public override UIView GetViewForHeader(UITableView tableView, nint section)
         {
-            if (!suggestCreation) return baseGetViewForHeader(tableView, section);
+            if (suggestCreation)
+            {
+                if (section == 0)
+                    return null;
+                section--;
+            }
 
-            var actualSection = (int)section;
-            if (actualSection == 0) return null;
-
-            return baseGetViewForHeader(tableView, actualSection - 1);
-        }
-
-        public override nint NumberOfSections(UITableView tableView)
-           => base.NumberOfSections(tableView) + (suggestCreation ? 1 : 0);
-
-        private UIView baseGetViewForHeader(UITableView tableView, nint section)
-        {
-            if (!UseGrouping) return null;
+            if (!UseGrouping)
+                return null;
 
             var header = (ReactiveWorkspaceHeaderViewCell)tableView.DequeueReusableHeaderFooterView(ReactiveWorkspaceHeaderViewCell.Key);
             header.WorkspaceName = DisplayedItems[(int)section].First().WorkspaceName;
             return header;
         }
+
+        public override nint NumberOfSections(UITableView tableView)
+           => base.NumberOfSections(tableView) + (suggestCreation ? 1 : 0);
 
         public override nint RowsInSection(UITableView tableview, nint section)
         {
@@ -183,7 +178,7 @@ namespace Toggl.Daneel.ViewSources
 
         public override nfloat GetHeightForHeader(UITableView tableView, nint section)
         {
-            if (UseGrouping)
+            if (!UseGrouping)
                 return 0;
 
             if (suggestCreation && section == 0)
