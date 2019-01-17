@@ -23,7 +23,9 @@ namespace Toggl.Daneel.ViewSources
         private ReactiveSectionedListTableViewSource<TModel, TCell> dataSource;
         private UITableView tableView;
 
-        public ReactiveTableViewBinder(UITableView tableView, ReactiveSectionedListTableViewSource<TModel, TCell> dataSource)
+        private bool suggestCreation;
+
+        public ReactiveTableViewBinder(UITableView tableView, ReactiveSectionedListTableViewSource<TModel, TCell> dataSource, IObservable<bool> suggestCreationObservable = null)
         {
             this.tableView = tableView;
             this.dataSource = dataSource;
@@ -34,6 +36,9 @@ namespace Toggl.Daneel.ViewSources
                 .ObserveOn(SynchronizationContext.Current)
                 .Subscribe(handleCollectionChange)
                 .DisposedBy(disposeBag);
+
+            if (suggestCreationObservable != null)
+                suggestCreationObservable.Subscribe(suggestCreation => this.suggestCreation = suggestCreation);
         }
 
         private void handleCollectionChange(ICollectionChange change)
@@ -132,14 +137,25 @@ namespace Toggl.Daneel.ViewSources
         private void removeMultipleRows(RemoveMultipleRowsCollectionChange collectionChange)
         {
             var nsIndexes = collectionChange.RemovedIndexes.Select(index => index.ToIndexPath()).ToArray();
+
+            if (suggestCreation)
+                nsIndexes = offsetIndexesByOneSection(nsIndexes);
+
             tableView.DeleteRows(nsIndexes, UITableViewRowAnimation.Automatic);
         }
 
         private void addMultipleRows(AddMultipleRowsCollectionChange<TModel> addMultipleRowsChange)
         {
             var nsIndexes = addMultipleRowsChange.AddedRowChanges.Select(c => c.Index.ToIndexPath()).ToArray();
+
+            if (suggestCreation)
+                nsIndexes = offsetIndexesByOneSection(nsIndexes);
+
             tableView.InsertRows(nsIndexes, UITableViewRowAnimation.Automatic);
         }
+
+        private NSIndexPath[] offsetIndexesByOneSection(NSIndexPath[] indexes)
+            => indexes.Select(index => index.WithSection(index.Section + 1)).ToArray();
 
         private void insertSection(InsertSectionCollectionChange<TModel> change)
         {

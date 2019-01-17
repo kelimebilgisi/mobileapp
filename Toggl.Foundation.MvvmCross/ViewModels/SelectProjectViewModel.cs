@@ -61,7 +61,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<bool> IsEmpty { get; }
 
-        public IObservable<bool> SuggestCreation { get; }
+        private ISubject<CreateEntitySuggestion> createEntitySuggestionSubject = new Subject<CreateEntitySuggestion>();
+        public IObservable<CreateEntitySuggestion> CreateEntitySuggestion { get; }
 
         public IObservable<bool> UsesFilter { get; }
 
@@ -97,8 +98,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.schedulerProvider = schedulerProvider;
             this.stopwatchProvider = stopwatchProvider;
 
-            CreateProjectCommand = new MvxAsyncCommand(createProject);
-
             Suggestions = new ObservableGroupedOrderedCollection<AutocompleteSuggestion>(
                 indexKey: getIndexKey,
                 orderingKey: getOrderingKey,
@@ -111,15 +110,45 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsEmpty = dataSource.Projects.GetAll().Select(projects => projects.None());
             PlaceholderText = IsEmpty.Select(isEmpty => isEmpty ? Resources.EnterProject : Resources.AddFilterProjects);
-            SuggestCreation = FilterText.Select(shouldSuggestCreation);
 
-            FilterText.Select(text => text.SplitToQueryWords())
+            CreateEntitySuggestion = createEntitySuggestionSubject.AsObservable();
+
+            FilterText.Select(text => (text, text.SplitToQueryWords()))
                       .ObserveOn(schedulerProvider.BackgroundScheduler)
-                      .SelectMany(query => interactorFactory.GetProjectsAutocompleteSuggestions(query).Execute())
+                      .Select(tuple => (tuple.Item1, interactorFactory.GetProjectsAutocompleteSuggestions(tuple.Item2).Execute().SelectMany(x => x).ToEnumerable()))
                       .SubscribeOn(schedulerProvider.MainScheduler)
-                      .Select(suggestions => suggestions.Cast<ProjectSuggestion>())
-                      .Select(setSelectedProject)
-                      .Subscribe(Suggestions.ReplaceWith);
+                      .Select(tuple => (tuple.Item1, tuple.Item2.Cast<ProjectSuggestion>()))
+                      .Select(tuple => (tuple.Item1, setSelectedProject(tuple.Item2)))
+                      .Do(tuple => updateCreateEntitySuggestion(tuple.Item1, tuple.Item2))
+                      .Subscribe(tuple => Suggestions.ReplaceWith(tuple.Item2));
+        }
+
+        private void updateCreateEntitySuggestion(string text, IEnumerable<AutocompleteSuggestion> suggestions)
+        {
+            CreateEntitySuggestion createEntitySuggestion = null;
+
+            if (shouldSuggestCreation(text, suggestions))
+                createEntitySuggestion = new CreateEntitySuggestion(Resources.CreateProject, text);
+
+            createEntitySuggestionSubject.OnNext(createEntitySuggestion);
+        }
+
+        private bool shouldSuggestCreation(string text, IEnumerable<AutocompleteSuggestion> suggestions)
+        {
+            if (!shouldShowProjectCreationSuggestion)
+                return false;
+
+            text = text.Trim();
+
+            if (string.IsNullOrEmpty(text))
+                return false;
+
+            var isOfAllowedLength = text.LengthInBytes() <= MaxProjectNameLengthInBytes;
+            if (!isOfAllowedLength)
+                return false;
+
+            var hasNoExactMatches = suggestions.None(suggestion => suggestion is ProjectSuggestion ps && ps.ProjectName == text);
+            return hasNoExactMatches;
         }
 
         private IComparable getIndexKey(AutocompleteSuggestion autocompleteSuggestion)
@@ -206,16 +235,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return groupedSuggestions;
         }
 
-        private async Task createProject()
+        private async Task createProject(string name)
         {
-            //if (!SuggestCreationOld) return;
+            var createdProjectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(name);
+            if (createdProjectId == null) return;
 
-            //var createdProjectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(Text.Trim());
-            //if (createdProjectId == null) return;
-
-            //var project = await interactorFactory.GetProjectById(createdProjectId.Value).Execute();
-            //var parameter = SelectProjectParameter.WithIds(project.Id, null, project.WorkspaceId);
-            //await navigationService.Close(this, parameter);
+            var project = await interactorFactory.GetProjectById(createdProjectId.Value).Execute();
+            var parameter = SelectProjectParameter.WithIds(project.Id, null, project.WorkspaceId);
+            await navigationService.Close(this, parameter);
         }
 
         private Task close()
@@ -225,6 +252,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task selectProject(AutocompleteSuggestion suggestion)
         {
+            if (suggestion is CreateEntitySuggestion createEntitySuggestion)
+            {
+                await createProject(createEntitySuggestion.EntityName);
+                return;
+            }
+
             if (suggestion.WorkspaceId == workspaceId || suggestion.WorkspaceId == 0)
             {
                 setProject(suggestion);
@@ -305,24 +338,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         yield return taskSuggestion;
                 }
             }
-        }
-
-        private bool shouldSuggestCreation(string text)
-        {
-            if (!shouldShowProjectCreationSuggestion)
-                return false;
-
-            text = text.Trim();
-
-            if (string.IsNullOrEmpty(text))
-                return false;
-
-            var isOfAllowedLength = text.LengthInBytes() <= MaxProjectNameLengthInBytes;
-            if (!isOfAllowedLength)
-                return false;
-
-            var hasNoExactMatches = Suggestions.None(ws => ws.Any(s => s is ProjectSuggestion ps && ps.ProjectName == text));
-            return hasNoExactMatches;
         }
     }
 }

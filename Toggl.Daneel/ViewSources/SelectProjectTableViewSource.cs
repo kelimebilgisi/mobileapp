@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Foundation;
+using Toggl.Daneel.Views.EntityCreation;
 using Toggl.Daneel.Views.StartTimeEntry;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -13,14 +14,23 @@ namespace Toggl.Daneel.ViewSources
     {
         private const int headerHeight = 40;
 
+        private readonly UITableView tableView;
+
         public InputAction<ProjectSuggestion> ToggleTaskSuggestions { get; set; }
-        public InputAction<AutocompleteSuggestion> SelectProject { get; set; }
 
         public bool UseGrouping { get; set; }
 
-        public SelectProjectTableViewSource(ObservableGroupedOrderedCollection<AutocompleteSuggestion> items, string cellIdentifier)
+        public bool SuggestCreation => CreateEntitySuggestion != null;
+
+        public CreateEntitySuggestion CreateEntitySuggestion { get; set; }
+
+        public SelectProjectTableViewSource(
+            UITableView tableView,
+            ObservableGroupedOrderedCollection<AutocompleteSuggestion> items,
+            string cellIdentifier)
             : base(items, cellIdentifier)
         {
+            this.tableView = tableView;
         }
 
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
@@ -32,6 +42,11 @@ namespace Toggl.Daneel.ViewSources
             cell.SeparatorInset = UIEdgeInsets.Zero;
             cell.PreservesSuperviewLayoutMargins = false;
 
+            if (cell is CreateEntityViewcell createEntityViewCell)
+            {
+                createEntityViewCell.Item = (CreateEntitySuggestion)item;
+            }
+
             if (cell is ReactiveTaskSuggestionViewCell taskCell)
             {
                 taskCell.Item = (TaskSuggestion)item;
@@ -39,7 +54,7 @@ namespace Toggl.Daneel.ViewSources
             
             if (cell is ReactiveProjectSuggestionViewCell projectCell)
             {
-                projectCell.Item = item;
+                projectCell.Item = (ProjectSuggestion)item;
                 projectCell.ToggleTaskSuggestions = ToggleTaskSuggestions;
 
                 var previousItemPath = NSIndexPath.FromItemSection(indexPath.Item - 1, indexPath.Section);
@@ -57,7 +72,34 @@ namespace Toggl.Daneel.ViewSources
             return cell;
         }
 
-        private AutocompleteSuggestion getItemAt(NSIndexPath indexPath)
+        public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
+        {
+            if (SuggestCreation)
+            {
+                if (indexPath.Section == 0)
+                {
+                    OnItemTapped?.Invoke(CreateEntitySuggestion);
+                    tableView.DeselectRow(indexPath, true);
+                    return;
+                }
+
+                indexPath = NSIndexPath.FromRowSection(indexPath.Row, indexPath.Section - 1);
+            }
+
+            base.RowSelected(tableView, indexPath);
+        }
+
+        private object getItemAt(NSIndexPath indexPath)
+        {
+            if (!SuggestCreation) return baseGetItemAt(indexPath);
+
+            if (indexPath.Section == 0)
+                return CreateEntitySuggestion;
+
+            return DisplayedItems.ElementAtOrDefault(indexPath.Section - 1)?.ElementAtOrDefault((int)indexPath.Item);
+        }
+
+        private object baseGetItemAt(NSIndexPath indexPath)
         {
             if (indexPath.Section < 0 || indexPath.Row < 0)
                 return null;
@@ -73,7 +115,7 @@ namespace Toggl.Daneel.ViewSources
             return section.ElementAtOrDefault(indexPath.Row);
         }
 
-        private string getCellIdentifierFor(AutocompleteSuggestion item)
+        private string getCellIdentifierFor(object item)
         {
             switch(item)
             {
@@ -81,12 +123,27 @@ namespace Toggl.Daneel.ViewSources
                     return ReactiveProjectSuggestionViewCell.Key;
                 case TaskSuggestion _:
                     return ReactiveTaskSuggestionViewCell.Key;
+                case CreateEntitySuggestion _:
+                    return CreateEntityViewcell.Key;
                 default:
                     throw new Exception();
             }
         }
 
         public override UIView GetViewForHeader(UITableView tableView, nint section)
+        {
+            if (!SuggestCreation) return baseGetViewForHeader(tableView, section);
+
+            var actualSection = (int)section;
+            if (actualSection == 0) return null;
+
+            return baseGetViewForHeader(tableView, actualSection - 1);
+        }
+
+        public override nint NumberOfSections(UITableView tableView)
+           => base.NumberOfSections(tableView) + (SuggestCreation ? 1 : 0);
+
+        private UIView baseGetViewForHeader(UITableView tableView, nint section)
         {
             if (!UseGrouping) return null;
 
@@ -95,13 +152,30 @@ namespace Toggl.Daneel.ViewSources
             return header;
         }
 
+        public override nint RowsInSection(UITableView tableview, nint section)
+        {
+            if (!SuggestCreation)
+                return base.RowsInSection(tableview, section);
+
+            if (section == 0) return 1;
+
+            return base.RowsInSection(tableview, section - 1);
+        }
+
         public override nfloat GetHeightForHeader(UITableView tableView, nint section)
-            => UseGrouping ? headerHeight : 0;
+        {
+            if (UseGrouping)
+                return 0;
+
+            if (SuggestCreation && section == 0)
+                return 0;
+
+            return headerHeight;
+        }
 
         public override void RefreshHeader(UITableView tableView, int section)
         {
-            if (tableView.GetHeaderView(section) is ReactiveWorkspaceHeaderViewCell header)
-                header.WorkspaceName = DisplayedItems[section].First().WorkspaceName;
+            //Refreshing isn't really needed for this table view
         }
     }
 }

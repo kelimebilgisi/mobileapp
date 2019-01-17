@@ -10,5 +10,8 @@ namespace Toggl.Daneel.Extensions
 
         public static NSIndexPath[] ToIndexPaths(this SectionedIndex index)
             => new[] { index.ToIndexPath() };
+
+        public static NSIndexPath WithSection(this NSIndexPath indexPath, int section)
+            => NSIndexPath.FromRowSection(indexPath.Row, section);
     }
 }
