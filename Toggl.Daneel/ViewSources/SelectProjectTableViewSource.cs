@@ -20,11 +20,11 @@ namespace Toggl.Daneel.ViewSources
         private ISubject<ProjectSuggestion> toggleSuggestionsSubject = new Subject<ProjectSuggestion>();
         public IObservable<ProjectSuggestion> ToggleTaskSuggestion => toggleSuggestionsSubject.AsObservable();
 
-        public bool UseGrouping { get; set; }
-
         private bool suggestCreation => createEntitySuggestion != null;
 
         private CreateEntitySuggestion createEntitySuggestion { get; set; }
+
+        public bool UseGrouping { get; set; }
 
         public SelectProjectTableViewSource(
             ObservableGroupedOrderedCollection<AutocompleteSuggestion> items,
@@ -44,7 +44,7 @@ namespace Toggl.Daneel.ViewSources
 
             switch(cell)
             {
-                case CreateEntityViewcell createEntityViewcell:
+                case CreateEntityViewCell createEntityViewcell:
                     createEntityViewcell.Item = (CreateEntitySuggestion)item;
                     break;
 
@@ -101,7 +101,7 @@ namespace Toggl.Daneel.ViewSources
         {
             tableView.RegisterNibForCellReuse(ReactiveProjectSuggestionViewCell.Nib, ReactiveProjectSuggestionViewCell.Key);
             tableView.RegisterNibForCellReuse(ReactiveTaskSuggestionViewCell.Nib, ReactiveTaskSuggestionViewCell.Key);
-            tableView.RegisterNibForCellReuse(CreateEntityViewcell.Nib, CreateEntityViewcell.Key);
+            tableView.RegisterNibForCellReuse(CreateEntityViewCell.Nib, CreateEntityViewCell.Key);
             tableView.RegisterNibForHeaderFooterViewReuse(ReactiveWorkspaceHeaderViewCell.Nib, ReactiveWorkspaceHeaderViewCell.Key);
         }
 
@@ -139,7 +139,7 @@ namespace Toggl.Daneel.ViewSources
                     return ReactiveTaskSuggestionViewCell.Key;
 
                 case CreateEntitySuggestion _:
-                    return CreateEntityViewcell.Key;
+                    return CreateEntityViewCell.Key;
 
                 default:
                     throw new Exception($"Unexpected item type: {item.GetType()}");

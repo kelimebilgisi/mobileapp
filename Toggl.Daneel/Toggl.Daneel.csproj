@@ -646,7 +646,7 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\CreateEntityViewcell.xib" />
+    <InterfaceDefinition Include="Views\EntityCreation\CreateEntityViewCell.xib" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -712,7 +712,6 @@
     <Compile Include="ViewSources\Generic\CollectionView\ReloadCollectionViewSource.cs" />
     <Compile Include="ViewSources\Generic\ReactiveSectionedListTableViewSource.cs" />
     <Compile Include="ViewSources\Generic\SectionedListTableViewSource.cs" />
-    <Compile Include="ViewSources\SelectProjectTableViewSourceOld.cs" />
     <Compile Include="Binding\TextFieldSecureTextEntryTargetBinding.cs" />
     <Compile Include="Binding\BarButtonAnimatedEnabledTargetBinding.cs" />
     <Compile Include="Binding\TextFieldFocusTargetBinding.cs" />
@@ -1182,9 +1181,9 @@
     <Compile Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.designer.cs">
       <DependentUpon>ReactiveTaskSuggestionViewCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="Views\EntityCreation\CreateEntityViewcell.cs" />
-    <Compile Include="Views\EntityCreation\CreateEntityViewcell.designer.cs">
-      <DependentUpon>CreateEntityViewcell.cs</DependentUpon>
+    <Compile Include="Views\EntityCreation\CreateEntityViewCell.cs" />
+    <Compile Include="Views\EntityCreation\CreateEntityViewCell.designer.cs">
+      <DependentUpon>CreateEntityViewCell.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>

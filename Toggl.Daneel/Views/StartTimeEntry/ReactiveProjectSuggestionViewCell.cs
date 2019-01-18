@@ -6,12 +6,11 @@ using Toggl.Daneel.Cells;
 using Toggl.Daneel.Extensions;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Multivac;
-using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.Views.StartTimeEntry
 {
-    public partial class ReactiveProjectSuggestionViewCell : BaseTableViewCell<AutocompleteSuggestion>
+    public sealed partial class ReactiveProjectSuggestionViewCell : BaseTableViewCell<AutocompleteSuggestion>
     {
         private const float selectedProjectBackgroundAlpha = 0.12f;
 
@@ -85,7 +84,7 @@ namespace Toggl.Daneel.Views.StartTimeEntry
             }
             else
             {
-                throw new Exception($"Unexpected {nameof(Item)} type");
+                throw new Exception($"Unexpected {nameof(Item)} type. It should have been of type {typeof(ProjectSuggestion)}, but it was {Item.GetType()}");
             }
         }
 

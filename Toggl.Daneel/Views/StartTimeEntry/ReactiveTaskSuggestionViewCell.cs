@@ -6,7 +6,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Views.StartTimeEntry
 {
-    public partial class ReactiveTaskSuggestionViewCell : BaseTableViewCell<TaskSuggestion>
+    public sealed partial class ReactiveTaskSuggestionViewCell : BaseTableViewCell<TaskSuggestion>
     {
         public static readonly NSString Key = new NSString(nameof(ReactiveTaskSuggestionViewCell));
         public static readonly UINib Nib;

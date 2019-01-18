@@ -9,19 +9,19 @@ using UIKit;
 
 namespace Toggl.Daneel.Views.EntityCreation
 {
-    public sealed partial class CreateEntityViewcell : BaseTableViewCell<CreateEntitySuggestion>
+    public sealed partial class CreateEntityViewCell : BaseTableViewCell<CreateEntitySuggestion>
     {
-        public static readonly NSString Key = new NSString(nameof(CreateEntityViewcell));
+        public static readonly NSString Key = new NSString(nameof(CreateEntityViewCell));
         public static readonly UINib Nib;
 
         private NSAttributedString cachedAddIcon;
 
-        static CreateEntityViewcell()
+        static CreateEntityViewCell()
         {
-            Nib = UINib.FromName(nameof(CreateEntityViewcell), NSBundle.MainBundle);
+            Nib = UINib.FromName(nameof(CreateEntityViewCell), NSBundle.MainBundle);
         }
 
-        protected CreateEntityViewcell(IntPtr handle) : base(handle)
+        protected CreateEntityViewCell(IntPtr handle) : base(handle)
         {
             // Note: this .ctor should not contain any initialization logic.
         }
@@ -46,4 +46,3 @@ namespace Toggl.Daneel.Views.EntityCreation
         }
     }
 }
-

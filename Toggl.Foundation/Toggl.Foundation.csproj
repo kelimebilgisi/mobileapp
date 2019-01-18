@@ -38,10 +38,10 @@
     <Folder Include="Serialization\" />
     <Folder Include="Experiments\" />
     <Folder Include="Conversions\" />
-    <Folder Include="Interactors\Generic\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+    <PackageReference Include="Accord.MachineLearning" Version="3.8.0" />
     <PackageReference Include="Xamarin.Essentials" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>

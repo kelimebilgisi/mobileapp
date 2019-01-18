@@ -136,7 +136,7 @@ namespace Toggl.Foundation.MvvmCross.Collections
                 .Select(tuple => tuple.index);
 
             if (affectedIndexes.Count() != items.Count())
-                throw new Exception();
+                throw new Exception("Unexpected count of affected indexes and/or inserted items");
 
             var collectionChange = new AddMultipleRowsCollectionChange<TItem>(
                 affectedIndexes.Zip(items, (index, item) => new AddRowCollectionChange<TItem>(index, item)).ToArray()
