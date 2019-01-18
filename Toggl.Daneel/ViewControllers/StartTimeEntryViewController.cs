@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -40,6 +41,8 @@ namespace Toggl.Daneel.ViewControllers
 
         private UIImage greyCheckmarkButtonImage;
         private UIImage greenCheckmarkButtonImage;
+
+        private CompositeDisposable disposeBag = new CompositeDisposable();
 
         private IDisposable descriptionDisposable;
         private IDisposable addProjectOrTagOnboardingDisposable;
@@ -169,9 +172,16 @@ namespace Toggl.Daneel.ViewControllers
                       .To(vm => vm.IsBillableAvailable)
                       .WithConversion(new BoolToConstantValueConverter<nfloat>(42, 0));
 
+            // Actions
+            CloseButton.Rx()
+                .BindAction(ViewModel.Back)
+                .DisposedBy(disposeBag);
+
+            DoneButton.Rx()
+                .BindAction(ViewModel.Done)
+                .DisposedBy(disposeBag);
+
             //Commands
-            bindingSet.Bind(DoneButton).To(vm => vm.DoneCommand);
-            bindingSet.Bind(CloseButton).To(vm => vm.BackCommand);
             bindingSet.Bind(BillableButton).To(vm => vm.ToggleBillableCommand);
             bindingSet.Bind(StartDateButton).To(vm => vm.SetStartDateCommand);
             bindingSet.Bind(DateTimeButton).To(vm => vm.ChangeTimeCommand);

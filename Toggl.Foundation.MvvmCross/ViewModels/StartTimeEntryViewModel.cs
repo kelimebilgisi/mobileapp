@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -171,9 +172,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public ITogglDataSource DataSource => dataSource;
 
-        public IMvxAsyncCommand BackCommand { get; }
-
-        public IMvxAsyncCommand DoneCommand { get; }
 
         public IMvxAsyncCommand SetStartDateCommand { get; }
 
@@ -195,6 +193,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IOnboardingStorage OnboardingStorage { get; }
 
+
+
+
+
+        public UIAction Back { get; }
+        public UIAction Done { get; }
+
+
         public StartTimeEntryViewModel(
             ITimeService timeService,
             ITogglDataSource dataSource,
@@ -207,7 +213,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IAutocompleteProvider autocompleteProvider,
             ISchedulerProvider schedulerProvider,
             IIntentDonationService intentDonationService,
-            IStopwatchProvider stopwatchProvider
+            IStopwatchProvider stopwatchProvider,
+            IRxActionFactory rxActionFactory
         )
         {
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
@@ -222,6 +229,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(intentDonationService, nameof(intentDonationService));
             Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
+            Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
 
             this.dataSource = dataSource;
             this.timeService = timeService;
@@ -239,8 +247,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             TextFieldInfoObservable = uiSubject.AsDriver(this.schedulerProvider);
 
-            BackCommand = new MvxAsyncCommand(Close);
-            DoneCommand = new MvxAsyncCommand(done);
+            Back = rxActionFactory.FromAsync(Close);
+            Done = rxActionFactory.FromObservable(done);
+
             CreateCommand = new MvxAsyncCommand(create);
             DurationTapped = new MvxCommand(durationTapped);
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
@@ -613,10 +622,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             }
         }
 
-        private async Task done()
+        private IObservable<Unit> done()
         {
-            await interactorFactory.CreateTimeEntry(this).Execute();
-            await navigationService.Close(this);
+            return interactorFactory.CreateTimeEntry(this).Execute()
+                .Do(_ => navigationService.Close(this))
+                .SelectUnit();
         }
 
         private void onParsedQuery(QueryInfo parsedQuery)
