@@ -80,7 +80,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     AutocompleteProvider,
                     SchedulerProvider,
                     IntentDonationService,
-                    StopwatchProvider
+                    StopwatchProvider,
+                    RxActionFactory
             );
         }
 
@@ -100,7 +101,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useAutocompleteProvider,
                 bool useSchedulerProvider,
                 bool useIntentDonationService,
-                bool useStopwatchProvider)
+                bool useStopwatchProvider,
+                bool useRxActionFactory)
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var timeService = useTimeService ? TimeService : null;
@@ -114,6 +116,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
+                var rxActionFactory = useRxActionFactory ? RxActionFactory : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new StartTimeEntryViewModel(
@@ -128,7 +131,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         autocompleteProvider,
                         schedulerProvider,
                         intentDonationService,
-                        stopwatchProvider);
+                        stopwatchProvider,
+                        rxActionFactory);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -618,8 +622,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModelIfUserDoesNotChangeAnything()
             {
-                await ViewModel.BackCommand.ExecuteAsync();
+                ViewModel.Back.Execute();
 
+                TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel);
             }
 
@@ -628,8 +633,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 makeDirty();
 
-                await ViewModel.BackCommand.ExecuteAsync();
+                ViewModel.Back.Execute();
 
+                TestScheduler.Start();
                 await DialogService.Received().ConfirmDestructiveAction(ActionType.DiscardNewTimeEntry);
             }
 
@@ -640,8 +646,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 DialogService.ConfirmDestructiveAction(ActionType.DiscardNewTimeEntry)
                              .Returns(_ => Observable.Return(false));
 
-                await ViewModel.BackCommand.ExecuteAsync();
+                ViewModel.Back.Execute();
 
+                TestScheduler.Start();
                 await NavigationService.DidNotReceive().Close(ViewModel);
             }
 
@@ -652,16 +659,18 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 DialogService.ConfirmDestructiveAction(ActionType.DiscardNewTimeEntry)
                              .Returns(_ => Observable.Return(true));
 
-                await ViewModel.BackCommand.ExecuteAsync();
+                ViewModel.Back.Execute();
 
+                TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel);
             }
 
             [Fact, LogIfTooSlow]
             public async Task DoesNotCallTheAnalyticsServiceSinceNoTimeEntryWasCreated()
             {
-                await ViewModel.BackCommand.ExecuteAsync();
+                ViewModel.Back.Execute();
 
+                TestScheduler.Start();
                 AnalyticsService.DidNotReceive().Track(Arg.Any<StartTimeEntryEvent>());
             }
 
@@ -1278,8 +1287,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task CallsTheCreateTimeEntryInteractor()
                 {
-                    await ViewModel.DoneCommand.ExecuteAsync();
+                    ViewModel.Done.Execute();
 
+                    TestScheduler.Start();
                     InteractorFactory.Received().CreateTimeEntry(ViewModel);
                 }
 
@@ -1289,8 +1299,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var mockedInteractor = Substitute.For<IInteractor<IObservable<IThreadSafeTimeEntry>>>();
                     InteractorFactory.CreateTimeEntry(Arg.Any<ITimeEntryPrototype>()).Returns(mockedInteractor);
 
-                    await ViewModel.DoneCommand.ExecuteAsync();
+                    ViewModel.Done.Execute();
 
+                    TestScheduler.Start();
                     await mockedInteractor.Received().Execute();
                 }
 
@@ -1304,8 +1315,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(description, 0));
 
-                    await ViewModel.DoneCommand.ExecuteAsync();
+                    ViewModel.Done.Execute();
 
+                    TestScheduler.Start();
                     InteractorFactory.Received().CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(timeEntry =>
                         timeEntry.Description.Length == 0
                     ));
@@ -1321,8 +1333,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(description, description.Length));
 
-                    await ViewModel.DoneCommand.ExecuteAsync();
+                    ViewModel.Done.Execute();
 
+                    TestScheduler.Start();
                     InteractorFactory.Received().CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(timeEntry =>
                         timeEntry.Description == trimmed
                     ));
@@ -1336,7 +1349,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var parameter = new StartTimeEntryParameters(DateTimeOffset.Now, "", duration, null);
 
                     ViewModel.Prepare(parameter);
-                    ViewModel.DoneCommand.ExecuteAsync().Wait();
+                    ViewModel.Done.Execute();
+
+                    TestScheduler.Start();
 
                     InteractorFactory.Received().CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(timeEntry =>
                         timeEntry.Duration.HasValue
@@ -1349,8 +1364,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var parameter = new StartTimeEntryParameters(DateTimeOffset.Now, "", null, null);
 
                     ViewModel.Prepare(parameter);
-                    await ViewModel.DoneCommand.ExecuteAsync();
+                    ViewModel.Done.Execute();
 
+                    TestScheduler.Start();
                     InteractorFactory.Received().CreateTimeEntry(Arg.Is<ITimeEntryPrototype>(timeEntry =>
                         timeEntry.Duration.HasValue == false
                     ));
@@ -1377,8 +1393,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(parameter);
                 await ViewModel.Initialize();
 
-                await ViewModel.DoneCommand.ExecuteAsync();
+                ViewModel.Done.Execute();
 
+                TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel);
             }
         }
