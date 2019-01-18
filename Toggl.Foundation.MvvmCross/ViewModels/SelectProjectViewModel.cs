@@ -11,7 +11,6 @@ using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
-using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Parameters;
@@ -39,7 +38,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private long workspaceId;
         private IStopwatch navigationFromEditTimeEntryViewModelStopwatch;
 
-        private List<IThreadSafeWorkspace> allWorkspaces = new List<IThreadSafeWorkspace>();
         private bool shouldShowProjectCreationSuggestion;
 
         public bool UseGrouping { get; private set; }
@@ -176,8 +174,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var workspaces = await interactorFactory.GetAllWorkspaces().Execute();
 
             shouldShowProjectCreationSuggestion = workspaces.Any(ws => ws.IsEligibleForProjectCreation());
-            allWorkspaces = workspaces.ToList();
-            UseGrouping = allWorkspaces.Count > 1;
+
+            UseGrouping = workspaces.Count() > 1;
         }
 
         public override void ViewAppeared()
