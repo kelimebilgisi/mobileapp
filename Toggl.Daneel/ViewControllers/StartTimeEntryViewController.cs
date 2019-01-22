@@ -111,9 +111,11 @@ namespace Toggl.Daneel.ViewControllers
                       .For(v => v.SelectSuggestionCommand)
                       .To(vm => vm.SelectSuggestionCommand);
 
+/*
             bindingSet.Bind(source)
                       .For(v => v.CreateCommand)
                       .To(vm => vm.CreateCommand);
+*/
 
             bindingSet.Bind(source)
                       .For(v => v.IsSuggestingProjects)

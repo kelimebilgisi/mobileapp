@@ -181,8 +181,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IMvxCommand DurationTapped { get; }
 
-        public IMvxAsyncCommand CreateCommand { get; }
-
         public IMvxCommand ToggleTagSuggestionsCommand { get; }
 
         public IMvxCommand ToggleProjectSuggestionsCommand { get; }
@@ -199,6 +197,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction Back { get; }
         public UIAction Done { get; }
+        public UIAction Create { get; }
 
 
         public StartTimeEntryViewModel(
@@ -249,8 +248,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
+            Create = rxActionFactory.FromAsync(create);
 
-            CreateCommand = new MvxAsyncCommand(create);
             DurationTapped = new MvxCommand(durationTapped);
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
             ToggleBillableCommand = new MvxCommand(toggleBillable);
