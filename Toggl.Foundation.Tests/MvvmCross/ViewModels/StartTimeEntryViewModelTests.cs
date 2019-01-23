@@ -484,8 +484,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task CallsTheCreateProjectViewModel()
                 {
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     await NavigationService.Received()
                         .Navigate<EditProjectViewModel, string, long?>(Arg.Any<string>());
                 }
@@ -493,8 +494,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task UsesTheCurrentQueryAsTheParameterForTheCreateProjectViewModel()
                 {
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     await NavigationService.Received()
                         .Navigate<EditProjectViewModel, string, long?>(currentQuery);
                 }
@@ -511,8 +513,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     project.Name.Returns(currentQuery);
                     InteractorFactory.GetProjectById(Arg.Is(projectId)).Execute().Returns(Observable.Return(project));
 
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     var projectSpan = Observer.GetLatestInfo(TestScheduler).GetProjectSpan();
                     projectSpan.ProjectName.Should().Be(currentQuery);
                 }
@@ -537,8 +540,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task CreatesTagWithCurrentQueryAsName()
                 {
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     await InteractorFactory
                         .Received()
                         .CreateTag(Arg.Is(currentQuery), Arg.Any<long>())
@@ -561,8 +565,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         querySpan, new ProjectSpan(projectId, "Project", "0000AF", null, null)
                     );
 
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     await InteractorFactory
                         .Received()
                         .CreateTag(Arg.Any<string>(), Arg.Is(workspaceId))
@@ -580,8 +585,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     DataSource.User.Get().Returns(Observable.Return(user));
                     await ViewModel.Initialize();
 
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     await InteractorFactory
                         .Received()
                         .CreateTag(Arg.Any<string>(), Arg.Is(workspaceId))
@@ -603,8 +609,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                             return interactor;
                         });
 
-                    await ViewModel.CreateCommand.ExecuteAsync();
+                    ViewModel.Create.Execute();
 
+                    TestScheduler.Start();
                     var tags = Observer.GetLatestInfo(TestScheduler).Spans.OfType<TagSpan>();
                     tags.Should().Contain(tag => tag.TagName == currentQuery);
                 }
@@ -2093,8 +2100,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     new QueryTextSpan($"{QuerySymbols.Tags}{query}", 1)
                 );
 
-                ViewModel.CreateCommand.Execute();
+                ViewModel.Create.Execute();
 
+                TestScheduler.Start();
                 ViewModel.ShouldShowNoTagsInfoMessage.Should().BeFalse();
             }
         }
