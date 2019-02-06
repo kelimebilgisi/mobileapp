@@ -9,14 +9,13 @@ using UIKit;
 using System;
 using System.Reactive.Linq;
 using static Toggl.Multivac.Extensions.ReactiveExtensions;
-using Toggl.Daneel.Views.StartTimeEntry;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
     public sealed partial class SelectProjectViewController : KeyboardAwareViewController<SelectProjectViewModel>, IDismissableViewController
     {
-        public SelectProjectViewController()
+        public SelectProjectViewController() 
             : base(nameof(SelectProjectViewController))
         {
         }
@@ -25,14 +24,14 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            var source = new SelectProjectTableViewSource(ViewModel.Suggestions, ReactiveProjectSuggestionViewCell.Key);
-            source.UseGrouping = ViewModel.UseGrouping;
+            var source = new SelectProjectTableViewSource();
             source.RegisterViewCells(ProjectsTableView);
 
             ProjectsTableView.TableFooterView = new UIView();
+            ProjectsTableView.Source = source;
 
-            ProjectsTableView.Rx()
-                .Bind(source, ViewModel.CreateEntitySuggestion.Select(createEntitySuggestion => createEntitySuggestion != null))
+            ViewModel.Suggestions
+                .Subscribe(ProjectsTableView.Rx().ReloadSections(source))
                 .DisposedBy(DisposeBag);
 
             ViewModel.IsEmpty
@@ -47,10 +46,6 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(TextField.Rx().PlaceholderText())
                 .DisposedBy(DisposeBag);
 
-            ViewModel.CreateEntitySuggestion
-                .Subscribe(source.OnCreateEntitySuggestion)
-                .DisposedBy(DisposeBag);
-
             TextField.Rx().Text()
                 .Subscribe(ViewModel.FilterText)
                 .DisposedBy(DisposeBag);
@@ -59,11 +54,11 @@ namespace Toggl.Daneel.ViewControllers
                 .BindAction(ViewModel.Close)
                 .DisposedBy(DisposeBag);
 
-            source.ItemSelected
+            source.Rx().ModelSelected()
                 .Subscribe(ViewModel.SelectProject.Inputs)
                 .DisposedBy(DisposeBag);
 
-            source.ToggleTaskSuggestion
+            source.ToggleTaskSuggestions
                 .Subscribe(ViewModel.ToggleTaskSuggestions.Inputs)
                 .DisposedBy(DisposeBag);
 

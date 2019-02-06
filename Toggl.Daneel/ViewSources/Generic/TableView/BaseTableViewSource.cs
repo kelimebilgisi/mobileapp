@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using CoreGraphics;
 using Foundation;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -65,5 +66,14 @@ namespace Toggl.Daneel.ViewSources
 
         protected TModel ModelAt(NSIndexPath path)
             => Sections[path.Section].Items[path.Row];
+
+        protected TModel ModelAtOrDefault(NSIndexPath path)
+        {
+            var section = Sections.ElementAtOrDefault(path.Section);
+            if (section == null)
+                return default(TModel);
+
+            return section.Items.ElementAtOrDefault(path.Row);
+        }
     }
 }
