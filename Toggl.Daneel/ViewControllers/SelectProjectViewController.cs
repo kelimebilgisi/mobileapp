@@ -27,6 +27,8 @@ namespace Toggl.Daneel.ViewControllers
             var source = new SelectProjectTableViewSource();
             source.RegisterViewCells(ProjectsTableView);
 
+            source.UseGrouping = ViewModel.UseGrouping;
+
             ProjectsTableView.TableFooterView = new UIView();
             ProjectsTableView.Source = source;
 

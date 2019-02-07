@@ -42,8 +42,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public bool UseGrouping { get; private set; }
 
-        public ObservableGroupedOrderedCollection<AutocompleteSuggestion> OldSuggestions { get; } = new ObservableGroupedOrderedCollection<AutocompleteSuggestion>(g => g.WorkspaceId, g => g.WorkspaceId, g => g.WorkspaceId);
-
         private BehaviorSubject<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>> suggestionsSubject
             = new BehaviorSubject<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>(new CollectionSection<string, AutocompleteSuggestion>[0]);
         public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>> Suggestions => suggestionsSubject.AsObservable();
@@ -51,8 +49,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public ISubject<string> FilterText { get; } = new BehaviorSubject<string>(string.Empty);
 
         public IObservable<bool> IsEmpty { get; }
-
-        public IObservable<bool> UsesFilter { get; }
 
         public IObservable<string> PlaceholderText { get; }
 
@@ -133,26 +129,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var hasNoExactMatches = suggestions.None(suggestion => suggestion is ProjectSuggestion ps && ps.ProjectName == text);
             return hasNoExactMatches;
-        }
-
-        private IComparable getIndexKey(AutocompleteSuggestion autocompleteSuggestion)
-        {
-            if (autocompleteSuggestion is ProjectSuggestion projectSuggestion)
-                return projectSuggestion.ProjectId;
-            if (autocompleteSuggestion is TaskSuggestion taskSuggestion)
-                return taskSuggestion.TaskId;
-
-            throw new Exception($"Unexpected {nameof(AutocompleteSuggestion)} encountered in ${nameof(Suggestions)}");
-        }
-
-        private IComparable getOrderingKey(AutocompleteSuggestion autocompleteSuggestion)
-        {
-            if (autocompleteSuggestion is ProjectSuggestion projectSuggestion)
-                return projectSuggestion.ProjectName;
-            if (autocompleteSuggestion is TaskSuggestion taskSuggestion)
-                return $"{taskSuggestion.ProjectName}{taskSuggestion.Name}";
-
-            throw new Exception($"Unexpected {nameof(AutocompleteSuggestion)} encountered in ${nameof(Suggestions)}");
         }
 
         public override void Prepare(SelectProjectParameter parameter)

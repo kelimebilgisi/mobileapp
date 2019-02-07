@@ -13,6 +13,8 @@ namespace Toggl.Daneel.ViewSources
     {
         private const int headerHeight = 40;
 
+        public bool UseGrouping { get; set; }
+
         private readonly ISubject<ProjectSuggestion> toggleTaskSuggestionsSubject = new Subject<ProjectSuggestion>();
         public IObservable<ProjectSuggestion> ToggleTaskSuggestions => toggleTaskSuggestionsSubject.AsObservable();
 
@@ -26,6 +28,9 @@ namespace Toggl.Daneel.ViewSources
 
         public override nfloat GetHeightForHeader(UITableView tableView, nint section)
         {
+            if (!UseGrouping)
+                return 0;
+
             var header = Sections[(int)section].Header;
 
             return header == null
