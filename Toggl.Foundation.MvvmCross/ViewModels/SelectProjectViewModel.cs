@@ -88,29 +88,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             IsEmpty = dataSource.Projects.GetAll().Select(projects => projects.None());
             PlaceholderText = IsEmpty.Select(isEmpty => isEmpty ? Resources.EnterProject : Resources.AddFilterProjects);
-
-            FilterText.Subscribe(text =>
-            {
-                var suggestions = interactorFactory.GetProjectsAutocompleteSuggestions(text.SplitToQueryWords()).Execute().SelectMany(x => x).ToEnumerable()
-                    .Cast<ProjectSuggestion>()
-                    .Select(setSelectedProject);
-
-                var collectionSections = suggestions
-                    .GroupBy(project => project.WorkspaceId)
-                    .Select(grouping => grouping.OrderBy(projectSuggestion => projectSuggestion.ProjectName))
-                    .OrderBy(grouping => grouping.First().WorkspaceName)
-                    .Select(grouping => new CollectionSection<string, AutocompleteSuggestion>(grouping.First().WorkspaceName, grouping))
-                    .ToList();
-
-                if (shouldSuggestCreation(text, suggestions))
-                {
-                    var createEntitySuggestion = new CreateEntitySuggestion(Resources.CreateProject, text);
-                    var section = new CollectionSection<string, AutocompleteSuggestion>(null, new[] { createEntitySuggestion });
-                    collectionSections.Insert(0, section);
-                }
-
-                suggestionsSubject.OnNext(collectionSections);
-            });
         }
 
         private bool shouldSuggestCreation(string text, IEnumerable<AutocompleteSuggestion> suggestions)
@@ -149,6 +126,29 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             projectSuggestionEnabled = workspaces.Any(ws => ws.IsEligibleForProjectCreation());
 
             UseGrouping = workspaces.Count() > 1;
+
+            FilterText.Subscribe(text =>
+            {
+                var suggestions = interactorFactory.GetProjectsAutocompleteSuggestions(text.SplitToQueryWords()).Execute().SelectMany(x => x).ToEnumerable()
+                    .Cast<ProjectSuggestion>()
+                    .Select(setSelectedProject);
+
+                var collectionSections = suggestions
+                    .GroupBy(project => project.WorkspaceId)
+                    .Select(grouping => grouping.OrderBy(projectSuggestion => projectSuggestion.ProjectName))
+                    .OrderBy(grouping => grouping.First().WorkspaceName)
+                    .Select(grouping => collectionSection(grouping, prependNoProject: string.IsNullOrEmpty(text)))
+                    .ToList();
+
+                if (shouldSuggestCreation(text, suggestions))
+                {
+                    var createEntitySuggestion = new CreateEntitySuggestion(Resources.CreateProject, text);
+                    var section = new CollectionSection<string, AutocompleteSuggestion>(null, new[] { createEntitySuggestion });
+                    collectionSections.Insert(0, section);
+                }
+
+                suggestionsSubject.OnNext(collectionSections);
+            });
         }
 
         public override void ViewAppeared()
@@ -156,6 +156,21 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             base.ViewAppeared();
             navigationFromEditTimeEntryViewModelStopwatch?.Stop();
             navigationFromEditTimeEntryViewModelStopwatch = null;
+        }
+
+        private CollectionSection<string, AutocompleteSuggestion> collectionSection(IEnumerable<ProjectSuggestion> suggestions, bool prependNoProject)
+        {
+            var workspaceName = suggestions.First().WorkspaceName;
+            var sectionItems = suggestions.ToList();
+
+            if (prependNoProject)
+            {
+                var workspaceId = suggestions.First().WorkspaceId;
+                var noProjectSuggestion = ProjectSuggestion.NoProject(workspaceId, workspaceName);
+                sectionItems.Insert(0, noProjectSuggestion);
+            }
+
+            return new CollectionSection<string, AutocompleteSuggestion>(workspaceName, sectionItems);
         }
 
         private ProjectSuggestion setSelectedProject(ProjectSuggestion suggestion)
