@@ -263,7 +263,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             var indexOfSuggestion = targetSection.Items.IndexOf(project => project == projectSuggestion);
             if (indexOfSuggestion < 0) return;
-            var newItemsInSection = targetSection.Items.InsertRange(indexOfSuggestion + 1, projectSuggestion.Tasks);
+            var newItemsInSection = targetSection.Items.InsertRange(indexOfSuggestion + 1, projectSuggestion.Tasks.OrderBy(task => task.Name));
 
             var newSection = new CollectionSection<string, AutocompleteSuggestion>(targetSection.Header, newItemsInSection);
             var newSuggestions = suggestionsSubject.Value.ToList();
