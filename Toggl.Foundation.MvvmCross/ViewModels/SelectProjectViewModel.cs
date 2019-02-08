@@ -124,10 +124,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var workspaces = await interactorFactory.GetAllWorkspaces().Execute();
 
             projectSuggestionEnabled = workspaces.Any(ws => ws.IsEligibleForProjectCreation());
-
             UseGrouping = workspaces.Count() > 1;
 
-            FilterText.Subscribe(text =>
+            FilterText.Subscribe(async text =>
             {
                 var suggestions = interactorFactory.GetProjectsAutocompleteSuggestions(text.SplitToQueryWords()).Execute().SelectMany(x => x).ToEnumerable()
                     .Cast<ProjectSuggestion>()
@@ -145,6 +144,15 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     var createEntitySuggestion = new CreateEntitySuggestion(Resources.CreateProject, text);
                     var section = new CollectionSection<string, AutocompleteSuggestion>(null, new[] { createEntitySuggestion });
                     collectionSections.Insert(0, section);
+                }
+
+                if (collectionSections.None())
+                {
+                    var workspace = await interactorFactory.GetWorkspaceById(workspaceId).Execute();
+                    var noProjectSuggestion = ProjectSuggestion.NoProject(workspace.Id, workspace.Name);
+                    collectionSections.Add(
+                        new CollectionSection<string, AutocompleteSuggestion>(null, new[] { noProjectSuggestion })
+                    );
                 }
 
                 suggestionsSubject.OnNext(collectionSections);
@@ -165,8 +173,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             if (prependNoProject)
             {
-                var workspaceId = suggestions.First().WorkspaceId;
-                var noProjectSuggestion = ProjectSuggestion.NoProject(workspaceId, workspaceName);
+                var workspaceIdForNoProject = suggestions.First().WorkspaceId;
+                var noProjectSuggestion = ProjectSuggestion.NoProject(workspaceIdForNoProject, workspaceName);
                 sectionItems.Insert(0, noProjectSuggestion);
             }
 
