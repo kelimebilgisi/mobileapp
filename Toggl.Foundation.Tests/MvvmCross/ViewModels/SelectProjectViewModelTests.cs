@@ -8,15 +8,16 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Toggl.Foundation.Autocomplete;
 using Toggl.Foundation.Autocomplete.Suggestions;
-using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
-using Toggl.PrimeRadiant.Models;
 using Xunit;
+using Toggl.Foundation.MvvmCross.Collections;
+using Microsoft.Reactive.Testing;
+using System.Reactive;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -25,7 +26,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public abstract class SelectProjectViewModelTest : BaseViewModelTests<SelectProjectViewModel>
         {
             protected override SelectProjectViewModel CreateViewModel()
-            => new SelectProjectViewModel(DataSource, InteractorFactory, NavigationService, DialogService, SchedulerProvider, StopwatchProvider);
+            => new SelectProjectViewModel(DataSource, RxActionFactory, InteractorFactory, NavigationService, DialogService, SchedulerProvider, StopwatchProvider);
         }
 
         public sealed class TheConstructor : SelectProjectViewModelTest
@@ -34,6 +35,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [ConstructorData]
             public void ThrowsIfAnyOfTheArgumentsIsNull(
                 bool useDataSource,
+                bool useRxActionFactory,
                 bool useInteractorFactory,
                 bool useNavigationService,
                 bool useDialogService,
@@ -42,13 +44,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var dataSource = useDataSource ? DataSource : null;
                 var dialogService = useDialogService ? DialogService : null;
+                var rxActionFactory = useRxActionFactory ? RxActionFactory : null;
                 var interactorFactory = useInteractorFactory ? InteractorFactory : null;
                 var navigationService = useNavigationService ? NavigationService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 Action tryingToConstructWithEmptyParameters =
-                    () => new SelectProjectViewModel(dataSource, interactorFactory, navigationService, dialogService, schedulerProvider, stopwatchProvider);
+                    () => new SelectProjectViewModel(dataSource, rxActionFactory, interactorFactory, navigationService, dialogService, schedulerProvider, stopwatchProvider);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -60,18 +63,22 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                await ViewModel.CloseCommand.ExecuteAsync();
+                ViewModel.Close.Execute();
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<SelectProjectParameter>());
             }
 
-            [Property]
+            [Theory]
+            [InlineData(null)]
+            [InlineData(0)]
+            [InlineData(1)]
+            [InlineData(124235)]
             public void ReturnsTheSameProjectIdThatWasPassedToTheViewModel(long? projectId)
             {
                 ViewModel.Prepare(SelectProjectParameter.WithIds(projectId, 10, 11));
 
-                ViewModel.CloseCommand.ExecuteAsync().Wait();
+                ViewModel.Close.Execute();
 
                 NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -79,12 +86,16 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         parameter => parameter.ProjectId == projectId)).Wait();
             }
 
-            [Property]
+            [Theory]
+            [InlineData(null)]
+            [InlineData(0)]
+            [InlineData(1)]
+            [InlineData(124235)]
             public void ReturnsTheSameTaskIdThatWasPassedToTheViewModel(long? taskId)
             {
                 ViewModel.Prepare(SelectProjectParameter.WithIds(10, taskId, 11));
 
-                ViewModel.CloseCommand.ExecuteAsync().Wait();
+                ViewModel.Close.Execute();
 
                 NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -98,7 +109,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                ViewModel.SelectProjectCommand
+                ViewModel.SelectProject
                     .Execute(ProjectSuggestion.NoProject(0, ""));
 
                 await NavigationService.Received()
@@ -112,7 +123,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 project.Id.Returns(13);
                 var selectedProject = new ProjectSuggestion(project);
 
-                ViewModel.SelectProjectCommand.Execute(selectedProject);
+                ViewModel.SelectProject.Execute(selectedProject);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -127,7 +138,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 project.Id.Returns(13);
                 var selectedProject = new ProjectSuggestion(project);
 
-                ViewModel.SelectProjectCommand.Execute(selectedProject);
+                ViewModel.SelectProject.Execute(selectedProject);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -143,7 +154,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 task.ProjectId.Returns(10);
                 var selectedTask = new TaskSuggestion(task);
 
-                ViewModel.SelectProjectCommand.Execute(selectedTask);
+                ViewModel.SelectProject.Execute(selectedTask);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -159,7 +170,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 task.ProjectId.Returns(10);
                 var selectedTask = new TaskSuggestion(task);
 
-                ViewModel.SelectProjectCommand.Execute(selectedTask);
+                ViewModel.SelectProject.Execute(selectedTask);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -170,7 +181,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ReturnsNoProjectIfNoProjectWasSelected()
             {
-                ViewModel.SelectProjectCommand
+                ViewModel.SelectProject
                     .Execute(ProjectSuggestion.NoProject(0, ""));
 
                 await NavigationService.Received().Close(
@@ -182,7 +193,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ReturnsNoTaskIfNoProjectWasSelected()
             {
-                ViewModel.SelectProjectCommand
+                ViewModel.SelectProject
                     .Execute(ProjectSuggestion.NoProject(0, ""));
 
                 await NavigationService.Received().Close(
@@ -202,7 +213,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ).Returns(Observable.Return(true));
 
                 long workspaceId = 420;
-                ViewModel.SelectProjectCommand
+                ViewModel.SelectProject
                     .Execute(ProjectSuggestion.NoProject(workspaceId, ""));
 
                 await NavigationService.Received().Close(
@@ -220,7 +231,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var project = Substitute.For<IThreadSafeProject>();
                 project.WorkspaceId.Returns(newWorkspaceId);
 
-                ViewModel.SelectProjectCommand.Execute(new ProjectSuggestion(project));
+                ViewModel.SelectProject.Execute(new ProjectSuggestion(project));
 
                 DialogService.Received().Confirm(
                     Arg.Is(Resources.DifferentWorkspaceAlertTitle),
@@ -238,7 +249,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var project = Substitute.For<IThreadSafeProject>();
                 project.WorkspaceId.Returns(workspaceId);
 
-                ViewModel.SelectProjectCommand.Execute(new ProjectSuggestion(project));
+                ViewModel.SelectProject.Execute(new ProjectSuggestion(project));
 
                 DialogService.DidNotReceive().Confirm(
                     Arg.Any<string>(),
@@ -256,7 +267,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var projectSuggestion = new ProjectSuggestion(project);
                 prepareDialogService();
 
-                ViewModel.SelectProjectCommand.Execute(projectSuggestion);
+                ViewModel.SelectProject.Execute(projectSuggestion);
 
                 await ensureReturnsWorkspaceIdOfSuggestion(projectSuggestion);
             }
@@ -267,7 +278,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var noProjectSuggestion = ProjectSuggestion.NoProject(13, "");
                 prepareDialogService();
 
-                ViewModel.SelectProjectCommand.Execute(noProjectSuggestion);
+                ViewModel.SelectProject.Execute(noProjectSuggestion);
 
                 await ensureReturnsWorkspaceIdOfSuggestion(noProjectSuggestion);
             }
@@ -280,7 +291,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var taskSuggestion = new TaskSuggestion(task);
                 prepareDialogService();
 
-                ViewModel.SelectProjectCommand.Execute(taskSuggestion);
+                ViewModel.SelectProject.Execute(taskSuggestion);
 
                 await ensureReturnsWorkspaceIdOfSuggestion(taskSuggestion);
             }
@@ -299,83 +310,71 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Arg.Is<SelectProjectParameter>(
                         parameter => parameter.WorkspaceId == suggestion.WorkspaceId));
             }
-        }
 
-        public sealed class TheTextProperty : SelectProjectViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task WhenChangedUsesTheGetProjectsAutocompleteSuggestionsInteractor()
+            public sealed class WhenTheSuggestionIsCreateEntitySuggestion : SelectProjectViewModelTest
             {
-                var text = "Some text";
-                await ViewModel.Initialize();
+                [Fact, LogIfTooSlow]
+                public async Task NavigatesToEditProjectViewModel()
+                {
+                    var projectName = "Some project";
+                    var createEntitySuggestion = new CreateEntitySuggestion(Resources.CreateProject, projectName);
 
-                TestScheduler.Start();
-                ViewModel.Text = text;
-                TestScheduler.AdvanceBy(TimeSpan.FromSeconds(60).Ticks);
+                    ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, 10));
+                    await ViewModel.Initialize();
 
-                InteractorFactory
-                    .Received()
-                    .GetProjectsAutocompleteSuggestions(Arg.Is<IList<string>>(
-                        words => words.SequenceEqual(text.SplitToQueryWords())));
-            }
-        }
+                    ViewModel.SelectProject.Execute(createEntitySuggestion);
+                    TestScheduler.Start();
 
-        public sealed class TheSuggestCreationProperty : SelectProjectViewModelTest
-        {
-            private const string name = "My project";
+                    await NavigationService.Received().Navigate<EditProjectViewModel, string, long?>(projectName);
+                }
 
-            public TheSuggestCreationProperty()
-            {
-                var project = Substitute.For<IThreadSafeProject>();
-                project.Name.Returns(name);
-                var suggestion = new ProjectSuggestion(project);
+                [Fact, LogIfTooSlow]
+                public async Task DoesNotCloseTheViewModelIfTheProjectIsNotCreated()
+                {
+                    var projectName = "New project name";
+                    var createProjectSuggestion = new CreateEntitySuggestion(Resources.CreateProject, projectName);
+                    setupProjectCreationResult(null );
+                    ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, 10));
+                    await ViewModel.Initialize();
+                    TestScheduler.Start();
 
-                InteractorFactory
-                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
-                    .Execute()
-                    .Returns(Observable.Return(new List<ProjectSuggestion> { suggestion }));
+                    ViewModel.SelectProject.Execute(createProjectSuggestion);
+                    TestScheduler.Start();
 
-                ViewModel.Prepare();
-            }
+                    await NavigationService.DidNotReceive().Close(ViewModel, Arg.Any<SelectProjectParameter>());
+                }
 
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsEmpty()
-            {
-                await ViewModel.Initialize();
+                [Fact, LogIfTooSlow]
+                public async Task ClosesTheViewModelReturningTheCreatedIdIfTheProjectIsCreated()
+                {
+                    var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true, OnlyAdminsMayCreateProjects = true };
+                    InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace } ));
+                    const long projectId = 10;
+                    setupProjectCreationResult(projectId);
+                    ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, 10));
+                    await ViewModel.Initialize();
+                    var projectName = "Some Project";
+                    var createProjectSuggestion = new CreateEntitySuggestion(Resources.CreateProject, projectName);
 
-                ViewModel.Text = "";
+                    ViewModel.SelectProject.Execute(createProjectSuggestion);
+                    TestScheduler.Start();
 
-                ViewModel.SuggestCreation.Should().BeFalse();
-            }
+                    await NavigationService.Received()
+                        .Close(ViewModel, Arg.Is<SelectProjectParameter>(p => p.ProjectId == projectId));
+                }
 
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsOnlyWhitespace()
-            {
-                await ViewModel.Initialize();
+                private void setupProjectCreationResult(long? returnedId)
+                {
+                    NavigationService
+                        .Navigate<EditProjectViewModel, string, long?>(Arg.Any<string>())
+                        .Returns(Task.FromResult(returnedId));
 
-                ViewModel.Text = "       ";
+                    if (returnedId == null) return;
 
-                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfTheTextIsLongerThanTwoHundredAndFiftyCharacters()
-            {
-                await ViewModel.Initialize();
-
-                ViewModel.Text = "Some absurdly long project name created solely for making sure that the SuggestCreation property returns false when the project name is longer than the previously specified threshold so that the mobile apps behave and avoid crashes in backend and even bigger problems.";
-
-                ViewModel.SuggestCreation.Should().BeFalse();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfNoWorkspaceIsEligible()
-            {
-                var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = false, OnlyAdminsMayCreateProjects = true };
-                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace } ));
-
-                await ViewModel.Initialize();
-                ViewModel.SuggestCreation.Should().BeFalse();
+                    var project = Substitute.For<IThreadSafeProject>();
+                    project.Id.Returns(returnedId.Value);
+                    InteractorFactory.GetProjectById(returnedId.Value).Execute().Returns(Observable.Return(project));
+                }
             }
 
             [Fact, LogIfTooSlow]
@@ -405,49 +404,22 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheCreateProjectCommand : SelectProjectViewModelTest
+        public sealed class TheTextProperty : SelectProjectViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public async Task DoesNotCloseTheViewModelIfTheProjectIsNotCreated()
+            public async Task WhenChangedUsesTheGetProjectsAutocompleteSuggestionsInteractor()
             {
-                setupProjectCreationResult(null);
-                ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, 10));
+                var text = "Some text";
                 await ViewModel.Initialize();
-                ViewModel.Text = "New project name";
 
-                await ViewModel.CreateProjectCommand.ExecuteAsync();
+                TestScheduler.Start();
+                ViewModel.FilterText.OnNext(text);
+                TestScheduler.AdvanceBy(TimeSpan.FromSeconds(60).Ticks);
 
-                await NavigationService.DidNotReceive().Close(ViewModel, Arg.Any<SelectProjectParameter>());
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task ClosesTheViewModelReturningTheCreatedIdIfTheProjectIsCreated()
-            {
-                var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true, OnlyAdminsMayCreateProjects = true };
-                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace } ));
-                const long projectId = 10;
-                setupProjectCreationResult(projectId);
-                ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, 10));
-                await ViewModel.Initialize();
-                ViewModel.Text = "New project name";
-
-                await ViewModel.CreateProjectCommand.ExecuteAsync();
-
-                await NavigationService.Received()
-                    .Close(ViewModel, Arg.Is<SelectProjectParameter>(p => p.ProjectId == projectId));
-            }
-
-            private void setupProjectCreationResult(long? returnedId)
-            {
-                NavigationService
-                    .Navigate<EditProjectViewModel, string, long?>(Arg.Any<string>())
-                    .Returns(Task.FromResult(returnedId));
-
-                if (returnedId == null) return;
-
-                var project = Substitute.For<IThreadSafeProject>();
-                project.Id.Returns(returnedId.Value);
-                InteractorFactory.GetProjectById(returnedId.Value).Execute().Returns(Observable.Return(project));
+                InteractorFactory
+                    .Received()
+                    .GetProjectsAutocompleteSuggestions(Arg.Is<IList<string>>(
+                        words => words.SequenceEqual(text.SplitToQueryWords())));
             }
         }
 
@@ -466,53 +438,60 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
             private ProjectSuggestion getProjectSuggestion(int projectId, int workspaceId, IEnumerable<IThreadSafeTask> tasks)
             {
-                var workspace = Substitute.For<IThreadSafeWorkspace>();
-                workspace.Name.Returns($"Workspace{workspaceId}");
-                workspace.Id.Returns(workspaceId);
-                var project = Substitute.For<IThreadSafeProject>();
-                project.Name.Returns($"Project{projectId}");
-                project.Workspace.Returns(workspace);
-                project.Active.Returns(true);
-                project.Tasks.Returns(tasks);
+                var workspace = new MockWorkspace
+                {
+                    Name = $"Workspace{workspaceId}",
+                    Id = workspaceId
+                };
+                var project = new MockProject
+                {
+                    Name = $"Project{projectId}",
+                    Workspace = workspace,
+                    WorkspaceId = workspaceId,
+                    Active = true,
+                    Tasks = tasks
+                };
                 return new ProjectSuggestion(project);
             }
 
-            private IEnumerable<string> tasksNames(IEnumerable<AutocompleteSuggestion> autocompleteSuggestions)
-                => autocompleteSuggestions.Cast<TaskSuggestion>().Select(suggestion => suggestion.Name);
+            private IThreadSafeWorkspace setupWorkspace(int id, bool isEligableForProjectCreation)
+            {
+                var workspace = new MockWorkspace { Id = id, Name = "ws", Admin = false, OnlyAdminsMayCreateProjects = !isEligableForProjectCreation };
+                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace }));
+                return workspace;
+            }
 
             [Fact, LogIfTooSlow]
-            public async Task IsClearedWhenTextIsChanged()
+            public async Task StartsWithAnEmptyList()
             {
-                var suggestions = getProjectSuggestions(1, 1);
-                var queryText = "Query text";
-                InteractorFactory
-                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
-                    .Execute()
-                    .Returns(Observable.Return(suggestions));
-                await ViewModel.Initialize();
-                ViewModel.Text = queryText;
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
+                await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(1);
-                ViewModel.Suggestions.First().Should().HaveCount(1);
+                observer.Messages.First().Value.Value.Should().HaveCount(0);
             }
 
             [Fact, LogIfTooSlow]
             public async Task IsPopulatedAfterInitialization()
             {
-                var projectSuggestions = getProjectSuggestions(10, 0);
+                var workspaceId = 0;
+                var projectSuggestions = getProjectSuggestions(10, workspaceId);
                 var suggestionsObservable = Observable.Return(projectSuggestions);
                 InteractorFactory
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(1);
-                ViewModel.Suggestions.First().Should().HaveCount(11);
+                observer.Messages.Should().HaveCount(2);
+                observer.Messages[1].Value.Value.Should().HaveCount(1);
+                observer.Messages[1].Value.Value.First().Items.Should().HaveCount(11);
             }
 
             [Fact, LogIfTooSlow]
@@ -528,13 +507,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
-                foreach (var group in ViewModel.Suggestions)
-                {
-                    group.Cast<ProjectSuggestion>().First().ProjectName.Should().Be(Resources.NoProject);
-                }
+                foreach (var section in observer.Messages.Last().Value.Value)
+                    section.Items.Cast<ProjectSuggestion>().First().ProjectName.Should().Be(Resources.NoProject);
             }
 
             [Fact, LogIfTooSlow]
@@ -546,18 +526,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 suggestions.AddRange(getProjectSuggestions(1, 10));
                 suggestions.AddRange(getProjectSuggestions(10, 54));
                 var suggestionsObservable = Observable.Return(suggestions);
-                var autocompleteProvider = Substitute.For<IAutocompleteProvider>();
-                autocompleteProvider
-                    .Query(Arg.Is<QueryInfo>(
-                        info => info.SuggestionType == AutocompleteSuggestionType.Projects))
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
-                ViewModel.Text = suggestions.First().ProjectName;
+                ViewModel.FilterText.OnNext(suggestions.First().ProjectName);
+                TestScheduler.Start();
 
-                foreach (var group in ViewModel.Suggestions)
+                foreach (var section in observer.Messages.Last().Value.Value)
                 {
-                    group.Cast<ProjectSuggestion>().First().ProjectName.Should().NotBe(Resources.NoProject);
+                    section.Items.Cast<ProjectSuggestion>().First().ProjectName.Should().NotBe(Resources.NoProject);
                 }
             }
 
@@ -575,19 +557,21 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(4);
-                foreach (var suggestionGroup in ViewModel.Suggestions)
+                var latestSuggestions = observer.Messages.Last().Value.Value.ToArray();
+                latestSuggestions.Should().HaveCount(4);
+
+                for (int i = 0; i < latestSuggestions.Length; i++)
                 {
-                    foreach (var suggestion in suggestionGroup.Cast<ProjectSuggestion>())
+                    foreach (var suggestion in latestSuggestions[i].Items)
                     {
-                        if (suggestion.ProjectName == Resources.NoProject)
-                            continue;
-                        suggestion.WorkspaceName.Should().Be(suggestionGroup.WorkspaceName);
-                        suggestion.WorkspaceId.Should().Be(suggestionGroup.WorkspaceId);
+                        suggestion.WorkspaceName.Should().Be(latestSuggestions[i].Header);
+                        suggestion.WorkspaceId.Should().Be(workspaceIds[i]);
                     }
                 }
             }
@@ -606,22 +590,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(2);
-                foreach (var suggestionGroup in ViewModel.Suggestions)
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(2);
+                foreach (var section in latestSuggestions)
                 {
-                    string prevProjectName = "";
-                    foreach (var suggestion in suggestionGroup.Cast<ProjectSuggestion>())
-                    {
-                        if (suggestion.ProjectName == Resources.NoProject)
-                            continue;
-                        bool correctOrder = string.Compare(prevProjectName, suggestion.ProjectName, true) < 0;
-                        correctOrder.Should().BeTrue();
-                        prevProjectName = suggestion.ProjectName;
-                    }
+                    section.Items
+                        .Cast<ProjectSuggestion>()
+                        .Should()
+                        .BeInAscendingOrder(projectSuggestion => projectSuggestion.ProjectName);
                 }
             }
 
@@ -640,45 +622,71 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
                     .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
-
                 TestScheduler.Start();
 
-                ViewModel.ToggleTaskSuggestionsCommand.Execute((ProjectSuggestion)ViewModel.Suggestions[0][1]);
+                ViewModel.ToggleTaskSuggestions.Execute(suggestions[0]);
+                TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(1);
-                ViewModel.Suggestions[0].Should().HaveCount(5);
-                tasksNames(ViewModel.Suggestions[0].Skip(2)).Should().BeInAscendingOrder();
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+                latestSuggestions.First().Items.Should().HaveCount(5);
+                latestSuggestions.First().Items
+                    .Where(suggestion => suggestion is TaskSuggestion)
+                    .Cast<TaskSuggestion>()
+                    .Should()
+                    .BeInAscendingOrder(taskSuggestion => taskSuggestion.Name);
             }
 
             [Fact, LogIfTooSlow]
-            public async Task DoesNotContainSelectedProjectIfProjectIdIsNull()
+            public async Task DoesNotContainASelectedProjectIfProjectIdIsNull()
             {
-                prepareProjects();
+                var suggestions = getProjectSuggestions(20, 10);
+                var suggestionsObservable = Observable.Return(suggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
                 var parameter = SelectProjectParameter.WithIds(null, null, 0);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
                 ViewModel.Prepare(parameter);
                 await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(1);
-                ViewModel.Suggestions.First().Should().OnlyContain(
-                    suggestion => ((ProjectSuggestion)suggestion).Selected == false);
+                var latestSugestions = observer.Messages.Last().Value.Value;
+                latestSugestions.Should().HaveCount(1);
+                latestSugestions.First().Items
+                    .Cast<ProjectSuggestion>()
+                    .Should().OnlyContain(suggestion => !suggestion.Selected);
             }
 
             [Fact, LogIfTooSlow]
             public async Task ContainsOnlyOneSelectedProjectIfProjectIdIsSet()
             {
-                prepareProjects();
+                var suggestions = getProjectSuggestions(20, 10);
+                var suggestionsObservable = Observable.Return(suggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
                 long selectedProjectId = 5;
                 var parameter = SelectProjectParameter.WithIds(selectedProjectId, null, 0);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
                 ViewModel.Prepare(parameter);
                 await ViewModel.Initialize();
                 TestScheduler.Start();
 
-                ViewModel.Suggestions.Should().HaveCount(1);
-                ViewModel.Suggestions.First().Should().OnlyContain(
-                    suggestion => assertSuggestion(suggestion, selectedProjectId));
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+                latestSuggestions.First().Items.Should()
+                    .OnlyContain(suggestion => assertSuggestion(suggestion, selectedProjectId));
             }
 
             private bool assertSuggestion(AutocompleteSuggestion suggestion, long selectedProjectId)
@@ -688,21 +696,140 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                        || projectSuggestion.ProjectId == selectedProjectId && projectSuggestion.Selected;
             }
 
-            private void prepareProjects()
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotIncludeProjectCreationRowWhenTheTextIsEmpty()
             {
-                var projects = Enumerable.Range(0, 30)
-                    .Select(i =>
-                    {
-                        var project = Substitute.For<IThreadSafeProject>();
-                        project.Id.Returns(i);
-                        project.Workspace.Name.Returns("Ws");
-                        return new ProjectSuggestion(project);
-                    });
-
+                var workspaceId = 0;
+                setupWorkspace(workspaceId, true);
+                var projectSuggestions = getProjectSuggestions(10, workspaceId);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
                 InteractorFactory
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
-                    .Returns(Observable.Return(projects));
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotIncludeProjectCreationRowWhenTheTextIsWhitespace()
+            {
+                var workspaceId = 0;
+                setupWorkspace(workspaceId, true);
+                var projectSuggestions = getProjectSuggestions(10, workspaceId);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                ViewModel.FilterText.OnNext("  \t   \t  ");
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotIncludeProjectCreationRowWhenTheTextIsLongerThanTwoHundredAndFiftyCharacters()
+            {
+                var workspaceId = 0;
+                setupWorkspace(workspaceId, true);
+                var projectSuggestions = getProjectSuggestions(10, 0);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                ViewModel.FilterText.OnNext("Some absurdly long project name created solely for making sure that the SuggestCreation property returns false when the project name is longer than the previously specified threshold so that the mobile apps behave and avoid crashes in backend and even bigger problems.");
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotIncludeProjectCreationRowWhenNoWorkspaceIsEligible()
+            {
+                var workspaceId = 0;
+                setupWorkspace(workspaceId, false);
+                var projectSuggestions = getProjectSuggestions(10, 1);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                ViewModel.FilterText.OnNext("This filter text should result in project creation");
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task IncludesProjecCreationWhenFilterTextDoesNotMatchAnySuggestion()
+            {
+                var workspaceId = 1;
+                setupWorkspace(workspaceId, true);
+                var projectSuggestions = getProjectSuggestions(10, workspaceId);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                var filterText = "Project1a";
+                ViewModel.FilterText.OnNext(filterText);
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(2);
+                latestSuggestions.First().Header.Should().BeNull();
+                latestSuggestions.First().Items.Should().HaveCount(1);
+                var createEntitySuggestion = (CreateEntitySuggestion)latestSuggestions.First().Items.First();
+                createEntitySuggestion.EntityName.Should().Be(filterText);
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task DoesNotIncludeProjecCreationWhenFilterTextMatchesASuggestion()
+            {
+                var workspaceId = 0;
+                setupWorkspace(workspaceId, true);
+                var projectSuggestions = getProjectSuggestions(10, 1);
+                var suggestionsObservable = Observable.Return(projectSuggestions);
+                InteractorFactory
+                    .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
+                    .Execute()
+                    .Returns(suggestionsObservable);
+                var observer = TestScheduler.CreateObserver<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>();
+                ViewModel.Suggestions.Subscribe(observer);
+
+                await ViewModel.Initialize();
+                ViewModel.FilterText.OnNext(projectSuggestions.First().ProjectName);
+                TestScheduler.Start();
+
+                var latestSuggestions = observer.Messages.Last().Value.Value;
+                latestSuggestions.Should().HaveCount(1);
             }
         }
 
@@ -711,69 +838,54 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             const long workspaceId = 1;
 
             private IThreadSafeProject createArbitraryProject(int id)
-            {
-                var project = Substitute.For<IThreadSafeProject>();
-                project.Id.Returns(id);
-                project.WorkspaceId.Returns(workspaceId);
-                project.Name.Returns(Guid.NewGuid().ToString());
-                return project;
-            }
+                => new MockProject
+                {
+                    Id = id,
+                    WorkspaceId = workspaceId,
+                    Name = Guid.NewGuid().ToString()
+                };
 
             [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfHasProjects()
+            public async Task EmitsTrueIfThereAreNoProjectsInTheDataSource()
             {
-                var projects = Enumerable.Range(0, 5)
-                                         .Select(createArbitraryProject)
-                                         .ToList();
-
-                DataSource.Projects.GetAll().Returns(Observable.Return(projects));
+                var observer = TestScheduler.CreateObserver<bool>();
+                ViewModel.IsEmpty.Subscribe(observer);
 
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
-                ViewModel.IsEmptyOld.Should().BeFalse();
+                observer.Messages.First().Value.Value.Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
-            public async Task ReturnsFalseIfHasProjectsButFilteredProjectCollectionDoesNot()
+            public async Task EmitsFalseIfThereAreProjectsInTheDataSource()
             {
-                var projects = Enumerable.Range(0, 5)
-                                         .Select(createArbitraryProject)
-                                         .ToList();
-
-                DataSource.Projects.GetAll().Returns(Observable.Return(projects));
-
-                AutocompleteProvider
-                          .Query(Arg.Is<QueryInfo>(arg => arg.SuggestionType == AutocompleteSuggestionType.Projects))
-                          .Returns(Observable.Return(new List<ProjectSuggestion>()));
+                var project = createArbitraryProject(10);
+                var projectsObservable = Observable.Return(new[] { project });
+                DataSource.Projects.GetAll().Returns(projectsObservable);
+                var observer = TestScheduler.CreateObserver<bool>();
+                ViewModel.IsEmpty.Subscribe(observer);
 
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
-                ViewModel.Text = "Anything";
-
-                ViewModel.IsEmptyOld.Should().BeFalse();
+                observer.Messages.First().Value.Value.Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
-            public async Task ReturnsTrueIfHasNoProjects()
+            public async Task TheObservableCompletesAfterTheFirstValueIsEmited()
             {
-                DataSource.Projects.GetAll().Returns(Observable.Return(new List<IThreadSafeProject>()));
+                var observer = TestScheduler.CreateObserver<bool>();
+                ViewModel.IsEmpty.Subscribe(observer);
 
                 ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
-                ViewModel.IsEmptyOld.Should().BeTrue();
-            }
-
-            [Fact, LogIfTooSlow]
-            public void ReturnsFalseBeforeLoadingProjectsFromDatabase()
-            {
-                DataSource.Projects.GetAll().Returns(Observable.Return(new List<IThreadSafeProject>()));
-
-                ViewModel.Prepare(SelectProjectParameter.WithIds(null, null, workspaceId));
-
-                ViewModel.IsEmptyOld.Should().BeFalse();
+                observer.Messages.Should().HaveCount(2);
+                observer.Messages[1].Value.Kind.Should().Be(NotificationKind.OnCompleted);
             }
         }
     }
