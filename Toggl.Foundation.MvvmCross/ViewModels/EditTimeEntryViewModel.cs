@@ -27,7 +27,7 @@ using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParamet
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class EditTimeEntryViewModel : MvxViewModel<long>
+    public sealed class EditTimeEntryViewModel : MvxViewModel<long[]>
     {
         private const int maxTagLength = 30;
 
@@ -78,7 +78,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IOnboardingStorage OnboardingStorage => onboardingStorage;
 
-        public long Id { get; set; }
+        public long Id => Ids.First();
+        public long[] Ids { get; set; }
 
         public string Description { get; set; }
 
@@ -267,9 +268,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 => !IsInaccessible;
         }
 
-        public override void Prepare(long parameter)
+        public override void Prepare(long[] parameter)
         {
-            Id = parameter;
+            Ids = parameter;
         }
 
         public override async Task Initialize()

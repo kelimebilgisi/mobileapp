@@ -437,7 +437,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var editTimeEntryStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.EditTimeEntryFromMainLog);
             editTimeEntryStopwatch.Start();
 
-            await navigate<EditTimeEntryViewModel, long>(timeEntryId);
+            await navigate<EditTimeEntryViewModel, long[]>(new[] { timeEntryId });
 
             lock (isEditViewOpenLock)
             {

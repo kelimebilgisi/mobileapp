@@ -70,7 +70,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             protected override EditTimeEntryViewModel CreateViewModel()
-            => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService, StopwatchProvider);
+                => new EditTimeEntryViewModel(TimeService, DataSource, InteractorFactory, NavigationService, OnboardingStorage, DialogService, AnalyticsService, StopwatchProvider);
         }
 
         public sealed class TheConstructor : EditTimeEntryViewModelTest
@@ -109,7 +109,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now, true);
 
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
             }
 
@@ -280,15 +280,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task ExecutesTheDeleteInteractor()
                 {
+                    var interactor = Substitute.For<IInteractor<IObservable<Unit>>>();
+                    InteractorFactory.DeleteTimeEntry(Id).Returns(interactor);
+                    ViewModel.Prepare(new[] { Id });
+
                     await ViewModel.DeleteCommand.ExecuteAsync();
 
-                    InteractorFactory.Received().DeleteTimeEntry(Arg.Any<long>());
-                    await InteractorFactory.DeleteTimeEntry(Arg.Any<long>()).Received().Execute();
+                    InteractorFactory.Received().DeleteTimeEntry(Id);
+                    await interactor.Received().Execute();
                 }
 
                 [Fact, LogIfTooSlow]
                 public async Task InitiatesPushSync()
                 {
+                    ViewModel.Prepare(new[] { Id });
                     await ViewModel.DeleteCommand.ExecuteAsync();
 
                     await DataSource.SyncManager.Received().PushSync();
@@ -311,6 +316,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact]
                 public async Task TracksTheEventUsingTheAnaltyticsService()
                 {
+                    ViewModel.Prepare(new[] { Id });
                     await ViewModel.DeleteCommand.ExecuteAsync();
 
                     AnalyticsService.Received().DeleteTimeEntry.Track();
@@ -329,7 +335,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 {
                     await ViewModel.DeleteCommand.ExecuteAsync();
 
-                    await DataSource.TimeEntries.DidNotReceive().Delete(Arg.Is(ViewModel.Id));
+                    await DataSource.TimeEntries.DidNotReceive().Delete(Arg.Any<long>());
                 }
 
                 [Fact, LogIfTooSlow]
@@ -348,7 +354,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void CannotBeExecutedForAStoppedTimeEntry()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.UtcNow, false);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var canExecute = ViewModel.StopCommand.CanExecute();
@@ -360,7 +366,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void CanBeExecutedForARunningTimeEntry()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.UtcNow, true);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var canExecute = ViewModel.StopCommand.CanExecute();
@@ -372,7 +378,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void SetsTheCurrentTimeAsTheStopTime(DateTimeOffset now)
             {
                 ConfigureEditedTimeEntry(now, true);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 ViewModel.StopCommand.Execute();
@@ -384,7 +390,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void ClearsTheIsRunningFlag()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.UtcNow, true);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 ViewModel.StopCommand.Execute();
@@ -403,7 +409,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Navigate<EditDurationViewModel, EditDurationParameters, DurationParameter>(Arg.Any<EditDurationParameters>())
                     .Returns(parameterToReturn);
                 ConfigureEditedTimeEntry(now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.SelectDurationCommand.ExecuteAsync().Wait();
 
@@ -420,7 +426,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Navigate<EditDurationViewModel, EditDurationParameters, DurationParameter>(Arg.Any<EditDurationParameters>())
                     .Returns(parameterToReturn);
                 ConfigureEditedTimeEntry(now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.SelectDurationCommand.ExecuteAsync().Wait();
 
@@ -431,7 +437,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void TracksDurationTap()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var newStartTime = TheTimeEntry.Start.AddHours(1);
@@ -459,7 +465,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Navigate<EditDurationViewModel, EditDurationParameters, DurationParameter>(Arg.Any<EditDurationParameters>())
                     .Returns(parameterToReturn);
                 ConfigureEditedTimeEntry(now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.SelectDurationCommand.ExecuteAsync().Wait();
 
@@ -476,7 +482,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Navigate<EditDurationViewModel, EditDurationParameters, DurationParameter>(Arg.Any<EditDurationParameters>())
                     .Returns(parameterToReturn);
                 ConfigureEditedTimeEntry(now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.SelectDurationCommand.ExecuteAsync().Wait();
 
@@ -489,6 +495,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public void SetsTheOnboardingStorageFlag()
             {
+                ViewModel.Prepare(new[] { Id });
+
                 ViewModel.SaveCommand.Execute();
 
                 OnboardingStorage.Received().EditedTimeEntry();
@@ -497,6 +505,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task InitiatesPushSync()
             {
+                ViewModel.Prepare(new[] { Id });
+
                 ViewModel.SaveCommand.Execute();
 
                 await DataSource.SyncManager.Received().PushSync();
@@ -508,6 +518,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.UpdateTimeEntry(Arg.Any<EditTimeEntryDto>())
                     .Execute()
                     .Returns(Observable.Throw<IThreadSafeTimeEntry>(new Exception()));
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.SaveCommand.Execute();
 
@@ -531,7 +542,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetProjectById(project.Id)
                     .Execute()
                     .Returns(Observable.Return(project));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
                 var parameter = SelectProjectParameter.WithIds(newProjectId, null, project.WorkspaceId);
                 NavigationService.Navigate<SelectProjectViewModel, SelectProjectParameter, SelectProjectParameter>(
@@ -564,7 +575,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetProjectById(project.Id)
                     .Execute()
                     .Returns(Observable.Return(project));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
                 NavigationService.Navigate<SelectProjectViewModel, SelectProjectParameter, SelectProjectParameter>(
                         Arg.Any<SelectProjectParameter>())
@@ -591,7 +602,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetTimeEntryById(Arg.Is(timeEntry.Id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
                 NavigationService.Navigate<SelectProjectViewModel, SelectProjectParameter, SelectProjectParameter>(
                         Arg.Any<SelectProjectParameter>())
@@ -614,7 +625,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetTimeEntryById(Arg.Is(timeEntry.Id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
 
                 ViewModel.SaveCommand.Execute();
@@ -631,6 +642,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [InlineData("      \t  \n     ")]
             public async Task ReducesDescriptionConsistingOfOnlyEmptyCharactersToAnEmptyString(string description)
             {
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Description = description;
 
                 ViewModel.SaveCommand.Execute();
@@ -650,6 +662,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [InlineData("      abcd\nefgh     ", "abcd\nefgh")]
             public async Task TrimsDescriptionFromTheStartAndTheEndBeforeSaving(string description, string trimmed)
             {
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Description = description;
 
                 ViewModel.SaveCommand.Execute();
@@ -671,7 +684,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetTimeEntryById(Arg.Is(timeEntry.Id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
 
                 ViewModel.IsEditingDescription = true;
@@ -726,7 +739,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetTimeEntryById(Arg.Is(id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(id);
+                ViewModel.Prepare(new[] { id });
                 ViewModel.Initialize().Wait();
 
                 ViewModel.SelectTagsCommand.ExecuteAsync().Wait();
@@ -751,7 +764,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetTimeEntryById(Arg.Any<long>())
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
 
                 await ViewModel.SelectTagsCommand.ExecuteAsync();
@@ -776,6 +789,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 NavigationService
                     .Navigate<SelectTagsViewModel, (long[], long), long[]>(Arg.Any<(long[], long)>())
                     .Returns(Task.FromResult(tagIds));
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 ViewModel.SelectTagsCommand.ExecuteAsync().Wait();
@@ -798,6 +812,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         .ToArray();
                     var tags = tagIds.Select(createTag);
                     var tagNames = new HashSet<string>(tags.Select(tag => tag.Name));
+                    viewModel.Prepare(new[] { Id });
                     viewModel.Initialize().Wait();
                     DataSource.Tags.GetAll(Arg.Any<Func<IDatabaseTag, bool>>())
                         .Returns(Observable.Return(tags));
@@ -841,14 +856,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task SetsSyncErrorMessageVisiblePropertyToFalse(bool initialValue)
             {
                 var errorMessage = initialValue ? "Some error" : null;
-                var id = 13;
+                var id = 13L;
                 var timeEntry = Substitute.For<IThreadSafeTimeEntry>();
                 timeEntry.Id.Returns(id);
                 timeEntry.LastSyncErrorMessage.Returns(errorMessage);
                 InteractorFactory.GetTimeEntryById(Arg.Is<long>(id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
-                ViewModel.Prepare(id);
+                ViewModel.Prepare(new[] { id });
                 await ViewModel.Initialize();
 
                 ViewModel.DismissSyncErrorMessageCommand.Execute();
@@ -874,7 +889,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public void SetsTheSyncErrorMessageProperty(string errorMessage)
             {
                 timeEntry.LastSyncErrorMessage.Returns(errorMessage);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.Initialize().Wait();
 
@@ -887,7 +902,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 timeEntry.IsInaccessible.Returns(true);
                 timeEntry.LastSyncErrorMessage.Returns("Some less important error message");
 
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 ViewModel.Initialize().Wait();
 
@@ -902,7 +917,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 string errorMessage, bool expectedVisibility)
             {
                 timeEntry.LastSyncErrorMessage.Returns(errorMessage);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
 
                 await ViewModel.Initialize();
 
@@ -934,7 +949,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(observable);
 
-                viewModel.Prepare(id);
+                viewModel.Prepare(new[] { id });
                 viewModel.Initialize().Wait();
                 viewModel.IsEditingDescription = false;
                 viewModel.ConfirmCommand.Execute();
@@ -1020,7 +1035,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 prepareNavigationService(projectId, taskId);
 
-                ViewModel.Prepare(timeEntryId);
+                ViewModel.Prepare(new[] { timeEntryId });
                 await ViewModel.Initialize();
             }
 
@@ -1169,7 +1184,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeEntry = prepareTimeEntry(timeEntryId);
                 var tags = createTags(initialTagCount);
                 timeEntry.Tags.Returns(tags);
-                ViewModel.Prepare(timeEntryId);
+                ViewModel.Prepare(new[] { timeEntryId });
                 await ViewModel.Initialize();
                 ViewModel.Tags.Should().HaveCount(initialTagCount);
 
@@ -1234,7 +1249,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
 
-                ViewModel.Prepare(timeEntry.Id);
+                ViewModel.Prepare(new[] { timeEntry.Id });
                 await ViewModel.Initialize();
             }
 
@@ -1287,7 +1302,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task OpensTheSelectDateTimeViewModel()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.UtcNow, false);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 await ViewModel.SelectStartDateCommand.ExecuteAsync();
@@ -1302,7 +1317,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var now = DateTimeOffset.UtcNow;
                 ConfigureEditedTimeEntry(now, true);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 await ViewModel.SelectStartDateCommand.ExecuteAsync();
@@ -1317,7 +1332,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var now = DateTimeOffset.UtcNow;
                 ConfigureEditedTimeEntry(now, false);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 await ViewModel.SelectStartDateCommand.ExecuteAsync();
@@ -1335,7 +1350,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var now = DateTimeOffset.UtcNow;
                 var startTime = now.AddMonths(-1);
                 ConfigureEditedTimeEntry(now, isRunning);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
                 NavigationService
                     .Navigate<SelectDateTimeViewModel, DateTimePickerParameters, DateTimeOffset>(Arg.Any<DateTimePickerParameters>())
@@ -1351,7 +1366,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var now = DateTimeOffset.UtcNow;
                 ConfigureEditedTimeEntry(now, false);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
                 var duration = Duration;
 
@@ -1364,7 +1379,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task TracksStartDateTap()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var newStartTime = TheTimeEntry.Start.AddHours(1);
@@ -1387,7 +1402,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task TracksStartTimeTap()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var newStartTime = TheTimeEntry.Start.AddHours(1);
@@ -1411,7 +1426,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task TracksStopTimeTap()
             {
                 ConfigureEditedTimeEntry(DateTimeOffset.Now);
-                ViewModel.Prepare(Id);
+                ViewModel.Prepare(new[] { Id });
                 ViewModel.Initialize().Wait();
 
                 var newStartTime = TheTimeEntry.Start.AddHours(1);

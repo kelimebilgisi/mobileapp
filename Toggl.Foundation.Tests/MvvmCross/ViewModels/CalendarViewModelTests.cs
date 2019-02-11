@@ -451,7 +451,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 PermissionsService.RequestCalendarAuthorization().Returns(Observable.Return(true));
                 NavigationService.Navigate<SelectUserCalendarsViewModel, string[]>().Returns(new string[0]);
 
-                 ViewModel.GetStarted.Execute(Unit.Default);
+                ViewModel.GetStarted.Execute(Unit.Default);
 
                 OnboardingStorage.Received().SetCompletedCalendarOnboarding();
             }
@@ -679,7 +679,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.OnItemTapped.Execute(CalendarItem);
                     TestScheduler.Start();
 
-                    await NavigationService.Received().Navigate<EditTimeEntryViewModel, long>(Arg.Is(TimeEntryId));
+                    await NavigationService.Received().Navigate<EditTimeEntryViewModel, long[]>(
+                        Arg.Is<long[]>(array => array[0] == TimeEntryId));
                 }
             }
 
@@ -785,7 +786,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.OnDurationSelected.Execute(tuple);
                 TestScheduler.Start();
 
-                await NavigationService.Received().Navigate<EditTimeEntryViewModel, long>(Arg.Is(TimeEntryId));
+                await NavigationService.Received().Navigate<EditTimeEntryViewModel, long[]>(
+                       Arg.Is<long[]>(array => array[0] == TimeEntryId));
             }
 
             [Fact, LogIfTooSlow]
