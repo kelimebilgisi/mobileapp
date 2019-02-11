@@ -89,34 +89,9 @@ namespace Toggl.Daneel.ViewSources
                     reloadDisplayedData();
                     break;
 
-                case AddMultipleRowsCollectionChange<TModel> addMultipleRowsChange:
-                    addMultipleRows(addMultipleRowsChange.AddedRowChanges);
-                    break;
-
-
-                case RemoveMultipleRowsCollectionChange removeMultipleRowsCollectionChange:
-                    removeMultipleRows(removeMultipleRowsCollectionChange.RemovedIndexes);
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private void removeMultipleRows(IEnumerable<SectionedIndex> removedRows)
-        {
-            foreach (var removedRow in removedRows)
-            {
-                var section = displayedItems[removedRow.Section];
-                section.RemoveAt(removedRow.Row);
-                if (section.Count == 0)
-                    displayedItems.Remove(section);
-            }
-        }
-
-        private void addMultipleRows(IEnumerable<AddRowCollectionChange<TModel>> addedRows)
-        {
-            foreach (var addedRow in addedRows)
-                add(addedRow.Index, addedRow.Item);
         }
 
         private void insertSection(int index, TModel item)

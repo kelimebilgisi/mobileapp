@@ -98,11 +98,6 @@ namespace Toggl.Foundation.MvvmCross.Collections
             return (new SectionedIndex(sectionIndex, rowIndex + 1), false);
         }
 
-        public (SectionedIndex index, bool needsNewSection)[] InsertItems(IEnumerable<TItem> items)
-            => items.OrderBy(orderingKey)
-                .Select(InsertItem)
-                .ToArray();
-
         public SectionedIndex? UpdateItem(IComparable key, TItem item)
         {
             var oldIndex = IndexOf(key);
@@ -129,15 +124,6 @@ namespace Toggl.Foundation.MvvmCross.Collections
             removeItemFromSection(section, row);
             return item;
         }
-
-        public TItem RemoveItemAt(SectionedIndex index)
-            => RemoveItemAt(index.Section, index.Row);
-
-        public TItem[] RemoveItemsAt(IEnumerable<SectionedIndex> indexes)
-            => indexes.OrderByDescending(index => index.Section)
-                .ThenByDescending(index => index.Row)
-                .Select(RemoveItemAt)
-                .ToArray();
 
         private bool areInOrder(TItem ob1, TItem ob2, Func<TItem, IComparable> key)
         {
