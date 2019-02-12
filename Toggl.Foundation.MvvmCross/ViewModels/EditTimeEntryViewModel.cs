@@ -36,9 +36,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IDialogService dialogService;
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
-        private readonly IOnboardingStorage onboardingStorage;
         private readonly IAnalyticsService analyticsService;
         private readonly IStopwatchProvider stopwatchProvider;
+
+        public IOnboardingStorage OnboardingStorage { get; private set; }
 
         private readonly HashSet<long> tagIds = new HashSet<long>();
         private IDisposable tickingDisposable;
@@ -76,7 +77,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                    && originalTimeEntry.Duration != (long)Duration.TotalSeconds)
                || originalTimeEntry.Billable != Billable;
 
-        public IOnboardingStorage OnboardingStorage => onboardingStorage;
 
         public long Id => Ids.First();
         public long[] Ids { get; set; }
@@ -234,10 +234,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.timeService = timeService;
             this.dialogService = dialogService;
             this.interactorFactory = interactorFactory;
+            OnboardingStorage = onboardingStorage;
             this.navigationService = navigationService;
-            this.onboardingStorage = onboardingStorage;
             this.analyticsService = analyticsService;
             this.stopwatchProvider = stopwatchProvider;
+
 
             DeleteCommand = new MvxAsyncCommand(delete);
             ConfirmCommand = new MvxCommand(confirm);
@@ -364,7 +365,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void save()
         {
-            onboardingStorage.EditedTimeEntry();
+            OnboardingStorage.EditedTimeEntry();
 
             var dto = new EditTimeEntryDto
             {
@@ -498,7 +499,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.EditEntrySelectProject.Track();
             analyticsService.EditViewTapped.Track(EditViewTapSource.Project);
 
-            onboardingStorage.SelectsProject();
+            OnboardingStorage.SelectsProject();
 
             var selectProjectStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenSelectProjectFromEditView, true);
             selectProjectStopwatch.Start();
