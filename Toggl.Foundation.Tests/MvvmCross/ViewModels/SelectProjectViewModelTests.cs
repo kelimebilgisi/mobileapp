@@ -811,12 +811,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public async Task DoesNotIncludeProjecCreationWhenFilterTextMatchesASuggestion()
+            public async Task IncludesProjecCreationWhenFilterTextMatchesASuggestion()
             {
                 var workspaceId = 0;
                 setupWorkspace(workspaceId, true);
                 var projectSuggestions = getProjectSuggestions(10, 1);
                 var suggestionsObservable = Observable.Return(projectSuggestions);
+                var filterText = projectSuggestions.First().ProjectName;
                 InteractorFactory
                     .GetProjectsAutocompleteSuggestions(Arg.Any<IList<string>>())
                     .Execute()
@@ -825,11 +826,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Suggestions.Subscribe(observer);
 
                 await ViewModel.Initialize();
-                ViewModel.FilterText.OnNext(projectSuggestions.First().ProjectName);
+                ViewModel.FilterText.OnNext(filterText);
                 TestScheduler.Start();
 
                 var latestSuggestions = observer.Messages.Last().Value.Value;
-                latestSuggestions.Should().HaveCount(1);
+                latestSuggestions.Should().HaveCount(2);
+                latestSuggestions.First().Header.Should().BeNull();
+                latestSuggestions.First().Items.Should().HaveCount(1);
+                var createEntitySuggestion = (CreateEntitySuggestion)latestSuggestions.First().Items.First();
+                createEntitySuggestion.EntityName.Should().Be(filterText);
             }
         }
 

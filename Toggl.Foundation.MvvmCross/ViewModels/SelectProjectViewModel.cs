@@ -104,8 +104,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (!isOfAllowedLength)
                 return false;
 
-            var hasNoExactMatches = suggestions.None(suggestion => suggestion is ProjectSuggestion ps && ps.ProjectName == text);
-            return hasNoExactMatches;
+            return true;
         }
 
         public override void Prepare(SelectProjectParameter parameter)
