@@ -26,9 +26,15 @@ namespace Toggl.Foundation.Interactors
 
         IInteractor<IObservable<IThreadSafeTimeEntry>> UpdateTimeEntry(EditTimeEntryDto dto);
 
+        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> UpdateMultipleTimeEntries(EditTimeEntryDto dto, long[] ids);
+
         IInteractor<IObservable<IThreadSafeTimeEntry>> GetTimeEntryById(long id);
 
+        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetMultipleTimeEntriesById(params long[] ids);
+
         IInteractor<IObservable<Unit>> DeleteTimeEntry(long id);
+
+        IInteractor<IObservable<Unit>> DeleteMultipleTimeEntries(long[] ids);
 
         IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> GetAllTimeEntriesVisibleToTheUser();
 
@@ -119,6 +125,8 @@ namespace Toggl.Foundation.Interactors
 
         #region User
 
+        IInteractor<IObservable<IThreadSafeUser>> GetCurrentUser();
+
         IInteractor<IObservable<byte[]>> GetUserAvatar(string url);
 
         IInteractor<IObservable<IThreadSafeUser>> UpdateUser(EditUserDTO dto);
@@ -174,6 +182,8 @@ namespace Toggl.Foundation.Interactors
         IInteractor<IObservable<IThreadSafeTag>> CreateTag(string tagName, long workspaceId);
 
         IInteractor<IObservable<IThreadSafeTag>> GetTagById(long id);
+
+        IInteractor<IObservable<IEnumerable<IThreadSafeTag>>> GetMultipleTagsById(params long[] id);
 
         #endregion
 
