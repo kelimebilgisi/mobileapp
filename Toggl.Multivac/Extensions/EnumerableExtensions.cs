@@ -79,7 +79,7 @@ namespace Toggl.Multivac.Extensions
         public static HashSet<T> ToHashSet<T>(this IEnumerable<T> collection)
             => new HashSet<T>(collection);
 
-        public static IEnumerable<T> Yield<T>(this T item) 
+        public static IEnumerable<T> Yield<T>(this T item)
         {
             yield return item;
         }
@@ -93,5 +93,19 @@ namespace Toggl.Multivac.Extensions
         public static bool ContainsExactlyAll<T>(this IReadOnlyList<T> collection, IReadOnlyList<T> otherCollection)
             => collection.Count == otherCollection.Count
                && collection.Except(otherCollection).None();
+
+        public static bool SetEquals<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer = null)
+        {
+            if (first == null)
+                throw new ArgumentNullException(nameof(first));
+            if (second == null)
+                throw new ArgumentNullException(nameof(second));
+
+            comparer = comparer ?? EqualityComparer<T>.Default;
+
+            var hashSet = new HashSet<T>(first, comparer);
+
+            return hashSet.SetEquals(second);
+        }
     }
 }

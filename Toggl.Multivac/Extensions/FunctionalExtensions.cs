@@ -23,6 +23,8 @@ namespace Toggl.Multivac.Extensions
         public static T1 First<T1, T2>(T1 result, T2 _) => result;
 
         public static T2 Second<T1, T2>(T1 _, T2 result) => result;
+
+        public static string Trim(string text) => text.Trim();
     }
 
     public static class FunctionalExtensions

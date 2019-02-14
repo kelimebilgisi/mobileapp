@@ -1,4 +1,5 @@
-﻿using Toggl.Foundation.Models.Interfaces;
+﻿using System;
+using Toggl.Foundation.Models.Interfaces;
 
 namespace Toggl.Foundation.Extensions
 {
@@ -29,5 +30,10 @@ namespace Toggl.Foundation.Extensions
                     return project.Color ?? "";
             }
         }
+
+        public static TimeSpan? TimeSpanDuration(this IThreadSafeTimeEntry timeEntry)
+            => timeEntry.Duration.HasValue
+            ? TimeSpan.FromSeconds(timeEntry.Duration.Value)
+            : (TimeSpan?)null;
     }
 }
