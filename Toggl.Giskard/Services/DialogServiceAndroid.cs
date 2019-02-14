@@ -92,7 +92,7 @@ namespace Toggl.Giskard.Services
         public IObservable<Unit> Alert(string title, string message, string buttonTitle)
             => Confirm(title, message, buttonTitle, null).Select(_ => Unit.Default);
 
-        public IObservable<bool> ConfirmDestructiveAction(ActionType type)
+        public IObservable<bool> ConfirmDestructiveAction(ActionType type, params object[] formatArguments)
         {
             switch (type)
             {
@@ -102,6 +102,8 @@ namespace Toggl.Giskard.Services
                     return Confirm(null, Resources.DiscardEditingChanges, Resources.Discard, Resources.ContinueEditing);
                 case ActionType.DeleteExistingTimeEntry:
                     return Confirm(null, Resources.DeleteThisTimeEntry, Resources.Delete, Resources.Cancel);
+                case ActionType.DeleteMultipleExistingTimeEntries:
+                    return Confirm(null, string.Format(Resources.DeleteMultipleTimeEntries, formatArguments), Resources.Delete, Resources.Cancel);
                 case ActionType.DiscardFeedback:
                     return Confirm(null, Resources.DiscardMessage, Resources.Discard, Resources.ContinueEditing);
             }

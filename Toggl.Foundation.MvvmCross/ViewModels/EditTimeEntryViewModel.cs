@@ -412,7 +412,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task delete()
         {
-            var shouldDelete = await dialogService.ConfirmDestructiveAction(ActionType.DeleteMultipleExistingTimeEntries);
+            var shouldDelete = await dialogService.ConfirmDestructiveAction(
+                ActionType.DeleteMultipleExistingTimeEntries, TimeEntryIds.Length);
+
             if (!shouldDelete)
                 return;
 

@@ -54,17 +54,21 @@ namespace Toggl.Daneel.Services
             });
         }
 
-        public IObservable<bool> ConfirmDestructiveAction(ActionType type)
+        public IObservable<bool> ConfirmDestructiveAction(ActionType type, params object[] formatArgs)
         {
             return Observable.Create<bool>(observer =>
             {
+                var (titleFormat, confirmText, cancelText) = selectTextByType(type);
+
+                var title = titleFormat != null
+                    ? string.Format(titleFormat, formatArgs)
+                    : null;
+
                 var actionSheet = UIAlertController.Create(
-                    title: null,
+                    title,
                     message: null,
                     preferredStyle: UIAlertControllerStyle.ActionSheet
                 );
-
-                var (confirmText, cancelText) = selectTextByType(type);
 
                 var cancelAction = UIAlertAction.Create(cancelText, UIAlertActionStyle.Cancel, _ =>
                 {
@@ -146,18 +150,20 @@ namespace Toggl.Daneel.Services
             });
         }
 
-        private (string, string) selectTextByType(ActionType type)
+        private (string Title, string ConfirmButtonText, string CancelButtonText) selectTextByType(ActionType type)
         {
             switch (type)
             {
                 case ActionType.DiscardNewTimeEntry:
-                    return (Resources.Discard, Resources.Cancel);
+                    return (null, Resources.Discard, Resources.Cancel);
                 case ActionType.DiscardEditingChanges:
-                    return (Resources.Discard, Resources.ContinueEditing);
+                    return (null, Resources.Discard, Resources.ContinueEditing);
                 case ActionType.DeleteExistingTimeEntry:
-                    return (Resources.Delete, Resources.Cancel);
+                    return (null, Resources.Delete, Resources.Cancel);
+                case ActionType.DeleteMultipleExistingTimeEntries:
+                    return (Resources.DeleteMultipleTimeEntries, Resources.Delete, Resources.Cancel);
                 case ActionType.DiscardFeedback:
-                    return (Resources.Discard, Resources.ContinueEditing);
+                    return (null, Resources.Discard, Resources.ContinueEditing);
             }
 
             throw new ArgumentOutOfRangeException(nameof(type));

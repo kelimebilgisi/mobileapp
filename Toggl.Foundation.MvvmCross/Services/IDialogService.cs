@@ -14,7 +14,7 @@ namespace Toggl.Foundation.MvvmCross.Services
 
         IObservable<Unit> Alert(string title, string message, string buttonTitle);
 
-        IObservable<bool> ConfirmDestructiveAction(ActionType type);
+        IObservable<bool> ConfirmDestructiveAction(ActionType type, params object[] formatArguments);
 
         IObservable<T> Select<T>(string title, IEnumerable<(string ItemName, T Item)> options, int initialSelectionIndex);
     }
