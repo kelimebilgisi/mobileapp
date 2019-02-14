@@ -72,6 +72,8 @@ namespace Toggl.Giskard.Views.EditDuration.Shapes
 
         public void OnDraw(Canvas canvas)
         {
+            if (position == null) return;
+
             if (showOnlyBackground)
             {
                 canvas.DrawCircle(position.X, position.Y, arcRadius, arcPaint);

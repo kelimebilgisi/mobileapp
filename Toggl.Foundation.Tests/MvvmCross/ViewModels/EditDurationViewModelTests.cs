@@ -6,6 +6,7 @@ using FluentAssertions;
 using FsCheck.Xunit;
 using NSubstitute;
 using Toggl.Foundation.Analytics;
+using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Extensions;
@@ -558,14 +559,16 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact]
-            public void ChangesJustTheStartTime()
+            public void ChangesJustTheStartTimeWhenEditingStartTime()
             {
                 var editedValue = new DateTimeOffset(2018, 01, 07, 0, 0, 0, TimeSpan.Zero);
                 ViewModel.Prepare(new EditDurationParameters(parameter));
                 var startObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 ViewModel.StartTime.Subscribe(startObserver);
                 ViewModel.StopTime.Subscribe(stopObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStartTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
@@ -573,6 +576,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
                 startObserver.LastValue().Should().Be(editedValue);
                 stopObserver.LastValue().Should().NotBe(editedValue);
+                temporalInconsistenciesObserver.Messages.Should().BeEmpty();
             }
 
             [Fact]
@@ -582,10 +586,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(new EditDurationParameters(parameter));
                 var startObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 var maxTimeObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 ViewModel.StartTime.Subscribe(startObserver);
                 ViewModel.StopTime.Subscribe(stopObserver);
                 ViewModel.MaximumDateTime.Subscribe(maxTimeObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStartTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
@@ -593,6 +599,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
                 startObserver.LastValue().Should().Be(maxTimeObserver.LastValue());
                 stopObserver.LastValue().Should().Be(maxTimeObserver.LastValue());
+                temporalInconsistenciesObserver.LastValue().Should().Be(TemporalInconsistency.StartTimeAfterStopTime);
             }
 
             [Fact]
@@ -603,9 +610,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var startObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var minTimeObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 ViewModel.StartTime.Subscribe(startObserver);
                 ViewModel.StopTime.Subscribe(stopObserver);
                 ViewModel.MinimumDateTime.Subscribe(minTimeObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStartTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
@@ -613,17 +622,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
                 startObserver.LastValue().Should().Be(minTimeObserver.LastValue());
                 stopObserver.LastValue().Should().NotBe(minTimeObserver.LastValue());
+                temporalInconsistenciesObserver.LastValue().Should().Be(TemporalInconsistency.DurationTooLong);
             }
 
             [Fact]
-            public void ChangesJustTheStopTime()
+            public void ChangesJustTheStopTimeWhenEditingTheStopTime()
             {
                 var editedValue = new DateTimeOffset(2018, 02, 20, 0, 0, 0, TimeSpan.Zero);
                 ViewModel.Prepare(new EditDurationParameters(parameter));
                 var startObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 ViewModel.StartTime.Subscribe(startObserver);
                 ViewModel.StopTime.Subscribe(stopObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStopTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
@@ -631,6 +643,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
                 startObserver.LastValue().Should().NotBe(editedValue);
                 stopObserver.LastValue().Should().Be(editedValue);
+                temporalInconsistenciesObserver.Messages.Should().BeEmpty();
             }
 
             [Fact]
@@ -640,14 +653,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(new EditDurationParameters(parameter));
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var maxTimeObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 ViewModel.StopTime.Subscribe(stopObserver);
                 ViewModel.MaximumDateTime.Subscribe(maxTimeObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStopTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
 
                 TestScheduler.Start();
                 stopObserver.LastValue().Should().Be(maxTimeObserver.LastValue());
+                temporalInconsistenciesObserver.LastValue().Should().Be(TemporalInconsistency.DurationTooLong);
             }
 
             [Fact]
@@ -657,14 +673,17 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(new EditDurationParameters(parameter));
                 var stopObserver = TestScheduler.CreateObserver<DateTimeOffset>();
                 var minTimeObserver = TestScheduler.CreateObserver<DateTimeOffset>();
+                var temporalInconsistenciesObserver = TestScheduler.CreateObserver<TemporalInconsistency>();
                 ViewModel.StopTime.Subscribe(stopObserver);
-                ViewModel.MinimumDateTime.Subscribe(minTimeObserver );
+                ViewModel.MinimumDateTime.Subscribe(minTimeObserver);
+                ViewModel.TemporalInconsistencies.Subscribe(temporalInconsistenciesObserver);
 
                 ViewModel.EditStopTime.Execute();
                 ViewModel.ChangeActiveTime.Execute(editedValue);
 
                 TestScheduler.Start();
                 stopObserver.LastValue().Should().Be(minTimeObserver.LastValue());
+                temporalInconsistenciesObserver.LastValue().Should().Be(TemporalInconsistency.StopTimeBeforeStartTime);
             }
         }
 

@@ -12,6 +12,7 @@ using MvvmCross.Droid.Support.V4;
 using MvvmCross.Platforms.Android.Binding.BindingContext;
 using MvvmCross.Platforms.Android.Presenters.Attributes;
 using MvvmCross.WeakSubscription;
+using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Adapters;
 using Toggl.Giskard.Extensions;
@@ -22,11 +23,11 @@ namespace Toggl.Giskard.Fragments
     using System.Collections.Generic;
     using System.Reactive.Linq;
     using System.Threading;
-    using Toggl.Giskard.Views;
-    using Toggl.Multivac;
+    using Views;
     using static SelectTimeFragment.EditorMode;
     using static SelectTimeViewModel;
-    using static SelectTimeViewModel.TemporalInconsistency;
+    using static TemporalInconsistency;
+    
 
     [MvxDialogFragmentPresentation(AddToBackStack = true)]
     public sealed class SelectTimeFragment : MvxDialogFragment<SelectTimeViewModel>, TabLayout.IOnTabSelectedListener

@@ -331,6 +331,36 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 }
 
                 [Fact, LogIfTooSlow]
+                public async Task ReturnsTrueIfTheProjectNameIsValid()
+                {
+                    var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true };
+                    InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace }));
+
+                    ViewModel.Prepare();
+                    await ViewModel.Initialize();
+                    TestScheduler.Start();
+
+                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("@bongo", 6));
+
+                    ViewModel.SuggestCreation.Should().BeTrue();
+                }
+
+                [Fact, LogIfTooSlow]
+                public async Task ReturnsTrueEvenIfAProjectWithSameNameExist()
+                {
+                    var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true };
+                    InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace }));
+
+                    ViewModel.Prepare();
+                    await ViewModel.Initialize();
+                    TestScheduler.Start();
+
+                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"@${ProjectName}", 6));
+
+                    ViewModel.SuggestCreation.Should().BeTrue();
+                }
+
+                [Fact, LogIfTooSlow]
                 public async Task TracksProjectSelection()
                 {
                     ViewModel.Prepare();

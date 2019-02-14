@@ -65,6 +65,8 @@ namespace Toggl.Giskard.Views.EditDuration
             => FoundationColor.EditDuration.Wheel.Rainbow.GetPingPongIndexedItem(numberOfFullLoops + 1).ToNativeColor();
 
         private readonly Subject<EditTimeSource> timeEditedSubject = new Subject<EditTimeSource>();
+        private readonly Subject<DateTimeOffset> startTimeSubject = new Subject<DateTimeOffset>();
+        private readonly Subject<DateTimeOffset> endTimeSubject = new Subject<DateTimeOffset>();
 
         private Wheel fullWheel;
         private Arc arc;
@@ -74,6 +76,10 @@ namespace Toggl.Giskard.Views.EditDuration
 
         public IObservable<EditTimeSource> TimeEdited
             => timeEditedSubject.AsObservable();
+
+        public IObservable<DateTimeOffset> StartTimeObservable => startTimeSubject.AsObservable();
+
+        public IObservable<DateTimeOffset> EndTimeObservable => endTimeSubject.AsObservable();
 
         public DateTimeOffset MinimumStartTime { get; set; }
 
@@ -89,11 +95,16 @@ namespace Toggl.Giskard.Views.EditDuration
             set
             {
                 if (startTime == value) return;
+
                 startTime = value.Clamp(MinimumStartTime, MaximumStartTime);
+
+                if (center == null) return;
+
                 startTimeAngle = startTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
                 startTimePosition = PointOnCircumference(center.ToPoint(), startTimeAngle, endPointsRadius).ToPointF();
                 arc?.Update(startTimeAngle, endTimeAngle);
                 wheelHandleDotIndicator?.Update(startTimeAngle, endTimeAngle);
+                startTimeSubject.OnNext(startTime);
                 Invalidate();
             }
         }
@@ -104,11 +115,16 @@ namespace Toggl.Giskard.Views.EditDuration
             set
             {
                 if (endTime == value) return;
+
                 endTime = value.Clamp(MinimumEndTime, MaximumEndTime);
+
+                if (center == null) return;
+
                 endTimeAngle = endTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
                 endTimePosition = PointOnCircumference(center.ToPoint(), endTimeAngle, endPointsRadius).ToPointF();
                 arc?.Update(startTimeAngle, endTimeAngle);
                 wheelHandleDotIndicator?.Update(startTimeAngle, endTimeAngle);
+                endTimeSubject.OnNext(endTime);
                 Invalidate();
             }
         }
@@ -152,6 +168,12 @@ namespace Toggl.Giskard.Views.EditDuration
 
         private void init()
         {
+            MinimumStartTime = DateTimeOffset.MinValue;
+            MaximumStartTime = DateTimeOffset.Now;
+            MinimumEndTime = DateTimeOffset.Now;
+            MaximumEndTime = DateTimeOffset.MaxValue;
+            startTime = DateTimeOffset.Now;
+            endTime = DateTimeOffset.Now;
             arcWidth = 8.DpToPixels(Context);
             capWidth = 28.DpToPixels(Context);
             capIconSize = 18.DpToPixels(Context);
@@ -171,7 +193,14 @@ namespace Toggl.Giskard.Views.EditDuration
             bounds = new RectF(capWidth, capWidth, Width - capWidth, Width - capWidth);
             endPointsRadius = radius - capWidth;
             wheelHandleDotIndicatorDistanceToCenter = radius - capWidth / 2f;
+            startTimeAngle = startTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
+            startTimePosition = PointOnCircumference(center.ToPoint(), startTimeAngle, endPointsRadius).ToPointF();
+            endTimeAngle = endTime.LocalDateTime.TimeOfDay.ToAngleOnTheDial().ToPositiveAngle();
+            endTimePosition = PointOnCircumference(center.ToPoint(), endTimeAngle, endPointsRadius).ToPointF();
             setupDrawingDelegates();
+            arc.Update(startTimeAngle, endTimeAngle);
+            wheelHandleDotIndicator.Update(startTimeAngle, endTimeAngle);
+            Invalidate();
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -188,7 +217,7 @@ namespace Toggl.Giskard.Views.EditDuration
         private void setupDrawingDelegates()
         {
             fullWheel = new Wheel(bounds, arcWidth, backgroundColor);
-            arc = new Arc(bounds, arcWidth, Color.Transparent);
+            arc = new Arc(bounds, arcWidth, foregroundColor);
             var endCapBitmap = Context.GetVectorDrawable(Resource.Drawable.ic_stop).ToBitmap(capIconSize, capIconSize);
             var startCapBitmap = Context.GetVectorDrawable(Resource.Drawable.ic_play).ToBitmap(capIconSize, capIconSize);
             endCap = createCapWithIcon(endCapBitmap);

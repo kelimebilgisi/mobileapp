@@ -54,4 +54,23 @@
         <item name="android:textColor">@color/defaultText</item>
         <item name="android:textSize">12sp</item>
     </style>
+    <style name="WheelDialogStyle" parent="android:Theme.Material.Light.Dialog">
+        <item name="android:colorAccent">#328fff</item>
+        <item name="android:headerTimeTextAppearance">@style/TextAppearance.AppCompat</item>
+        <item name="android:headerDayOfMonthTextAppearance">@style/TextAppearance.AppCompat</item>
+        <item name="android:headerAmPmTextAppearance">@style/TextAppearance.AppCompat</item>
+        <item name="android:headerMonthTextAppearance">@style/TextAppearance.AppCompat</item>
+        <item name="android:headerYearTextAppearance">@style/TextAppearance.AppCompat</item>
+        <item name="android:timePickerStyle">@style/WheelTimePicker</item>
+        <item name="android:datePickerStyle">@style/WheelDatePicker</item>
+    </style>
+
+    <style name="WheelDatePicker" parent="@android:style/Widget.Material.Light.DatePicker">
+        <item name="android:headerBackground">@drawable/picker_header_background</item>
+    </style>
+
+    <style name="WheelTimePicker" parent="@android:style/Widget.Material.Light.TimePicker">
+        <item name="android:headerBackground">@drawable/picker_header_background</item>
+        <item name="android:numbersSelectorColor">#328fff</item>
+    </style>
 </resources>

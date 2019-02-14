@@ -48,7 +48,7 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             durationLabel.Rx().Tap()
-                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(Duration))
+                .Subscribe(_ => ViewModel.ChangeTimeCommand.Execute())
                 .DisposedBy(DisposeBag);
 
             editText.TextObservable

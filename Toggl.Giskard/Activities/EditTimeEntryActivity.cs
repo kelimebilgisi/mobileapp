@@ -83,15 +83,15 @@ namespace Toggl.Giskard.Activities
         private void setupBindings()
         {
             startTimeArea.Rx().Tap()
-                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(StartTime))
+                .Subscribe(_ => ViewModel.SelectStartTimeCommand.Execute())
                 .DisposedBy(DisposeBag);
 
             stopTimeArea.Rx().Tap()
-                .Subscribe(_ => ViewModel.StopTimeEntryCommand.Execute(StopTime))
+                .Subscribe(_ => ViewModel.SelectStopTimeCommand.Execute())
                 .DisposedBy(DisposeBag);
 
             durationArea.Rx().Tap()
-                .Subscribe(_ => ViewModel.SelectTimeCommand.Execute(Duration))
+                .Subscribe(_ => ViewModel.SelectDurationCommand.Execute())
                 .DisposedBy(DisposeBag);
 
             ViewModel.ProjectTaskOrClientChanged
@@ -102,7 +102,7 @@ namespace Toggl.Giskard.Activities
 
         private void onProjectTaskOrClientChanged(bool hasProject)
         {
-            projectTaskClientTextView.TextFormatted = 
+            projectTaskClientTextView.TextFormatted =
                 TimeEntryExtensions.ToProjectTaskClient(
                     hasProject,
                     ViewModel.Project,

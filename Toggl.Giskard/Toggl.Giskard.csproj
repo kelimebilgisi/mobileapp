@@ -274,6 +274,10 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activities\EditDurationActivity.cs" />
+    <Compile Include="Activities\EditDurationActivity.ViewBinds.cs">
+      <DependentUpon>EditDurationActivity.cs</DependentUpon>
+    </Compile>
     <Compile Include="Activities\ForgotPasswordActivity.cs" />
     <Compile Include="Activities\ForgotPasswordActivity.ViewBinds.cs">
       <DependentUpon>ForgotPasswordActivity.cs</DependentUpon>
@@ -345,10 +349,12 @@
     <Compile Include="ViewHelpers\BarChartData.cs" />
     <Compile Include="ViewHelpers\BarChartDayLabel.cs" />
     <Compile Include="ViewHelpers\CopyLessSpannableFactory.cs" />
+    <Compile Include="ViewHelpers\DatePickerListener.cs" />
     <Compile Include="ViewHelpers\MainRecyclerViewTouchCallback.cs" />
     <Compile Include="ViewHelpers\ReportsSummaryData.cs" />
     <Compile Include="ViewHelpers\SimpleRecyclerViewScrollChangeListener.cs" />
     <Compile Include="ViewHelpers\SuggestionsRecyclerViewSnapHelper.cs" />
+    <Compile Include="ViewHelpers\TimePickerListener.cs" />
     <Compile Include="ViewHolders\CalendarDayCellViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientCreationSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientSelectionViewHolder.cs" />
@@ -593,6 +599,7 @@
     <AndroidResource Include="Resources\drawable-xhdpi\logo.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\logo.png" />
     <AndroidResource Include="Resources\drawable-xxxhdpi\logo.png" />
+    <AndroidResource Include="Resources\menu\GenericSaveMenu.xml" />
     <AndroidResource Include="Resources\values\Strings.xml" />
     <AndroidResource Include="Resources\mipmap-hdpi\ic_launcher.png" />
     <AndroidResource Include="Resources\mipmap-mdpi\ic_launcher.png" />
@@ -1013,6 +1020,17 @@
     <AndroidResource Include="Resources\layout\ReportsCalendarView.axml" />
   </ItemGroup>
   <ItemGroup>
+    <AndroidResource Include="Resources\layout\EditDurationActivity.axml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_play.xml" />
+    <AndroidResource Include="Resources\drawable\ic_stop.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\ic_separator_dot.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\picker_header_background.xml" />
     <AndroidResource Include="Resources\drawable\ic_play.xml" />
     <AndroidResource Include="Resources\drawable\ic_stop.xml" />
   </ItemGroup>

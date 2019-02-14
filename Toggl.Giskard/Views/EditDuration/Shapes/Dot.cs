@@ -27,7 +27,7 @@ namespace Toggl.Giskard.Views.EditDuration.Shapes
 
         public void OnDraw(Canvas canvas)
         {
-            if (hidden) return;
+            if (hidden || position == null) return;
 
             canvas.DrawCircle(position.X, position.Y, radius, paint);
         }

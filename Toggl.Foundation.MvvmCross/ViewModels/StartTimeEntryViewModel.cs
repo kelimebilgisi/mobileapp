@@ -85,9 +85,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     return false;
 
                 if (IsSuggestingProjects)
-                    return Suggestions.None(
-                               c => c.Any(s => s is ProjectSuggestion pS && pS.ProjectName == CurrentQuery))
-                           && CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes
+                    return CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes
                            && shouldSuggestProjectCreation;
 
                 if (IsSuggestingTags)

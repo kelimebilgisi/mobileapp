@@ -28,7 +28,7 @@ namespace Toggl.Giskard.Views.EditDuration
     }
 
     [Register("toggl.giskard.views.WheelDurationInput")]
-    public partial class WheelDurationInput : EditText, ITextWatcher
+    public partial class WheelDurationInput : EditText, ITextWatcher, View.IOnTouchListener
     {
         private Color fadedTextColor = Color.Gray;
 
@@ -37,7 +37,7 @@ namespace Toggl.Giskard.Views.EditDuration
         private DurationFieldInfo input = DurationFieldInfo.Empty;
         private bool isEditing = false;
 
-        private BehaviorSubject<TimeSpan> durationSubject = new BehaviorSubject<TimeSpan>(TimeSpan.Zero);
+        private readonly ISubject<TimeSpan> durationSubject = new Subject<TimeSpan>();
 
         public IObservable<TimeSpan> Duration { get; private set; }
 
@@ -99,6 +99,15 @@ namespace Toggl.Giskard.Views.EditDuration
                 this.RemoveFocus();
         }
 
+        public override bool OnKeyPreIme(Keycode keyCode, KeyEvent e)
+        {
+            if (keyCode == Keycode.Back)
+            {
+                this.RemoveFocus();
+            }
+            return base.OnKeyPreIme(keyCode, e);
+        }
+
         protected override void OnSelectionChanged(int selStart, int selEnd)
         {
             moveCursorToEnd();
@@ -120,6 +129,7 @@ namespace Toggl.Giskard.Views.EditDuration
                 var actualDuration = input.IsEmpty ? originalDuration : input.ToTimeSpan();
                 Text = actualDuration.AsDurationString();
                 durationSubject.OnNext(actualDuration);
+                SetFocusable(ViewFocusability.NotFocusable);
             }
 
             base.OnFocusChanged(gainFocus, direction, previouslyFocusedRect);
@@ -132,9 +142,11 @@ namespace Toggl.Giskard.Views.EditDuration
 
         private void initialize()
         {
+            SetFocusable(ViewFocusability.NotFocusable);
             Duration = durationSubject.DistinctUntilChanged();
 
             AddTextChangedListener(this);
+            SetOnTouchListener(this);
 
             TransformationMethod = null;
 
@@ -231,6 +243,12 @@ namespace Toggl.Giskard.Views.EditDuration
         void ITextWatcher.OnTextChanged(ICharSequence s, int start, int before, int count)
         {
             moveCursorToEnd();
+        }
+
+        public bool OnTouch(View v, MotionEvent e)
+        {
+            FocusableInTouchMode = true;
+            return false;
         }
     }
 }

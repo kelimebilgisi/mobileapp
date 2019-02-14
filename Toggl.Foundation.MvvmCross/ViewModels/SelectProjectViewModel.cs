@@ -68,8 +68,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 if (!isOfAllowedLength)
                     return false;
 
-                var hasNoExactMatches = Suggestions.None(ws => ws.Any(s => s is ProjectSuggestion ps && ps.ProjectName == text));
-                return hasNoExactMatches;
+                return true;
             }
         }
 

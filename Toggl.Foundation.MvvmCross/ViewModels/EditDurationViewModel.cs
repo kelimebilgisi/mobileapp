@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -9,12 +8,14 @@ using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.MvvmCross.Extensions;
+using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.Transformations;
 using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using static Toggl.Foundation.Helper.Constants;
+using static Toggl.Foundation.MvvmCross.Helper.TemporalInconsistency;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -29,6 +30,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private DurationParameter defaultResult;
         private EditDurationEvent analyticsEvent;
 
+        private ISubject<TemporalInconsistency> temporalInconsistencies = new Subject<TemporalInconsistency>();
         private BehaviorSubject<DateTimeOffset> startTime = new BehaviorSubject<DateTimeOffset>(default(DateTimeOffset));
         private BehaviorSubject<DateTimeOffset> stopTime = new BehaviorSubject<DateTimeOffset>(default(DateTimeOffset));
         private BehaviorSubject<EditMode> editMode = new BehaviorSubject<EditMode>(EditMode.None);
@@ -64,6 +66,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IObservable<DateTimeOffset> MinimumDateTime { get; }
         public IObservable<DateTimeOffset> MaximumDateTime { get; }
+        public IObservable<TemporalInconsistency> TemporalInconsistencies => temporalInconsistencies.AsObservable();
 
         public IObservable<DateTimeOffset> MinimumStartTime { get; }
         public IObservable<DateTimeOffset> MaximumStartTime { get; }
@@ -235,6 +238,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void changeActiveTime(DateTimeOffset newTime)
         {
+            detectInconsistencies(newTime);
             var valueInRange = newTime.Clamp(minimumDateTime.Value, maximumDateTime.Value);
 
             switch (editMode.Value)
@@ -245,6 +249,40 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
                 case EditMode.EndTime:
                     stopTime.OnNext(valueInRange);
+                    break;
+            }
+        }
+
+        private void detectInconsistencies(DateTimeOffset newTime)
+        {
+            switch (editMode.Value)
+            {
+                case EditMode.StartTime:
+                    if (newTime < minimumDateTime.Value)
+                    {
+                        temporalInconsistencies.OnNext(DurationTooLong);
+                    }
+
+                    if (newTime > maximumDateTime.Value)
+                    {
+                        temporalInconsistencies.OnNext(isRunning.Value
+                            ? StartTimeAfterCurrentTime
+                            : StartTimeAfterStopTime);
+                    }
+
+                    break;
+
+                case EditMode.EndTime:
+                    if (newTime < minimumDateTime.Value)
+                    {
+                        temporalInconsistencies.OnNext(StopTimeBeforeStartTime);
+                    }
+
+                    if (newTime > maximumDateTime.Value)
+                    {
+                        temporalInconsistencies.OnNext(DurationTooLong);
+                    }
+
                     break;
             }
         }

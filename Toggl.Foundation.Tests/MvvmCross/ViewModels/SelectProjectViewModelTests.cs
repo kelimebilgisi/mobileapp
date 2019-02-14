@@ -377,6 +377,32 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
                 ViewModel.SuggestCreation.Should().BeFalse();
             }
+
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsTrueIfTheTextIsValid()
+            {
+                var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true };
+                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace }));
+
+                await ViewModel.Initialize();
+
+                ViewModel.Text = "playing bongo";
+
+                ViewModel.SuggestCreation.Should().BeTrue();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ReturnsTrueEvenIfAProjectWithSameNameExist()
+            {
+                var workspace = new MockWorkspace { Id = 1, Name = "ws", Admin = true };
+                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new[] { workspace }));
+
+                await ViewModel.Initialize();
+
+                ViewModel.Text = name;
+
+                ViewModel.SuggestCreation.Should().BeTrue();
+            }
         }
 
         public sealed class TheCreateProjectCommand : SelectProjectViewModelTest

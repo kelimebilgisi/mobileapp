@@ -822,6 +822,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(client));
                 Workspace.Id.Returns(DefaultWorkspaceId);
                 ViewModel.Prepare("Some name");
+                await ViewModel.Initialize();
                 await ViewModel.PickClientCommand.ExecuteAsync();
                 NavigationService
                     .Navigate<SelectClientViewModel, SelectClientParameters, long?>(Arg.Any<SelectClientParameters>())
