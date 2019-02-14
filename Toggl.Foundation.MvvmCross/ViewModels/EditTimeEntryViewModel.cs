@@ -88,14 +88,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public bool IsEditingDescription { get; set; }
 
-        [DependsOn(nameof(Description))]
-        public int DescriptionRemainingLength
-            => MaxTimeEntryDescriptionLengthInBytes - Description.LengthInBytes();
-
-        [DependsOn(nameof(DescriptionRemainingLength))]
-        public bool DescriptionLimitExceeded
-            => DescriptionRemainingLength < 0;
-
         public string Project { get; set; }
 
         public string ProjectColor { get; set; }

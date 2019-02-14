@@ -75,15 +75,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private bool isRunning => !Duration.HasValue;
 
-        private int DescriptionByteCount
-            => textFieldInfo.Description.LengthInBytes();
-
-        public int DescriptionRemainingBytes
-            => MaxTimeEntryDescriptionLengthInBytes - DescriptionByteCount;
-
-        public bool DescriptionLengthExceeded
-            => DescriptionByteCount > MaxTimeEntryDescriptionLengthInBytes;
-
         public bool SuggestCreation
         {
             get

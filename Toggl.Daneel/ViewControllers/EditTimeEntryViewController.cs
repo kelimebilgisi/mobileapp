@@ -121,13 +121,6 @@ namespace Toggl.Daneel.ViewControllers
                       .WithConversion(inverterVisibilityConverter);
 
             //Text
-            bindingSet.Bind(RemainingCharacterCount)
-                      .To(vm => vm.DescriptionRemainingLength);
-
-            bindingSet.Bind(RemainingCharacterCount)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.DescriptionLimitExceeded);
-
             bindingSet.Bind(DescriptionTextView)
                       .For(v => v.BindText())
                       .To(vm => vm.Description);
@@ -242,17 +235,7 @@ namespace Toggl.Daneel.ViewControllers
                       .To(vm => vm.HasTags)
                       .WithConversion(inverterVisibilityConverter);
 
-            //Confirm button enabled
-            bindingSet.Bind(ConfirmButton)
-                      .For(v => v.Enabled)
-                      .To(vm => vm.DescriptionLimitExceeded)
-                      .WithConversion(invertedBoolConverter);
-
-            bindingSet.Bind(ConfirmButton)
-                      .For(v => v.Alpha)
-                      .To(vm => vm.DescriptionLimitExceeded)
-                      .WithConversion(new BoolToConstantValueConverter<nfloat>(0.5f, 1));
-
+            //Billable view
             bindingSet.Bind(BillableView)
                       .For(v => v.BindVisibility())
                       .To(vm => vm.IsBillableAvailable)

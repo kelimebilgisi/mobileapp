@@ -551,6 +551,10 @@
     <Compile Include="Views\EditDuration\WheelDurationInput.InputFilter.cs">
       <DependentUpon>WheelDurationInput.cs</DependentUpon>
     </Compile>
+    <Compile Include="Fragments\SelectBeginningOfWeekFragment.ViewBinds.cs">
+      <DependentUpon>SelectBeginningOfWeekFragment.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewHolders\BeginningOfWeekViewHolder.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\AndroidManifest.xml" />

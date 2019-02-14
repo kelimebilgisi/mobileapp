@@ -3,6 +3,7 @@ using UIKit;
 using Toggl.Multivac;
 using System;
 using System.Collections.Generic;
+using Toggl.Foundation.MvvmCross.Collections;
 
 namespace Toggl.Daneel.ViewSources.Generic.TableView
 {
@@ -24,9 +25,28 @@ namespace Toggl.Daneel.ViewSources.Generic.TableView
 
         public CustomTableViewSource(
             CellConfiguration<TItem> configureCell,
+            IEnumerable<CollectionSection<THeader, TItem>> sections)
+            : this(configureCell, null, sections)
+        {
+        }
+
+        public CustomTableViewSource(
+            CellConfiguration<TItem> configureCell,
             HeaderConfiguration<THeader> configureHeader,
             IEnumerable<TItem> items = null)
             : base(items)
+        {
+            Ensure.Argument.IsNotNull(configureCell, nameof(configureCell));
+
+            this.configureCell = configureCell;
+            this.configureHeader = configureHeader;
+        }
+
+        public CustomTableViewSource(
+            CellConfiguration<TItem> configureCell,
+            HeaderConfiguration<THeader> configureHeader,
+            IEnumerable<CollectionSection<THeader, TItem>> sections = null)
+            : base(sections)
         {
             Ensure.Argument.IsNotNull(configureCell, nameof(configureCell));
 

@@ -8,6 +8,7 @@ namespace Toggl.Daneel.Cells.Settings
 {
     public sealed partial class LicensesViewCell : BaseTableViewCell<License>
     {
+        public static readonly string Identifier = nameof(LicensesViewCell);
         public static readonly NSString Key = new NSString(nameof(LicensesViewCell));
         public static readonly UINib Nib;
 

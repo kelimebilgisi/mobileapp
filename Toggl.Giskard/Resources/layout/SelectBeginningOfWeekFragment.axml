@@ -14,7 +14,8 @@
         android:layout_margin="24dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-    <mvvmcross.droid.support.v7.recyclerview.MvxRecyclerView
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/DaysListRecyclerView"
         local:MvxBind="ItemsSource BeginningOfWeekCollection; ItemClick SelectBeginningOfWeekCommand"
         android:scrollbars="vertical"
         local:MvxTemplateSelector="@string/SelectBeginningOfWeekTemplateSelector"

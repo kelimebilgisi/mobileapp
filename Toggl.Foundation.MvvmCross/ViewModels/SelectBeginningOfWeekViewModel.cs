@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
+using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 
@@ -18,18 +19,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public SelectableBeginningOfWeekViewModel[] BeginningOfWeekCollection { get; }
 
-        public IMvxAsyncCommand CloseCommand { get; }
+        public UIAction Close { get; }
+        public InputAction<SelectableBeginningOfWeekViewModel> SelectBeginningOfWeek { get; }
 
-        public IMvxAsyncCommand<SelectableBeginningOfWeekViewModel> SelectBeginningOfWeekCommand { get; }
-
-        public SelectBeginningOfWeekViewModel(IMvxNavigationService navigationService)
+        public SelectBeginningOfWeekViewModel(IMvxNavigationService navigationService, IRxActionFactory rxActionFactory)
         {
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
+            Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
 
             this.navigationService = navigationService;
 
-            CloseCommand = new MvxAsyncCommand(close);
-            SelectBeginningOfWeekCommand = new MvxAsyncCommand<SelectableBeginningOfWeekViewModel>(selectFormat);
+            Close = rxActionFactory.FromAsync(close);
+            SelectBeginningOfWeek = rxActionFactory.FromAsync<SelectableBeginningOfWeekViewModel>(selectFormat);
 
             BeginningOfWeekCollection = Enum.GetValues(typeof(BeginningOfWeek))
                             .Cast<BeginningOfWeek>()

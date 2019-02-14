@@ -1,26 +1,28 @@
-﻿using System.Threading.Tasks;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Views;
+﻿using System.Reactive;
+using System.Threading.Tasks;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
+using Toggl.Daneel.Views.Settings;
 using Toggl.Daneel.ViewSources;
+using Toggl.Daneel.ViewSources.Generic.TableView;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
-    public partial class SelectBeginningOfWeekViewController
-        : MvxViewController<SelectBeginningOfWeekViewModel>,
-          IDismissableViewController
+    public partial class SelectBeginningOfWeekViewController : ReactiveViewController<SelectBeginningOfWeekViewModel>, IDismissableViewController
     {
         public SelectBeginningOfWeekViewController()
-            : base(nameof(SelectBeginningOfWeekViewController), null)
+            : base(nameof(SelectBeginningOfWeekViewController))
         {
         }
 
         public async Task<bool> Dismiss()
         {
-            await ViewModel.CloseCommand.ExecuteAsync();
+            ViewModel.Close.Execute();
             return true;
         }
 
@@ -30,21 +32,22 @@ namespace Toggl.Daneel.ViewControllers
 
             TitleLabel.Text = Resources.FirstDayOfTheWeek;
 
-            var source = new BeginningOfWeekTableViewSource(DaysTableView);
+            DaysTableView.RegisterNibForCellReuse(DayOfWeekViewCell.Nib, DayOfWeekViewCell.Identifier);
+
+            var source = new CustomTableViewSource<Unit, SelectableBeginningOfWeekViewModel>(
+                DayOfWeekViewCell.CellConfiguration(DayOfWeekViewCell.Identifier),
+                ViewModel.BeginningOfWeekCollection
+            );
+
+            source.Rx().ModelSelected()
+                .Subscribe(ViewModel.SelectBeginningOfWeek.Inputs)
+                .DisposedBy(DisposeBag);
+
             DaysTableView.Source = source;
 
-            var bindingSet = this.CreateBindingSet<SelectBeginningOfWeekViewController, SelectBeginningOfWeekViewModel>();
-
-            bindingSet.Bind(source).To(vm => vm.BeginningOfWeekCollection);
-
-            bindingSet.Bind(BackButton).To(vm => vm.CloseCommand);
-
-            bindingSet.Bind(source)
-                      .For(v => v.SelectionChangedCommand)
-                      .To(v => v.SelectBeginningOfWeekCommand);
-
-            bindingSet.Apply();
-
+            BackButton.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
         }
     }
 }

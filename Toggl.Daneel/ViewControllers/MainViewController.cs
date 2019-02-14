@@ -38,6 +38,7 @@ namespace Toggl.Daneel.ViewControllers
         private const float spiderHingeWidth = 16;
         private const float spiderHingeHeight = 2;
         private const float welcomeViewTopDistance = 239;
+        private const float welcomeViewSideMargin = 16;
 
         private const float tooltipOffset = 7;
 
@@ -519,8 +520,13 @@ namespace Toggl.Daneel.ViewControllers
             // the spider at any time.
             WelcomeBackView.RemoveFromSuperview();
             TimeEntriesLogTableView.AddSubview(WelcomeBackView);
-            WelcomeBackView.CenterXAnchor.ConstraintEqualTo(TimeEntriesLogTableView.CenterXAnchor).Active = true;
-            WelcomeBackView.TopAnchor.ConstraintEqualTo(TimeEntriesLogTableView.TopAnchor, welcomeViewTopDistance).Active = true;
+            NSLayoutConstraint.ActivateConstraints(new []
+            {
+                WelcomeBackView.CenterXAnchor.ConstraintEqualTo(TimeEntriesLogTableView.CenterXAnchor),
+                WelcomeBackView.TopAnchor.ConstraintEqualTo(TimeEntriesLogTableView.TopAnchor, welcomeViewTopDistance),
+                WelcomeBackView.LeadingAnchor.ConstraintEqualTo(TimeEntriesLogTableView.LeadingAnchor, welcomeViewSideMargin),
+                WelcomeBackView.TrailingAnchor.ConstraintEqualTo(TimeEntriesLogTableView.TrailingAnchor, welcomeViewSideMargin)
+            });
 
             var spiderHinge = new UIView();
 

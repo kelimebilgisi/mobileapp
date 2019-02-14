@@ -1975,7 +1975,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 projectNames(ViewModel.Suggestions[0]).Should().BeInAscendingOrder();
                 projectNames(ViewModel.Suggestions[1]).Should().BeInAscendingOrder();
             }
-          
+
             public async Task SortsTasksByName()
             {
                 var suggestions = new List<ProjectSuggestion>();
@@ -2085,74 +2085,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan());
 
                 ViewModel.IsDirty.Should().BeFalse();
-            }
-        }
-
-        public sealed class TheDescriptionRemainingBytesProperty : StartTimeEntryViewModelTest
-        {
-            [Fact, LogIfTooSlow]
-            public async Task IsMaxIfTheTextIsEmpty()
-            {
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan());
-
-                ViewModel.DescriptionRemainingBytes.Should()
-                    .Be(MaxTimeEntryDescriptionLengthInBytes);
-            }
-
-            [Theory, LogIfTooSlow]
-            [InlineData("Hello fox")]
-            [InlineData("Some emojis: 🔥😳👻")]
-            [InlineData("Some weird characters: āčēļķīņš")]
-            [InlineData("Some random arabic characters: ظۓڰڿڀ")]
-            public async Task IsDecreasedForEachByteInTheText(string text)
-            {
-                var expectedRemainingByteCount
-                    = MaxTimeEntryDescriptionLengthInBytes - text.LengthInBytes();
-
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(text, 0));
-
-                ViewModel.DescriptionRemainingBytes.Should()
-                    .Be(expectedRemainingByteCount);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task IsNegativeWhenTextLengthExceedsMax()
-            {
-                var bytesOverLimit = 5;
-                var longString = new string('0', MaxTimeEntryDescriptionLengthInBytes + bytesOverLimit);
-
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(longString, 0));
-
-                ViewModel.DescriptionRemainingBytes.Should().Be(-bytesOverLimit);
-            }
-        }
-
-        public sealed class TheDescriptionLengthExceededproperty : StartTimeEntryViewModelTest
-        {
-            [Theory, LogIfTooSlow]
-            [InlineData(0)]
-            [InlineData(20)]
-            [InlineData(2999)]
-            [InlineData(3000)]
-            public async Task IsFalseIfTextIsShorterOrEqualToMax(int byteCount)
-            {
-                var text = new string('0', byteCount);
-
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(text, 0));
-
-                ViewModel.DescriptionLengthExceeded.Should().BeFalse();
-            }
-
-            [Theory, LogIfTooSlow]
-            [InlineData(MaxTimeEntryDescriptionLengthInBytes + 1)]
-            [InlineData(MaxTimeEntryDescriptionLengthInBytes + 20)]
-            public async Task IsTrueWhenTextIsLongerThanMax(int byteCount)
-            {
-                var text = new string('0', byteCount);
-
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan(text, 0));
-
-                ViewModel.DescriptionLengthExceeded.Should().BeTrue();
             }
         }
 

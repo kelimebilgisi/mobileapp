@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit.Sdk;
 
 public sealed class LogIfTooSlowAttribute : BeforeAfterTestAttribute
@@ -13,8 +16,14 @@ public sealed class LogIfTooSlowAttribute : BeforeAfterTestAttribute
     private static readonly TimeSpan slow = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan critical = TimeSpan.FromSeconds(5);
 
+    private TestTooLongDetector testStuckDetector;
+
     public override void Before(MethodInfo methodUnderTest)
     {
+        testStuckDetector = TestTooLongDetector.StartDetection(
+            reportAfter: critical * 2,
+            callback: () => reportStuckTest(methodUnderTest));
+
         stopwatch.Start();
     }
 
@@ -22,14 +31,26 @@ public sealed class LogIfTooSlowAttribute : BeforeAfterTestAttribute
     {
         stopwatch.Stop();
 
+        testStuckDetector.CancelDetection();
+
         if (stopwatch.Elapsed <= fast) return;
 
-        var formattedTestName = 
-            getFormattedName(methodUnderTest.ReflectedType, toSentenceCase(methodUnderTest.Name)).Replace("`1", "");
+        var formattedTestName = getNormalizedFormattedTestName(methodUnderTest);
 
         Console.ForegroundColor = getColorForTime(stopwatch.Elapsed);
         Console.WriteLine($"{stopwatch.Elapsed} - {formattedTestName}");
     }
+
+    private void reportStuckTest(MethodInfo methodUnderTest)
+    {
+        var formattedTestName = getNormalizedFormattedTestName(methodUnderTest);
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"[! TEST STUCK !] - {formattedTestName}");
+    }
+
+    private string getNormalizedFormattedTestName(MethodInfo methodUnderTest)
+        => getFormattedName(methodUnderTest.ReflectedType, toSentenceCase(methodUnderTest.Name)).Replace("`1", "");
 
     private ConsoleColor getColorForTime(TimeSpan elapsed)
     {
@@ -47,6 +68,6 @@ public sealed class LogIfTooSlowAttribute : BeforeAfterTestAttribute
         return getFormattedName(typeInfo.DeclaringType, $"{toSentenceCase(typeInfo.Name)} {accumulator}");
     }
 
-    public static string toSentenceCase(string value)
+    private static string toSentenceCase(string value)
         => Regex.Replace(value, "[a-z][A-Z]", x => $"{x.Value[0]} {char.ToLower(x.Value[1])}");
 }

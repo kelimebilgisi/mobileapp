@@ -37,7 +37,6 @@
                 <outlet property="ErrorMessageTitleLabel" destination="20o-iH-vm8" id="zqr-a5-295"/>
                 <outlet property="ErrorView" destination="Mhn-ip-f09" id="yba-gj-HMU"/>
                 <outlet property="ProjectTaskClientLabel" destination="hhk-MD-ce8" id="K8D-9n-qvT"/>
-                <outlet property="RemainingCharacterCount" destination="QiN-bB-vR6" id="Eet-h5-kMs"/>
                 <outlet property="ScrollView" destination="Pzm-Vp-XJF" id="name-outlet-Pzm-Vp-XJF"/>
                 <outlet property="ScrollViewContent" destination="ezG-FV-3G1" id="5ej-vl-dVu"/>
                 <outlet property="StartDateDescriptionLabel" destination="60y-Zx-mBp" id="cP5-xF-qQ2"/>
@@ -165,30 +164,19 @@
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tmZ-oe-hre">
                                     <rect key="frame" x="0.0" y="128" width="320" height="71.5"/>
                                     <subviews>
-                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="l8M-Iu-dRK">
+                                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EBA-rV-Dfi" customClass="TextViewWithPlaceholder">
                                             <rect key="frame" x="16" y="8" width="288" height="55.5"/>
-                                            <subviews>
-                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EBA-rV-Dfi" customClass="TextViewWithPlaceholder">
-                                                    <rect key="frame" x="0.0" y="0.0" width="288" height="33"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
-                                                </textView>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-15" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QiN-bB-vR6">
-                                                    <rect key="frame" x="0.0" y="41" width="288" height="14.5"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                                    <color key="textColor" red="0.96862745098039216" green="0.25098039215686274" blue="0.38039215686274508" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                            </subviews>
-                                        </stackView>
+                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
+                                        </textView>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                     <constraints>
-                                        <constraint firstItem="l8M-Iu-dRK" firstAttribute="top" secondItem="tmZ-oe-hre" secondAttribute="top" constant="8" id="K20-5k-HcW"/>
-                                        <constraint firstItem="l8M-Iu-dRK" firstAttribute="leading" secondItem="tmZ-oe-hre" secondAttribute="leading" constant="16" id="eHc-zy-cK7"/>
-                                        <constraint firstAttribute="bottom" secondItem="l8M-Iu-dRK" secondAttribute="bottom" constant="8" id="ecz-xU-XjW"/>
-                                        <constraint firstAttribute="trailing" secondItem="l8M-Iu-dRK" secondAttribute="trailing" constant="16" id="zPB-We-KEM"/>
+                                        <constraint firstAttribute="trailing" secondItem="EBA-rV-Dfi" secondAttribute="trailing" constant="16" id="MOr-6q-euU"/>
+                                        <constraint firstItem="EBA-rV-Dfi" firstAttribute="leading" secondItem="tmZ-oe-hre" secondAttribute="leading" constant="16" id="dXo-TR-AxB"/>
+                                        <constraint firstItem="EBA-rV-Dfi" firstAttribute="top" secondItem="tmZ-oe-hre" secondAttribute="top" constant="8" id="psT-Rq-z5H"/>
+                                        <constraint firstAttribute="bottom" secondItem="EBA-rV-Dfi" secondAttribute="bottom" constant="8" id="rvV-pn-B2W"/>
                                     </constraints>
                                 </view>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="G04-ME-sZk" userLabel="Separator">

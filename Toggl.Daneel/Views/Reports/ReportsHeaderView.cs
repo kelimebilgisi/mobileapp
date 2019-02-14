@@ -1,8 +1,6 @@
 ﻿using System;
 using CoreGraphics;
 using Foundation;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding.Views;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Converters;
 using Toggl.Daneel.Extensions;
@@ -19,19 +17,19 @@ using System.Globalization;
 using Toggl.Foundation.Conversions;
 using System.Reactive.Subjects;
 using System.Reactive;
+using Toggl.Daneel.Cells;
 using Toggl.Foundation;
 using Toggl.Foundation.Extensions;
 
 namespace Toggl.Daneel.Views.Reports
 {
-    public partial class ReportsHeaderView : MvxTableViewHeaderFooterView
+    public partial class ReportsHeaderView : BaseTableHeaderFooterView<ReportsViewModel>
     {
         private const float barChartSpacingProportion = 0.3f;
 
+        public static readonly string Identifier = nameof(ReportsHeaderView);
         public static readonly NSString Key = new NSString(nameof(ReportsHeaderView));
         public static readonly UINib Nib;
-
-        public ReportsViewModel ViewModel { get; set; }
 
         private readonly CompositeDisposable disposeBag = new CompositeDisposable();
         private readonly ISubject<Unit> updateLayout = new BehaviorSubject<Unit>(Unit.Default);
@@ -60,135 +58,130 @@ namespace Toggl.Daneel.Views.Reports
             TotalDurationGraph.Image = templateImage;
 
             prepareViews();
+        }
 
-            this.DelayBind(() =>
-            {
-                //Text
-                var reportPercentageConverter = new ReportPercentageLabelValueConverter();
-                ViewModel.BillablePercentageObservable
-                    .Select(reportPercentageConverter.Convert)
-                    .Subscribe(BillablePercentageLabel.Rx().AttributedText())
-                    .DisposedBy(disposeBag);
+        protected override void UpdateView()
+        {
+            //Text
+            var reportPercentageConverter = new ReportPercentageLabelValueConverter();
+            Item.BillablePercentageObservable
+                .Select(reportPercentageConverter.Convert)
+                .Subscribe(BillablePercentageLabel.Rx().AttributedText())
+                .DisposedBy(disposeBag);
 
-                ViewModel.TotalTimeObservable
-                    .CombineLatest(ViewModel.DurationFormatObservable,
-                        (totalTime, durationFormat) => totalTime.ToFormattedString(durationFormat))
-                    .Subscribe(TotalDurationLabel.Rx().Text())
-                    .DisposedBy(disposeBag);
+            Item.TotalTimeObservable
+                .CombineLatest(Item.DurationFormatObservable,
+                    (totalTime, durationFormat) => totalTime.ToFormattedString(durationFormat))
+                .Subscribe(TotalDurationLabel.Rx().Text())
+                .DisposedBy(disposeBag);
 
-                //Loading chart
-                ViewModel.IsLoadingObservable
-                    .Subscribe(LoadingPieChartView.Rx().IsVisibleWithFade())
-                    .DisposedBy(disposeBag);
+            //Loading chart
+            Item.IsLoadingObservable
+                .Subscribe(LoadingPieChartView.Rx().IsVisibleWithFade())
+                .DisposedBy(disposeBag);
 
-                ViewModel.IsLoadingObservable
-                    .Subscribe(LoadingOverviewView.Rx().IsVisibleWithFade())
-                    .DisposedBy(disposeBag);
+            Item.IsLoadingObservable
+                .Subscribe(LoadingOverviewView.Rx().IsVisibleWithFade())
+                .DisposedBy(disposeBag);
 
-                //Pretty stuff
-                ViewModel.GroupedSegmentsObservable
-                    .Subscribe(groupedSegments => PieChartView.Segments = groupedSegments)
-                    .DisposedBy(disposeBag);
+            //Pretty stuff
+            Item.GroupedSegmentsObservable
+                .Subscribe(groupedSegments => PieChartView.Segments = groupedSegments)
+                .DisposedBy(disposeBag);
 
-                ViewModel.BillablePercentageObservable
-                    .Subscribe(percentage => BillablePercentageView.Percentage = percentage)
-                    .DisposedBy(disposeBag);
+            Item.BillablePercentageObservable
+                .Subscribe(percentage => BillablePercentageView.Percentage = percentage)
+                .DisposedBy(disposeBag);
 
-                var totalDurationColorObservable = ViewModel.TotalTimeIsZeroObservable
-                    .Select(isZero => isZero
-                        ? Foundation.MvvmCross.Helper.Color.Reports.Disabled.ToNativeColor()
-                        : Foundation.MvvmCross.Helper.Color.Reports.TotalTimeActivated.ToNativeColor());
+            var totalDurationColorObservable = Item.TotalTimeIsZeroObservable
+                .Select(isZero => isZero
+                    ? Foundation.MvvmCross.Helper.Color.Reports.Disabled.ToNativeColor()
+                    : Foundation.MvvmCross.Helper.Color.Reports.TotalTimeActivated.ToNativeColor());
 
-                totalDurationColorObservable
-                    .Subscribe(TotalDurationGraph.Rx().TintColor())
-                    .DisposedBy(disposeBag);
+            totalDurationColorObservable
+                .Subscribe(TotalDurationGraph.Rx().TintColor())
+                .DisposedBy(disposeBag);
 
-                totalDurationColorObservable
-                    .Subscribe(TotalDurationLabel.Rx().TextColor())
-                    .DisposedBy(disposeBag);
-                // Bar chart
+            totalDurationColorObservable
+                .Subscribe(TotalDurationLabel.Rx().TextColor())
+                .DisposedBy(disposeBag);
 
-                if (ViewModel == null)
+            // Bar chart
+            Item.WorkspaceHasBillableFeatureEnabled
+                .Subscribe(ColorsLegendContainerView.Rx().IsVisible())
+                .DisposedBy(disposeBag);
+
+            Item.StartDate
+                .CombineLatest(
+                    Item.BarChartViewModel.DateFormat,
+                    (startDate, format) => startDate.ToString(format.Short, CultureInfo.InvariantCulture))
+                .Subscribe(StartDateLabel.Rx().Text())
+                .DisposedBy(disposeBag);
+
+            Item.EndDate
+                .CombineLatest(
+                    Item.BarChartViewModel.DateFormat,
+                    (endDate, format) => endDate.ToString(format.Short, CultureInfo.InvariantCulture))
+                .Subscribe(EndDateLabel.Rx().Text())
+                .DisposedBy(disposeBag);
+
+            Item.BarChartViewModel.MaximumHoursPerBar
+                .Select(hours => $"{hours} h")
+                .Subscribe(MaximumHoursLabel.Rx().Text())
+                .DisposedBy(disposeBag);
+
+            Item.BarChartViewModel.MaximumHoursPerBar
+                .Select(hours => $"{hours / 2} h")
+                .Subscribe(HalfHoursLabel.Rx().Text())
+                .DisposedBy(disposeBag);
+
+            Item.BarChartViewModel.HorizontalLegend
+                .Where(legend => legend == null)
+                .Subscribe((DateTimeOffset[] _) =>
                 {
-                    throw new InvalidOperationException($"The {nameof(ViewModel)} value must be set for {nameof(ReportsHeaderView)} before defining bindings.");
-                }
+                    HorizontalLegendStackView.Subviews.ForEach(subview => subview.RemoveFromSuperview());
+                    StartDateLabel.Hidden = false;
+                    EndDateLabel.Hidden = false;
+                })
+                .DisposedBy(disposeBag);
 
-                ViewModel.WorkspaceHasBillableFeatureEnabled
-                    .Subscribe(ColorsLegendContainerView.Rx().IsVisible())
-                    .DisposedBy(disposeBag);
+            Item.BarChartViewModel.HorizontalLegend
+                .Where(legend => legend != null)
+                .CombineLatest(Item.BarChartViewModel.DateFormat, createHorizontalLegendLabels)
+                .Do(_ =>
+                {
+                    StartDateLabel.Hidden = true;
+                    EndDateLabel.Hidden = true;
+                })
+                .Subscribe(HorizontalLegendStackView.Rx().ArrangedViews())
+                .DisposedBy(disposeBag);
 
-                ViewModel.StartDate
-                    .CombineLatest(
-                        ViewModel.BarChartViewModel.DateFormat,
-                        (startDate, format) => startDate.ToString(format.Short, CultureInfo.InvariantCulture))
-                    .Subscribe(StartDateLabel.Rx().Text())
-                    .DisposedBy(disposeBag);
+            Item.BarChartViewModel.Bars
+                .Select(createBarViews)
+                .Subscribe(BarsStackView.Rx().ArrangedViews())
+                .DisposedBy(disposeBag);
 
-                ViewModel.EndDate
-                    .CombineLatest(
-                        ViewModel.BarChartViewModel.DateFormat,
-                        (endDate, format) => endDate.ToString(format.Short, CultureInfo.InvariantCulture))
-                    .Subscribe(EndDateLabel.Rx().Text())
-                    .DisposedBy(disposeBag);
+            var spacingObservable = Item.BarChartViewModel.Bars
+                .CombineLatest(updateLayout, (bars, _) => bars)
+                .Select(bars => BarsStackView.Frame.Width / bars.Length * barChartSpacingProportion);
 
-                ViewModel.BarChartViewModel.MaximumHoursPerBar
-                    .Select(hours => $"{hours} h")
-                    .Subscribe(MaximumHoursLabel.Rx().Text())
-                    .DisposedBy(disposeBag);
+            spacingObservable
+                .Subscribe(BarsStackView.Rx().Spacing())
+                .DisposedBy(disposeBag);
 
-                ViewModel.BarChartViewModel.MaximumHoursPerBar
-                    .Select(hours => $"{hours / 2} h")
-                    .Subscribe(HalfHoursLabel.Rx().Text())
-                    .DisposedBy(disposeBag);
+            spacingObservable
+                .Subscribe(HorizontalLegendStackView.Rx().Spacing())
+                .DisposedBy(disposeBag);
 
-                ViewModel.BarChartViewModel.HorizontalLegend
-                    .Where(legend => legend == null)
-                    .Subscribe((DateTimeOffset[] _) =>
-                    {
-                        HorizontalLegendStackView.Subviews.ForEach(subview => subview.RemoveFromSuperview());
-                        StartDateLabel.Hidden = false;
-                        EndDateLabel.Hidden = false;
-                    })
-                    .DisposedBy(disposeBag);
+            Item.IsLoadingObservable
+                .Select(CommonFunctions.Invert)
+                .Subscribe(BarChartContainerView.Rx().IsVisible())
+                .DisposedBy(disposeBag);
 
-                ViewModel.BarChartViewModel.HorizontalLegend
-                    .Where(legend => legend != null)
-                    .CombineLatest(ViewModel.BarChartViewModel.DateFormat, createHorizontalLegendLabels)
-                    .Do(_ =>
-                    {
-                        StartDateLabel.Hidden = true;
-                        EndDateLabel.Hidden = true;
-                    })
-                    .Subscribe(HorizontalLegendStackView.Rx().ArrangedViews())
-                    .DisposedBy(disposeBag);
-
-                ViewModel.BarChartViewModel.Bars
-                    .Select(createBarViews)
-                    .Subscribe(BarsStackView.Rx().ArrangedViews())
-                    .DisposedBy(disposeBag);
-
-                var spacingObservable = ViewModel.BarChartViewModel.Bars
-                    .CombineLatest(updateLayout, (bars, _) => bars)
-                    .Select(bars => BarsStackView.Frame.Width / bars.Length * barChartSpacingProportion);
-
-                spacingObservable
-                    .Subscribe(BarsStackView.Rx().Spacing())
-                    .DisposedBy(disposeBag);
-
-                spacingObservable
-                    .Subscribe(HorizontalLegendStackView.Rx().Spacing())
-                    .DisposedBy(disposeBag);
-
-                ViewModel.IsLoadingObservable
-                    .Select(CommonFunctions.Invert)
-                    .Subscribe(BarChartContainerView.Rx().IsVisible())
-                    .DisposedBy(disposeBag);
-
-                //Visibility
-                ViewModel.ShowEmptyStateObservable
-                    .Subscribe(EmptyStateView.Rx().IsVisible())
-                    .DisposedBy(disposeBag);
-            });
+            //Visibility
+            Item.ShowEmptyStateObservable
+                .Subscribe(EmptyStateView.Rx().IsVisible())
+                .DisposedBy(disposeBag);
         }
 
         public override void LayoutSubviews()

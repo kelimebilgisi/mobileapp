@@ -974,7 +974,6 @@
     <Compile Include="ViewControllers\SelectBeginningOfWeekViewController.designer.cs">
       <DependentUpon>SelectBeginningOfWeekViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\BeginningOfWeekTableViewSource.cs" />
     <Compile Include="Views\Settings\DayOfWeekViewCell.cs" />
     <Compile Include="Views\Settings\DayOfWeekViewCell.designer.cs">
       <DependentUpon>DayOfWeekViewCell.cs</DependentUpon>
@@ -999,7 +998,6 @@
     <Compile Include="ViewControllers\Settings\AboutViewController.designer.cs">
       <DependentUpon>AboutViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\LicensesTableViewSource.cs" />
     <Compile Include="Binding\ViewVisibilityWithFadeTargetBinding.cs" />
     <Compile Include="Binding\ImageViewAnimatedImageTargetBinding.cs" />
     <Compile Include="Extensions\TimeEntriesLogViewCellExtensions.cs" />
@@ -1136,7 +1134,6 @@
     <Compile Include="Cells\Settings\UpcomingEventsOptionCell.designer.cs">
       <DependentUpon>UpcomingEventsOptionCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\UpcomingEventsNotificationSettingsSource.cs" />
     <Compile Include="Extensions\ScrollViewExtensions.cs" />
     <Compile Include="Presentation\Attributes\TabPresentationAttribute.cs" />
     <Compile Include="Views\Calendar\CalendarCollectionViewAutoScrollHelper.cs" />

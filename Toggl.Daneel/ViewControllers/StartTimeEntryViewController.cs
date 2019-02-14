@@ -147,9 +147,6 @@ namespace Toggl.Daneel.ViewControllers
             bindingSet.Bind(Placeholder)
                       .To(vm => vm.PlaceholderText);
 
-            bindingSet.Bind(DescriptionRemainingLengthLabel)
-                      .To(vm => vm.DescriptionRemainingBytes);
-
             //Buttons
             bindingSet.Bind(TagsButton)
                       .For(v => v.TintColor)
@@ -166,21 +163,11 @@ namespace Toggl.Daneel.ViewControllers
                       .To(vm => vm.IsSuggestingProjects)
                       .WithConversion(buttonColorConverter);
 
-            bindingSet.Bind(DoneButton)
-                      .For(v => v.Enabled)
-                      .To(vm => vm.DescriptionLengthExceeded)
-                      .WithConversion(invertedBoolConverter);
-
             //Visibility
             bindingSet.Bind(BillableButtonWidthConstraint)
                       .For(v => v.Constant)
                       .To(vm => vm.IsBillableAvailable)
                       .WithConversion(new BoolToConstantValueConverter<nfloat>(42, 0));
-
-            bindingSet.Bind(DescriptionRemainingLengthLabel)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.DescriptionLengthExceeded)
-                      .WithConversion(invertedVisibilityConverter);
 
             //Commands
             bindingSet.Bind(DoneButton).To(vm => vm.DoneCommand);

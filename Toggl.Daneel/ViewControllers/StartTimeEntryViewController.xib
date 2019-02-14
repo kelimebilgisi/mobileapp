@@ -20,7 +20,6 @@
                 <outlet property="BottomOptionsSheet" destination="dU3-s1-ELa" id="name-outlet-dU3-s1-ELa"/>
                 <outlet property="CloseButton" destination="MAa-jq-GXB" id="name-outlet-MAa-jq-GXB"/>
                 <outlet property="DateTimeButton" destination="4Tp-xX-rFB" id="name-outlet-4Tp-xX-rFB"/>
-                <outlet property="DescriptionRemainingLengthLabel" destination="Ibp-rp-GIs" id="PVJ-Me-AnQ"/>
                 <outlet property="DescriptionTextView" destination="R8W-w1-sEf" id="name-outlet-R8W-w1-sEf"/>
                 <outlet property="DoneButton" destination="Hya-nl-hcs" id="name-outlet-Hya-nl-hcs"/>
                 <outlet property="Placeholder" destination="jGg-N9-yt7" id="maS-ba-Eh5"/>
@@ -163,12 +162,6 @@
                             </constraints>
                             <state key="normal" image="icDatetime"/>
                         </button>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="-15" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ibp-rp-GIs">
-                            <rect key="frame" x="212" y="18" width="19.5" height="14.5"/>
-                            <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="12"/>
-                            <color key="textColor" red="0.96862745098039216" green="0.25098039215686274" blue="0.28627450980392155" alpha="1" colorSpace="calibratedRGB"/>
-                            <nil key="highlightedColor"/>
-                        </label>
                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Hya-nl-hcs">
                             <rect key="frame" x="325" y="0.0" width="50" height="50"/>
                             <accessibility key="accessibilityConfiguration" label="StartTimeEntryDone"/>
@@ -186,13 +179,11 @@
                         <constraint firstItem="Xnc-Zt-xWV" firstAttribute="leading" secondItem="H7M-A1-mmK" secondAttribute="trailing" id="LML-We-R2J"/>
                         <constraint firstItem="H7M-A1-mmK" firstAttribute="leading" secondItem="qfx-lJ-emc" secondAttribute="trailing" id="Ri0-zk-3nr"/>
                         <constraint firstItem="Xnc-Zt-xWV" firstAttribute="centerY" secondItem="dU3-s1-ELa" secondAttribute="centerY" id="Vd4-Yu-HhR"/>
-                        <constraint firstItem="Ibp-rp-GIs" firstAttribute="centerY" secondItem="dU3-s1-ELa" secondAttribute="centerY" id="XQ2-gN-9YT"/>
                         <constraint firstItem="Hya-nl-hcs" firstAttribute="height" secondItem="dU3-s1-ELa" secondAttribute="height" id="b12-fm-KQu"/>
                         <constraint firstAttribute="trailing" secondItem="Hya-nl-hcs" secondAttribute="trailing" id="c5E-bE-Rmf"/>
                         <constraint firstItem="qfx-lJ-emc" firstAttribute="centerY" secondItem="dU3-s1-ELa" secondAttribute="centerY" id="cAA-Z2-S3c"/>
                         <constraint firstItem="pCP-1d-aI1" firstAttribute="leading" secondItem="dU3-s1-ELa" secondAttribute="leading" id="hfu-BO-LVO"/>
                         <constraint firstItem="H7M-A1-mmK" firstAttribute="height" secondItem="dU3-s1-ELa" secondAttribute="height" id="hqX-GV-pOY"/>
-                        <constraint firstItem="Ibp-rp-GIs" firstAttribute="leading" secondItem="4Tp-xX-rFB" secondAttribute="trailing" id="jOB-tP-2X0"/>
                         <constraint firstItem="Xnc-Zt-xWV" firstAttribute="height" secondItem="dU3-s1-ELa" secondAttribute="height" id="jbV-rK-h42"/>
                         <constraint firstItem="4Tp-xX-rFB" firstAttribute="height" secondItem="dU3-s1-ELa" secondAttribute="height" id="jnR-7k-jyZ"/>
                         <constraint firstItem="Hya-nl-hcs" firstAttribute="centerY" secondItem="dU3-s1-ELa" secondAttribute="centerY" id="lXh-tS-P07"/>

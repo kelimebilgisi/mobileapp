@@ -273,6 +273,8 @@ namespace Toggl.Foundation
             var deleteOlderEntries = new DeleteOldTimeEntriesState(timeService, dataSource.TimeEntries);
             var deleteUnsnecessaryProjectPlaceholders = new DeleteUnnecessaryProjectPlaceholdersState(dataSource.Projects, dataSource.TimeEntries);
 
+            var checkForInaccessibleWorkspaces = new CheckForInaccessibleWorkspacesState(dataSource);
+
             var deleteInaccessibleTimeEntries = new DeleteInaccessibleTimeEntriesState(dataSource.TimeEntries);
             var deleteInaccessibleTags = new DeleteNonReferencedInaccessibleTagsState(dataSource.Tags, dataSource.TimeEntries);
             var deleteInaccessibleTasks = new DeleteNonReferencedInaccessibleTasksState(dataSource.Tasks, dataSource.TimeEntries);
@@ -292,7 +294,10 @@ namespace Toggl.Foundation
             transitions.ConfigureTransition(entryPoint, deleteOlderEntries);
             transitions.ConfigureTransition(deleteOlderEntries.Done, deleteUnsnecessaryProjectPlaceholders);
 
-            transitions.ConfigureTransition(deleteUnsnecessaryProjectPlaceholders.Done, deleteInaccessibleTimeEntries);
+            transitions.ConfigureTransition(deleteUnsnecessaryProjectPlaceholders.Done, checkForInaccessibleWorkspaces);
+            transitions.ConfigureTransition(checkForInaccessibleWorkspaces.NoInaccessibleWorkspaceFound, new DeadEndState());
+            transitions.ConfigureTransition(checkForInaccessibleWorkspaces.FoundInaccessibleWorkspaces, deleteInaccessibleTimeEntries);
+
             transitions.ConfigureTransition(deleteInaccessibleTimeEntries.Done, deleteInaccessibleTags);
             transitions.ConfigureTransition(deleteInaccessibleTags.Done, deleteInaccessibleTasks);
             transitions.ConfigureTransition(deleteInaccessibleTasks.Done, deleteInaccessibleProjects);

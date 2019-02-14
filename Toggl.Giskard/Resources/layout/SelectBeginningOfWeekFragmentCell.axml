@@ -9,7 +9,7 @@
     android:layout_height="48dp"
     android:layout_width="match_parent">
     <RadioButton
-        local:MvxBind="Checked Selected"
+        android:id="@+id/BeginningOfWeekRadioButton"
         tools:selected="true"
         android:checked="true"
         android:clickable="false"
@@ -19,7 +19,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <TextView
-        local:MvxBind="Text BeginningOfWeek"
+        android:id="@+id/BeginningOfWeekText"
         tools:text="Monday"
         android:textSize="15sp"
         android:lineSpacingExtra="5sp"

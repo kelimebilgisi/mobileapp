@@ -47,6 +47,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.interactorFactory = interactorFactory;
             this.navigationService = navigationService;
             this.rxActionFactory = rxActionFactory;
+            this.schedulerProvider = schedulerProvider;
 
             Close = rxActionFactory.FromAsync(close);
             SelectClient = rxActionFactory.FromAsync<SelectableClientBaseViewModel>(selectClient);
@@ -63,35 +64,40 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             await base.Initialize();
 
-            var allClients = await interactorFactory.GetAllClientsInWorkspace(workspaceId).Execute();
+            var allClients = await interactorFactory
+                .GetAllClientsInWorkspace(workspaceId)
+                .Execute();
 
             Clients = FilterText
-                .Select(text => text ?? string.Empty)
-                .Select(text =>
-                {
-                    var trimmedText = text.Trim();
-                    var selectableViewModels = allClients
-                        .Where(c => c.Name.ContainsIgnoringCase(trimmedText))
-                        .Select(toSelectableViewModel);
+                .Select(text => text?.Trim() ?? string.Empty)
+                .DistinctUntilChanged()
+                .Select(trimmedText => filterClientsByText(trimmedText, allClients))
+                .AsDriver(Enumerable.Empty<SelectableClientBaseViewModel>(), schedulerProvider);
+        }
 
-                    var isClientFilterEmpty = string.IsNullOrEmpty(trimmedText);
-                    var suggestCreation = !isClientFilterEmpty
-                                          && allClients.None(c => c.Name == trimmedText)
-                                          && trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes;
+        private IEnumerable<SelectableClientBaseViewModel> filterClientsByText(string trimmedText, IEnumerable<IThreadSafeClient> allClients)
+        {
+            var selectableViewModels = allClients
+                .Where(c => c.Name.ContainsIgnoringCase(trimmedText))
+                .OrderBy(client => client.Name)
+                .Select(toSelectableViewModel);
 
-                    if (suggestCreation)
-                    {
-                        var creationSelectableViewModel =
-                            new SelectableClientCreationViewModel(trimmedText);
-                        selectableViewModels = selectableViewModels.Prepend(creationSelectableViewModel);
-                    }
-                    else if (isClientFilterEmpty)
-                    {
-                        selectableViewModels = selectableViewModels.Prepend(noClient);
-                    }
+            var isClientFilterEmpty = string.IsNullOrEmpty(trimmedText);
+            var suggestCreation = !isClientFilterEmpty
+                && allClients.None(c => c.Name == trimmedText)
+                && trimmedText.LengthInBytes() <= MaxClientNameLengthInBytes;
 
-                    return selectableViewModels;
-                });
+            if (suggestCreation)
+            {
+                var creationSelectableViewModel = new SelectableClientCreationViewModel(trimmedText);
+                selectableViewModels = selectableViewModels.Prepend(creationSelectableViewModel);
+            }
+            else if (isClientFilterEmpty)
+            {
+                selectableViewModels = selectableViewModels.Prepend(noClient);
+            }
+
+            return selectableViewModels;
         }
 
         private SelectableClientBaseViewModel toSelectableViewModel(IThreadSafeClient client)

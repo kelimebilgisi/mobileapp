@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
+using Microsoft.Reactive.Testing;
 using NSubstitute;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.Tests.Extensions;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 
@@ -26,12 +29,22 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected override SelectClientViewModel CreateViewModel()
                => new SelectClientViewModel(InteractorFactory, NavigationService, SchedulerProvider, RxActionFactory);
 
-            protected List<IThreadSafeClient> GenerateClientList() =>
-                Enumerable.Range(1, 10).Select(i =>
+            protected ITestableObserver<IEnumerable<SelectableClientBaseViewModel>> CreateClientsObserver()
+            {
+                var observer = TestScheduler.CreateObserver<IEnumerable<SelectableClientBaseViewModel>>();
+                ViewModel.Clients.Subscribe(observer);
+                return observer;
+            }
+
+            protected List<IThreadSafeClient> GenerateClientList()
+                => GenerateClientList(Enumerable.Range(1, 10).Select(i => i.ToString()).ToArray());
+
+            protected List<IThreadSafeClient> GenerateClientList(string[] clientNames) =>
+                Enumerable.Range(0, clientNames.Length).Select(i =>
                 {
                     var client = Substitute.For<IThreadSafeClient>();
-                    client.Id.Returns(i);
-                    client.Name.Returns(i.ToString());
+                    client.Id.Returns(i + 1);
+                    client.Name.Returns(clientNames[i]);
                     return client;
                 }).ToList();
         }
@@ -69,10 +82,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 ViewModel.Prepare(Parameters);
-
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
-                ViewModel.Clients.Count().Should().Equals(clients.Count);
+                TestScheduler.Start();
+
+                observer.LastValue().Count().Should().Equals(clients.Count);
             }
 
             [Fact, LogIfTooSlow]
@@ -83,11 +98,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 ViewModel.Prepare(Parameters);
-
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
-                ViewModel.Clients.First().First().Name.Should().Be(Resources.NoClient);
-                ViewModel.Clients.First().First().Should().BeOfType<SelectableClientViewModel>();
+                TestScheduler.Start();
+
+                observer.LastValue().First().Name.Should().Be(Resources.NoClient);
+                observer.LastValue().First().Should().BeOfType<SelectableClientViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -98,10 +115,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 ViewModel.Prepare(Parameters);
-
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
-                ViewModel.Clients.First().Single(c => c.Selected).Name.Should().Be(Resources.NoClient);
+                TestScheduler.Start();
+
+                observer.LastValue().Single(c => c.Selected).Name.Should().Be(Resources.NoClient);
             }
 
             [Theory, LogIfTooSlow]
@@ -122,10 +141,32 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 ViewModel.Prepare(parameter);
-
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
-                ViewModel.Clients.First().Single(c => c.Selected).Name.Should().Be(id.ToString());
+                TestScheduler.Start();
+
+                observer.LastValue().Single(c => c.Selected).Name.Should().Be(id.ToString());
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ClientListIsSorted()
+            {
+                var clientNames = new[] { "Microsoft", "Amazon", "Google", "Steam", "Facebook" };
+                var clients = GenerateClientList(clientNames);
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                ViewModel.Prepare(Parameters);
+                await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
+
+                TestScheduler.Start();
+
+                var resultClientsNames = observer.LastValue().Select(vm => vm.Name);
+                // First item is skipped because when the filter is empty,
+                // the collection contains 'No client' item which is always shown at the beginning
+                resultClientsNames.Skip(1).Should().BeInAscendingOrder();
             }
         }
 
@@ -242,10 +283,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
                 ViewModel.FilterText.OnNext("0");
+                TestScheduler.Start();
 
-                ViewModel.Clients.Count().Should().Equals(1);
+                observer.LastValue().Count().Should().Equals(1);
             }
 
             [Fact, LogIfTooSlow]
@@ -256,12 +299,14 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
                 var nonExistingClientName = "Some none existing name";
                 ViewModel.FilterText.OnNext(nonExistingClientName);
+                TestScheduler.Start();
 
-                ViewModel.Clients.First().First().Name.Should().Equals(nonExistingClientName);
-                ViewModel.Clients.First().First().Should().BeOfType<SelectableClientCreationViewModel>();
+                observer.LastValue().First().Name.Should().Equals(nonExistingClientName);
+                observer.LastValue().First().Should().BeOfType<SelectableClientCreationViewModel>();
             }
 
             [Theory, LogIfTooSlow]
@@ -278,12 +323,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 ViewModel.Prepare(Parameters);
-
                 await ViewModel.Initialize();
-                ViewModel.FilterText.OnNext(name);
+                var observer = CreateClientsObserver();
 
-                var receivedClients = await ViewModel.Clients.FirstAsync();
-                receivedClients.First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+                ViewModel.FilterText.OnNext(name);
+                TestScheduler.Start();
+
+                observer.LastValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -294,10 +340,33 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(clients));
                 await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
 
                 ViewModel.FilterText.OnNext(clients.First().Name);
+                TestScheduler.Start();
 
-                ViewModel.Clients.First().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+                observer.LastValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task ClientListIsSortedAfterFilterChange()
+            {
+                var clientNames = new[] { "Microsoft", "Amazon", "Google", "Steam", "Facebook" };
+                var clients = GenerateClientList(clientNames);
+                InteractorFactory.GetAllClientsInWorkspace(Arg.Any<long>())
+                    .Execute()
+                    .Returns(Observable.Return(clients));
+                ViewModel.Prepare(Parameters);
+                await ViewModel.Initialize();
+                var observer = CreateClientsObserver();
+
+                ViewModel.FilterText.OnNext("a");
+                TestScheduler.Start();
+
+                var resultClientsNames = observer.LastValue().Select(vm => vm.Name);
+                // First item is skipped because when the filter is not empty,
+                // the collection contains 'Create client XYZ' item which is always shown at the beginning
+                resultClientsNames.Skip(1).Should().BeInAscendingOrder();
             }
         }
     }

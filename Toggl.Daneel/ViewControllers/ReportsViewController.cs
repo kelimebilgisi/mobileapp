@@ -30,8 +30,6 @@ namespace Toggl.Daneel.ViewControllers
 
         private UIButton titleButton;
 
-        private ReportsTableViewSource source;
-
         private IDisposable calendarSizeDisposable;
 
         internal UIView CalendarContainerView => CalendarContainer;
@@ -50,8 +48,16 @@ namespace Toggl.Daneel.ViewControllers
 
             calendarSizeDisposable = CalendarContainer.AddObserver(boundsKey, NSKeyValueObservingOptions.New, onCalendarSizeChanged);
 
-            source = new ReportsTableViewSource(ReportsTableView, ViewModel);
-            source.OnScroll += onReportsTableScrolled;
+            var source = new ReportsTableViewSource(ReportsTableView, ViewModel);
+
+            ViewModel.SegmentsObservable
+                .Subscribe(ReportsTableView.Rx().ReloadItems(source))
+                .DisposedBy(DisposeBag);
+
+            source.ScrolledWithHeaderOffset
+                .Subscribe(onReportsTableScrolled)
+                .DisposedBy(DisposeBag);
+
             ReportsTableView.Source = source;
 
             bool areThereEnoughWorkspaces(ICollection<(string ItemName, IThreadSafeWorkspace Item)> workspaces) => workspaces.Count > 1;
@@ -95,10 +101,6 @@ namespace Toggl.Daneel.ViewControllers
             WorkspaceButton.Rx()
                 .BindAction(ViewModel.SelectWorkspace)
                 .DisposedBy(DisposeBag);
-
-            ViewModel.SegmentsObservable
-                .Subscribe(segments => source.ItemsSource = segments)
-                .DisposedBy(DisposeBag);
         }
 
         protected override void Dispose(bool disposing)
@@ -107,13 +109,11 @@ namespace Toggl.Daneel.ViewControllers
 
             if (!disposing) return;
 
-            source.OnScroll -= onReportsTableScrolled;
-
             calendarSizeDisposable?.Dispose();
             calendarSizeDisposable = null;
         }
 
-        private void onReportsTableScrolled(object sender, CGPoint offset)
+        private void onReportsTableScrolled(CGPoint offset)
         {
             if (CalendarIsVisible)
             {
