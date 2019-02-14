@@ -327,6 +327,9 @@ Start the timer and your most used time entries will appear here.</value>
     <data name="DeleteThisTimeEntry">
         <value>Delete this time entry?</value>
     </data>
+    <data name="DeleteMultipleTimeEntries">
+        <value>Permanently delete {0} time entries?</value>
+    </data>
     <data name="DiscardThisTimeEntry">
         <value>Discard this time entry?</value>
     </data>
