@@ -6,6 +6,7 @@ using Toggl.Daneel.Views.EntityCreation;
 using Toggl.Daneel.Views.StartTimeEntry;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using UIKit;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Daneel.ViewSources
 {
@@ -59,7 +60,7 @@ namespace Toggl.Daneel.ViewSources
                 case ProjectSuggestion projectSuggestion:
                     var projectCell = (ReactiveProjectSuggestionViewCell)tableView.DequeueReusableCell(ReactiveProjectSuggestionViewCell.Key, indexPath);
                     projectCell.Item = projectSuggestion;
-                    projectCell.ToggleTaskSuggestions.Subscribe(toggleTaskSuggestionsSubject);
+                    projectCell.ToggleTaskSuggestions.Subscribe(toggleTaskSuggestionsSubject).DisposedBy(projectCell.DisposeBag);
                     updateSeparatorVisibility(tableView, projectCell, indexPath);
                     return projectCell;
 

@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using Foundation;
 using Toggl.Daneel.Cells;
 using Toggl.Daneel.Extensions;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Multivac;
+using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Multivac.Extensions;
 using UIKit;
+using System.Reactive.Disposables;
 
 namespace Toggl.Daneel.Views.StartTimeEntry
 {
@@ -32,8 +33,10 @@ namespace Toggl.Daneel.Views.StartTimeEntry
             set => BottomSeparatorView.Hidden = value;
         }
 
-        private ISubject<ProjectSuggestion> toggleTaskSuggestionsSubject = new Subject<ProjectSuggestion>();
-        public IObservable<ProjectSuggestion> ToggleTaskSuggestions => toggleTaskSuggestionsSubject.AsObservable();
+        public CompositeDisposable DisposeBag { get; private set; } = new CompositeDisposable();
+
+        public IObservable<ProjectSuggestion> ToggleTaskSuggestions
+            => ToggleTasksButton.Rx().Tap().SelectValue((ProjectSuggestion)Item);
 
         static ReactiveProjectSuggestionViewCell()
         {
@@ -52,47 +55,40 @@ namespace Toggl.Daneel.Views.StartTimeEntry
             FadeView.FadeRight = true;
             ClientNameLabel.LineBreakMode = UILineBreakMode.TailTruncation;
             ProjectNameLabel.LineBreakMode = UILineBreakMode.TailTruncation;
-            ToggleTasksButton.TouchUpInside += toggleTaskSuggestions;
+        }
+
+        public override void PrepareForReuse()
+        {
+            DisposeBag.Dispose();
+            DisposeBag = new CompositeDisposable();
         }
 
         protected override void UpdateView()
         {
-            if (Item is ProjectSuggestion projectSuggestion)
-            {
-                //Text
-                ProjectNameLabel.Text = projectSuggestion.ProjectName;
-                ClientNameLabel.Text = projectSuggestion.ClientName;
-                AmountOfTasksLabel.Text = taskAmoutLabelForCount(projectSuggestion.NumberOfTasks);
+            var projectSuggestion = (ProjectSuggestion)Item;
 
-                //Color
-                var nativeProjectColor = new Color(projectSuggestion.ProjectColor).ToNativeColor();
-                ProjectNameLabel.TextColor = nativeProjectColor;
-                ProjectDotView.BackgroundColor = nativeProjectColor;
-                SelectedProjectView.BackgroundColor = projectSuggestion.Selected
-                    ? nativeProjectColor.ColorWithAlpha(selectedProjectBackgroundAlpha)
-                    : UIColor.Clear;
+            //Text
+            ProjectNameLabel.Text = projectSuggestion.ProjectName;
+            ClientNameLabel.Text = projectSuggestion.ClientName;
+            AmountOfTasksLabel.Text = taskAmoutLabelForCount(projectSuggestion.NumberOfTasks);
 
-                //Visibility
-                ToggleTaskImage.Hidden = !projectSuggestion.HasTasks;
-                ToggleTasksButton.Hidden = !projectSuggestion.HasTasks;
-                AmountOfTasksLabel.Hidden = !projectSuggestion.HasTasks;
+            //Color
+            var nativeProjectColor = new Color(projectSuggestion.ProjectColor).ToNativeColor();
+            ProjectNameLabel.TextColor = nativeProjectColor;
+            ProjectDotView.BackgroundColor = nativeProjectColor;
+            SelectedProjectView.BackgroundColor = projectSuggestion.Selected
+                ? nativeProjectColor.ColorWithAlpha(selectedProjectBackgroundAlpha)
+                : UIColor.Clear;
 
-                //Constraints
-                FadeViewTrailingConstraint.Constant = projectSuggestion.HasTasks
-                    ? fadeViewTrailingConstraintWithTasks
-                    : fadeViewTrailingConstraintWithoutTasks;
-            }
-            else
-            {
-                throw new Exception($"Unexpected {nameof(Item)} type. It should have been of type {typeof(ProjectSuggestion)}, but it was {Item.GetType()}");
-            }
-        }
+            //Visibility
+            ToggleTaskImage.Hidden = !projectSuggestion.HasTasks;
+            ToggleTasksButton.Hidden = !projectSuggestion.HasTasks;
+            AmountOfTasksLabel.Hidden = !projectSuggestion.HasTasks;
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (!disposing) return;
-            ToggleTasksButton.TouchUpInside -= toggleTaskSuggestions;
+            //Constraints
+            FadeViewTrailingConstraint.Constant = projectSuggestion.HasTasks
+                ? fadeViewTrailingConstraintWithTasks
+                : fadeViewTrailingConstraintWithoutTasks;
         }
 
         private string taskAmoutLabelForCount(int count)
@@ -101,12 +97,6 @@ namespace Toggl.Daneel.Views.StartTimeEntry
                 return "";
 
             return $"{count} Task{(count == 1 ? "" : "s")}";
-        }
-
-        private void toggleTaskSuggestions(object sender, EventArgs e)
-        {
-            if (Item is ProjectSuggestion projectSuggestion)
-                toggleTaskSuggestionsSubject.OnNext(projectSuggestion);
         }
     }
 }
