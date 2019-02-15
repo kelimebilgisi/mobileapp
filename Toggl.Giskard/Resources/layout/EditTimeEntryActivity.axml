@@ -1,432 +1,554 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:local="http://schemas.android.com/apk/res-auto"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:focusable="true"
-    android:clickable="true"
-    android:orientation="vertical"
-    android:focusableInTouchMode="true"
+    xmlns:local="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:importantForAutofill="noExcludeDescendants">
-    <RelativeLayout
-        android:id="@+id/EditTimeEntryDescriptionContainer"
-        android:elevation="2dp"
-        android:paddingBottom="16dp"
-        android:minHeight="@dimen/expandedToolbarHeight"
-        android:background="@color/blueToolbarBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:importantForAutofill="noExcludeDescendants"
+    android:orientation="vertical">
+    <FrameLayout
+        android:id="@+id/DescriptionContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/blueToolbarBackground"
+        android:elevation="2dp"
+        android:minHeight="@dimen/expandedToolbarHeight"
+        android:paddingBottom="16dp">
+
         <ImageView
-            local:MvxBind="Click CloseCommand"
-            android:padding="16dp"
-            android:clickable="true"
-            android:src="@drawable/close"
-            android:foregroundGravity="center"
-            android:tint="@android:color/white"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:id="@+id/CloseButton"
+            android:contentDescription="@string/Cancel"
             android:layout_width="?attr/actionBarSize"
-            android:layout_height="?attr/actionBarSize" />
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:layout_gravity="left"
+            android:padding="16dp"
+            android:src="@drawable/close"
+            android:tint="@android:color/white" />
+
         <EditText
-            android:id="@+id/EditTimeEntryDescriptionTextField"
-            local:MvxBind="Text Description; TextColor InvertDisabledTextColor(IsInaccessible); Focus IsEditingDescription; Click StartEditingDescriptionCommand"
-            android:minLines="1"
-            android:maxLines="4"
+            android:id="@+id/DescriptionEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="64dp"
+            android:layout_marginRight="16dp"
+            android:background="@color/blueToolbarBackground"
             android:gravity="left"
-            android:textSize="19sp"
+            android:hint="@string/StartTimeEntryHint"
+            android:inputType="textMultiLine"
             android:letterSpacing="-0.01"
             android:lineSpacingExtra="5sp"
+            android:maxLines="4"
+            android:minLines="1"
             android:scrollHorizontally="true"
             android:textColor="@android:color/white"
-            android:hint="@string/StartTimeEntryHint"
-            android:background="@color/blueToolbarBackground"
-            android:textCursorDrawable="@drawable/EditTextWhiteCursor"
             android:textColorHint="@color/blueBackgroundTextHintColor"
-            android:inputType="textMultiLine"
-            android:layout_marginTop="64dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textCursorDrawable="@drawable/EditTextWhiteCursor"
+            android:textSize="19sp" />
+
         <TextView
-            android:id="@+id/EditTimeEntryConfirmButton"
-            local:MvxBind="Text ConfirmButtonText; Click ConfirmCommand"
-            android:text="@string/Done"
-            android:padding="16dp"
-            android:textSize="14sp"
-            android:gravity="center"
-            android:textAllCaps="true"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@android:color/white"
-            android:layout_height="56dp"
+            android:id="@+id/ConfirmButton"
             android:layout_width="wrap_content"
-            android:layout_alignParentRight="true" />
-    </RelativeLayout>
+            android:layout_height="56dp"
+            android:layout_gravity="right"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center_vertical"
+            android:padding="16dp"
+            android:text="@string/Done"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+    </FrameLayout>
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/EditTimeEntryDescriptionContainer">
-        <RelativeLayout
+        android:foregroundGravity="top"
+        android:orientation="vertical">
+
+        <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <View
-                android:id="@+id/EditTimeEntryColumnAnchor"
-                android:layout_width="56dp"
-                android:layout_height="56dp" />
-            <LinearLayout
-                android:id="@+id/EditErrorContainer"
-                android:layout_marginTop="12dp"
+            android:layout_height="wrap_content">
+
+            <android.support.constraint.Group
+                android:id="@+id/SingleTimeEntryModeViews"
+
+                android:visibility="visible"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <RelativeLayout
-                    local:MvxBind="Click DismissSyncErrorMessageCommand; Visibility Visibility(SyncErrorMessageVisible)"
-                    android:elevation="4dp"
-                    android:paddingBottom="16dp"
-                    android:lineSpacingExtra="6dp"
-                    android:background="@android:color/white"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_marginBottom="8dp"
+                android:layout_height="match_parent"
+                local:constraint_referenced_ids="GroupCount,GroupDuration,TimeMiddleGuide,TimeIcon,StartTimeButton,StartTime,StartDate,StartTimeLabel,StopTimeButton,StopTime,StopDate,StopTimeButtonEntry,EditEndTimeLabel,TimeBottomBorder,DurationButton,Duration,DurationLabel,DurationBottomBorder" />
+
+            <android.support.constraint.Group
+                android:id="@+id/TimeEntriesGroupModeViews"
+                android:visibility="visible"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                local:constraint_referenced_ids="GroupCount,GroupDuration" />
+
+            <!-- ERROR MESSAGE -->
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/ErrorContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                local:layout_constraintLeft_toLeftOf="parent"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toTopOf="parent">
+
+                <android.support.constraint.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:elevation="4dp">
+
                     <ImageView
-                        android:id="@+id/EditErrorIcon"
-                        android:scaleType="center"
-                        android:src="@drawable/error_baddata"
+                        android:id="@+id/ErrorIcon"
                         android:layout_width="16dp"
                         android:layout_height="16dp"
+                        android:layout_marginLeft="16dp"
                         android:layout_marginTop="16dp"
-                        android:layout_marginLeft="16dp" />
+                        android:scaleType="center"
+                        android:src="@drawable/error_baddata"
+                        local:layout_constraintLeft_toLeftOf="parent"
+                        local:layout_constraintTop_toTopOf="parent" />
+
                     <TextView
-                        android:id="@+id/EditErrorTextTitle"
+                        android:id="@+id/ErrorTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="16dp"
+                        android:gravity="center_vertical"
+                        android:text="@string/Oops"
+                        android:textAllCaps="true"
+                        android:textColor="@color/errorText"
                         android:textSize="13sp"
                         android:textStyle="bold"
-                        android:textAllCaps="true"
-                        android:text="@string/Oops"
-                        android:textColor="@color/errorText"
-                        android:layout_marginTop="16dp"
-                        android:layout_marginLeft="16dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_toRightOf="@id/EditErrorIcon" />
+                        local:layout_constraintBottom_toBottomOf="@id/ErrorIcon"
+                        local:layout_constraintLeft_toRightOf="@+id/ErrorIcon"
+                        local:layout_constraintTop_toTopOf="@id/ErrorIcon" />
+
                     <TextView
-                        local:MvxBind="Text SyncErrorMessage"
-                        android:minLines="1"
-                        android:textSize="14sp"
-                        android:textColor="@color/defaultText"
-                        tools:text="This time entry cant be saved and is rather large. Definitely multilined at best. This should really be big."
+                        android:id="@+id/ErrorText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:layout_marginRight="16dp"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_below="@id/EditErrorTextTitle"
-                        android:layout_alignStart="@id/EditErrorTextTitle" />
-                </RelativeLayout>
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/EditTimeEntryProjectContainer"
-                local:MvxBind="Click SelectProjectCommand"
-                android:background="?attr/selectableItemBackground"
+                        android:layout_marginBottom="16dp"
+                        android:minLines="1"
+                        android:textColor="@color/defaultText"
+                        android:textSize="14sp"
+                        local:layout_constraintBottom_toBottomOf="parent"
+                        local:layout_constraintLeft_toLeftOf="@id/ErrorTitle"
+                        local:layout_constraintRight_toRightOf="parent"
+                        local:layout_constraintTop_toBottomOf="@id/ErrorTitle"
+                        tools:text="This time entry cant be saved and is rather large. Definitely multilined at best. This should really be big." />
+                </android.support.constraint.ConstraintLayout>
+            </android.support.v7.widget.CardView>
+
+            <TextView
+                android:id="@+id/GroupCount"
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditErrorContainer">
-                <ImageView
-                    android:id="@+id/EditProjectIcon"
-                    android:scaleType="center"
-                    android:src="@drawable/project"
-                    android:layout_width="56dp"
-                    android:layout_height="48dp" />
-                <TextView
-                    android:id="@+id/EditAddProjectLabel"
-                    local:MvxBind="Visibility InvertedVisibility(Project)"
-                    android:textSize="15sp"
-                    android:gravity="center_vertical|left"
-                    android:text="@string/AddProjectTask"
-                    android:textColor="@color/placeholderText"
-                    android:layout_height="48dp"
-                    android:layout_width="wrap_content"
-                    android:layout_below="@id/EditErrorContainer"
-                    android:layout_toRightOf="@id/EditTimeEntryColumnAnchor" />
-                <TextView
-                    android:id="@+id/EditProjectTaskClient"
-                    tools:text="Superday"
-                    android:ellipsize="end"
-                    android:scrollHorizontally="true"
-                    android:textColor="@android:color/black"
-                    android:textSize="15sp"
-                    android:maxLines="1"
-                    android:gravity="center_vertical|left"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginRight="16dp"
-                    android:layout_height="48dp"
-                    android:layout_width="match_parent"
-                    android:layout_alignTop="@id/EditProjectIcon"
-                    android:layout_toRightOf="@id/EditProjectIcon" />
-            </LinearLayout>
-            <View
-                android:background="@color/separator"
-                android:layout_height="0.5dp"
-                android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimeEntryProjectContainer" />
-            <FrameLayout
-                android:id="@+id/EditTimeEntryTagsContainer"
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimeEntryProjectContainer">
-                <LinearLayout
-                    local:MvxBind="Click SelectTagsCommand; Visibility Visibility(ShowTags(IsInaccessible, HasTags))"
-                    android:background="?attr/selectableItemBackground"
-                    android:layout_height="48dp"
-                    android:layout_width="match_parent">
-                    <ImageView
-                        android:id="@+id/EditTagsIcon"
-                        android:scaleType="center"
-                        android:src="@drawable/tag"
-                        android:layout_width="56dp"
-                        android:layout_height="48dp" />
-                    <TextView
-                        android:id="@+id/EditAddTagsLabel"
-                        local:MvxBind="Visibility Visibility(!HasTags)"
-                        android:textSize="15sp"
-                        android:text="@string/AddTags"
-                        android:gravity="center_vertical"
-                        android:textColor="@color/placeholderText"
-                        android:layout_height="48dp"
-                        android:layout_width="wrap_content"
-                        android:layout_alignTop="@id/EditTagsIcon"
-                        android:layout_toRightOf="@id/EditTagsIcon" />
-                    <toggl.giskard.views.TagsListRecyclerView
-                        android:id="@+id/EditTags"
-                        local:MvxBind="ItemsSource Tags; Visibility(HasTags); ItemClick SelectTagsCommand"
-                        android:clickable="true"
-                        local:MvxTemplateSelector="@string/TagsListTemplateSelector"
-                        android:layout_height="48dp"
-                        android:layout_width="wrap_content"
-                        android:layout_alignTop="@id/EditTagsIcon"
-                        android:layout_toRightOf="@id/EditTagsIcon" />
-                </LinearLayout>
-            </FrameLayout>
-            <View
-                android:background="@color/separator"
-                android:layout_height="0.5dp"
-                android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimeEntryTagsContainer" />
-            <LinearLayout
-                android:id="@+id/EditBillableRow"
-                local:MvxBind="Click ToggleBillableCommand; Visibility Visibility(IsBillableAvailable)"
-                android:orientation="horizontal"
-                android:background="?attr/selectableItemBackground"
+                android:layout_marginLeft="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:textAllCaps="true"
+                android:textColor="#757575"
+                android:textSize="12sp"
+                local:layout_constraintLeft_toLeftOf="parent"
+                local:layout_constraintTop_toBottomOf="@id/ErrorContainer"
+                tools:text="Editing 2 time entries" />
+
+            <TextView
+                android:id="@+id/GroupDuration"
+                android:layout_width="wrap_content"
                 android:layout_height="48dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimeEntryTagsContainer">
-                <ImageView
-                    android:id="@+id/EditBillableIcon"
-                    android:scaleType="center"
-                    android:src="@drawable/billable"
-                    android:layout_width="56dp"
-                    android:layout_height="48dp" />
-                <TextView
-                    android:id="@+id/EditBillableLabel"
-                    android:textSize="15sp"
-                    android:text="@string/Billable"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/darkLabel"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:layout_width="wrap_content" />
-                <Switch
-                    android:id="@+id/EditBillableSwitch"
-                    local:MvxBind="Checked Billable; Enabled !IsInaccessible"
-                    android:layout_marginRight="18dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                android:layout_marginRight="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical"
+                android:textAllCaps="true"
+                android:textColor="#757575"
+                android:textSize="12sp"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toBottomOf="@id/ErrorContainer"
+                tools:text="1:30:00" />
+
             <View
-                local:MvxBind="Visibility Visibility(IsBillableAvailable)"
+                android:id="@+id/GroupSummaryBottomBorder"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
                 android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/GroupCount" />
+
+            <!-- PROJECT/TASK/CLIENT -->
+
+            <ImageView
+                android:id="@+id/ProjectIcon"
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:scaleType="center"
+                android:src="@drawable/project"
+                local:layout_constraintTop_toBottomOf="@id/GroupCount"
+                local:layout_constraintLeft_toLeftOf="parent" />
+
+            <View
+                android:id="@+id/SelectProjectButton"
+                android:background="?attr/selectableItemBackground"
+                local:layout_constraintLeft_toLeftOf="@id/ProjectIcon"
+                local:layout_constraintTop_toTopOf="@id/ProjectIcon"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+            <TextView
+                android:id="@+id/ProjectPlaceholderLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:gravity="center_vertical|left"
+                android:textColor="@color/placeholderText"
+                android:textSize="15sp"
+                local:layout_constraintLeft_toRightOf="@id/ProjectIcon"
+                local:layout_constraintTop_toTopOf="@+id/ProjectIcon"
+                tools:text="Add project..." />
+
+            <TextView
+                android:id="@+id/ProjectTaskClient"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginRight="16dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center_vertical|left"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:textColor="@android:color/black"
+                android:textSize="15sp"
+                local:layout_constraintLeft_toRightOf="@id/ProjectIcon"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toTopOf="@+id/ProjectIcon"
+                tools:text="Superday" />
+
+            <View
+                android:id="@+id/ProjectBottomBorder"
+                android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditBillableRow" />
-            <View
-                android:id="@+id/EditTimeSeparator"
                 android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/ProjectIcon" />
+
+            <!-- TAGS -->
+
+            <ImageView
+                android:id="@+id/TagsIcon"
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:scaleType="center"
+                android:src="@drawable/tag"
+                local:layout_constraintTop_toBottomOf="@id/ProjectBottomBorder"
+                local:layout_constraintLeft_toLeftOf="parent" />
+
+            <View
+                android:id="@+id/SelectTagsButton"
+                android:background="?attr/selectableItemBackground"
+                local:layout_constraintLeft_toLeftOf="@id/TagsIcon"
+                local:layout_constraintTop_toTopOf="@id/TagsIcon"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+            <TextView
+                android:id="@+id/TagsPlaceholderLabel"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:gravity="center_vertical"
+                android:textColor="@color/placeholderText"
+                android:textSize="15sp"
+                local:layout_constraintLeft_toRightOf="@id/TagsIcon"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toTopOf="@+id/TagsIcon"
+                tools:text="Add tags" />
+
+            <toggl.giskard.views.TagsListRecyclerView
+                android:id="@+id/TagsRecyclerView"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:clickable="false"
+                local:layout_constraintLeft_toRightOf="@id/TagsIcon"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toTopOf="@+id/TagsIcon" />
+
+            <View
+                android:id="@+id/TagsBottomBorder"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="56dp"
+                android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/TagsIcon" />
+
+            <!-- BILLABLE -->
+
+            <ImageView
+                android:id="@+id/BillableIcon"
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:scaleType="center"
+                android:src="@drawable/billable"
+                local:layout_constraintTop_toBottomOf="@id/TagsBottomBorder"
+                local:layout_constraintLeft_toLeftOf="parent"
+                />
+
+            <View
+                android:id="@+id/ToggleBillableButton"
+                android:background="?attr/selectableItemBackground"
+                local:layout_constraintLeft_toLeftOf="@id/BillableIcon"
+                local:layout_constraintTop_toTopOf="@id/BillableIcon"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+            <TextView
+                android:id="@+id/BillableLabel"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="@string/Billable"
+                android:textColor="@color/darkLabel"
+                android:textSize="15sp"
+                local:layout_constraintLeft_toRightOf="@id/BillableIcon"
+                local:layout_constraintTop_toTopOf="@+id/BillableIcon" />
+
+            <Switch
+                android:id="@+id/BillableSwitch"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginRight="18dp"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toBottomOf="@id/TagsBottomBorder"/>
+
+            <View
+                android:id="@+id/BillableBottomBorder"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="56dp"
+                android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/BillableIcon" />
+
+            <!-- TIME -->
+
+            <View
+                android:id="@+id/TimeMiddleGuide"
                 android:layout_width="0.5dp"
                 android:layout_height="72dp"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@id/EditBillableRow" />
-            <RelativeLayout
-                android:id="@+id/EditTimeLeftPart"
-                android:background="?attr/selectableItemBackground"
-                android:layout_weight="1"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignTop="@id/EditTimeSeparator"
-                android:layout_alignRight="@id/EditTimeSeparator"
-                android:layout_alignBottom="@id/EditTimeSeparator">
-                <TextView
-                    android:id="@+id/EditStartValueLabel"
-                    local:MvxBind="Text DateTimeOffsetTimeFormat(StartTime, TimeFormat); TextColor DisabledTextColor(IsInaccessible)"
-                    tools:text="11:25 AM"
-                    android:textSize="15sp"
-                    android:textColor="@color/darkLabel"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginLeft="56dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <TextView
-                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StartTime, DateFormat); TextColor DisabledTextColor(IsInaccessible)"
-                    tools:text="06.05."
-                    android:textSize="15sp"
-                    android:textColor="@color/editViewDate"
-                    android:layout_marginLeft="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignTop="@id/EditStartValueLabel"
-                    android:layout_toRightOf="@id/EditStartValueLabel" />
-                <TextView
-                    android:id="@+id/EditStartTimeLabel"
-                    android:textSize="12sp"
-                    android:text="@string/StartTime"
-                    android:textColor="@color/defaultText"
-                    android:layout_marginTop="4dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/EditStartValueLabel"
-                    android:layout_alignStart="@id/EditStartValueLabel" />
-            </RelativeLayout>
-            <RelativeLayout
-                android:id="@+id/EditTimeRightPart"
-                android:background="?attr/selectableItemBackground"
-                android:layout_weight="1"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignTop="@id/EditTimeSeparator"
-                android:layout_alignLeft="@id/EditTimeSeparator"
-                android:layout_alignBottom="@id/EditTimeSeparator">
-                <TextView
-                    android:id="@+id/EditEndValueLabel"
-                    local:MvxBind="Text DateTimeOffsetTimeFormat(StopTimeOrCurrent, TimeFormat); TextColor DisabledTextColor(IsInaccessible); Visibility Visibility(!IsTimeEntryRunning, true)"
-                    tools:text="11:48 AM"
-                    android:textSize="15sp"
-                    android:textColor="@color/darkLabel"
-                    android:layout_weight="1"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <TextView
-                    local:MvxBind="Text DateTimeOffsetShortDateFormat(StopTimeOrCurrent, DateFormat); TextColor DisabledTextColor(IsInaccessible); Visibility Visibility(!IsTimeEntryRunning, true)"
-                    tools:text="06.05."
-                    android:textSize="15sp"
-                    android:textColor="@color/editViewDate"
-                    android:layout_marginLeft="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignTop="@id/EditEndValueLabel"
-                    android:layout_toRightOf="@id/EditEndValueLabel" />
-                <TextView
-                    android:id="@+id/EditEndValueSetLabel"
-                    local:MvxBind="Visibility Visibility(IsTimeEntryRunning)"
-                    android:textSize="15sp"
-                    android:text="@string/Stop"
-                    android:textColor="@color/buttonBlue"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignTop="@id/EditEndValueLabel"
-                    android:layout_alignStart="@id/EditEndValueLabel" />
-                <TextView
-                    android:id="@+id/EditEndTimeLabel"
-                    android:textSize="12sp"
-                    android:text="@string/EndTime"
-                    android:textColor="@color/defaultText"
-                    android:layout_marginTop="4dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/EditEndValueLabel"
-                    android:layout_alignStart="@id/EditEndValueLabel" />
-            </RelativeLayout>
+                android:background="#dddddd"
+                android:orientation="vertical"
+                local:layout_constraintLeft_toLeftOf="parent"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toBottomOf="@id/BillableBottomBorder" />
+
             <ImageView
-                android:id="@+id/EditTimerIcon"
+                android:id="@+id/TimeIcon"
+                android:layout_width="56dp"
+                android:layout_height="48dp"
                 android:scaleType="center"
                 android:src="@drawable/timer_dark"
-                android:layout_width="56dp"
-                android:layout_marginTop="12dp"
+                local:layout_constraintTop_toBottomOf="@id/BillableBottomBorder"
+                local:layout_constraintLeft_toLeftOf="parent" />
+
+            <View
+                android:id="@+id/StartTimeButton"
+                android:background="?attr/selectableItemBackground"
+                local:layout_constraintLeft_toLeftOf="parent"
+                local:layout_constraintRight_toLeftOf="@id/TimeMiddleGuide"
+                local:layout_constraintTop_toBottomOf="@id/BillableBottomBorder"
+                local:layout_constraintBottom_toTopOf="@id/TimeBottomBorder"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/StartTime"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/EditBillableRow" />
+                android:textColor="@color/darkLabel"
+                android:textSize="15sp"
+                android:layout_marginTop="12dp"
+                local:layout_constraintLeft_toRightOf="@id/TimeIcon"
+                local:layout_constraintTop_toTopOf="@id/TimeIcon"
+                tools:text="11:25 AM" />
+
+            <TextView
+                android:id="@+id/StartDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:textColor="@color/editViewDate"
+                android:textSize="15sp"
+                local:layout_constraintBaseline_toBaselineOf="@id/StartTime"
+                local:layout_constraintLeft_toRightOf="@id/StartTime"
+                tools:text="06.05." />
+
+            <TextView
+                android:id="@+id/StartTimeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/StartTime"
+                android:textColor="@color/defaultText"
+                android:textSize="12sp"
+                local:layout_constraintLeft_toRightOf="@id/TimeIcon"
+                local:layout_constraintTop_toBottomOf="@id/StartTime"
+                local:layout_constraintLeft_toLeftOf="@id/StartTime" />
+
             <View
-                android:id="@+id/EditTimesBottomBorder"
-                android:background="@color/separator"
-                android:layout_height="0.5dp"
-                android:layout_marginTop="72dp"
-                android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditBillableRow" />
-            <LinearLayout
-                android:id="@+id/EditDuration"
-                android:orientation="vertical"
+                android:id="@+id/StopTimeButton"
                 android:background="?attr/selectableItemBackground"
-                android:layout_height="72dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimesBottomBorder">
-                <TextView
-                    local:MvxBind="Text Duration(Duration, DurationFormat); TextColor DisabledTextColor(IsInaccessible)"
-                    tools:text="0:11:25"
-                    android:textSize="15sp"
-                    android:textColor="@color/darkLabel"
-                    android:background="@android:color/transparent"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginLeft="56dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-                <TextView
-                    android:id="@+id/EditTimeEntryDurationLabel"
-                    android:textSize="12sp"
-                    android:text="@string/Duration"
-                    android:textColor="@color/defaultText"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginLeft="56dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                local:layout_constraintLeft_toLeftOf="@id/TimeMiddleGuide"
+                local:layout_constraintRight_toRightOf="parent"
+                local:layout_constraintTop_toTopOf="@id/TimeIcon"
+                local:layout_constraintBottom_toTopOf="@id/TimeBottomBorder"
+                android:layout_width="0dp"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/StopTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_weight="1"
+                android:textColor="@color/darkLabel"
+                android:textSize="15sp"
+                local:layout_constraintBaseline_toBaselineOf="@id/StartTime"
+                local:layout_constraintLeft_toRightOf="@id/TimeMiddleGuide"
+                tools:text="11:48 AM" />
+
+            <TextView
+                android:id="@+id/StopDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:textColor="@color/editViewDate"
+                android:textSize="15sp"
+                local:layout_constraintBaseline_toBaselineOf="@id/StopTime"
+                local:layout_constraintLeft_toRightOf="@id/StopTime"
+                tools:text="06.05." />
+
+            <TextView
+                android:id="@+id/StopTimeEntryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Stop"
+                android:textColor="@color/buttonBlue"
+                android:layout_marginLeft="16dp"
+                android:textSize="15sp"
+                local:layout_constraintBaseline_toBaselineOf="@id/StartTime"
+                local:layout_constraintLeft_toRightOf="@id/TimeMiddleGuide" />
+
+            <TextView
+                android:id="@+id/EditEndTimeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginLeft="16dp"
+                android:text="@string/EndTime"
+                android:textColor="@color/defaultText"
+                android:textSize="12sp"
+                local:layout_constraintTop_toBottomOf="@id/StartTime"
+                local:layout_constraintLeft_toRightOf="@id/TimeMiddleGuide" />
+
             <View
-                android:id="@+id/EditDurationBottomBorder"
-                android:background="@color/separator"
+                android:id="@+id/TimeBottomBorder"
+                android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditDuration" />
-            <LinearLayout
-                android:id="@+id/EditTimeEntryDeleteContainer"
-                local:MvxBind="Click DeleteCommand"
+                android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/TimeMiddleGuide" />
+
+            <!-- DURATION -->
+
+            <View
+                android:id="@+id/DurationButton"
                 android:background="?attr/selectableItemBackground"
+                local:layout_constraintLeft_toLeftOf="@id/TimeIcon"
+                local:layout_constraintTop_toBottomOf="@id/TimeBottomBorder"
+                local:layout_constraintBottom_toTopOf="@id/DurationBottomBorder"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
+            <TextView
+                android:id="@+id/Duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/transparent"
+                android:textColor="@color/darkLabel"
+                android:textSize="15sp"
+                tools:text="0:11:25"
+                local:layout_constraintTop_toBottomOf="@id/TimeBottomBorder"
+                local:layout_constraintLeft_toRightOf="@id/TimeIcon" />
+
+            <TextView
+                android:id="@+id/DurationLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/Duration"
+                android:textColor="@color/defaultText"
+                android:textSize="12sp"
+                local:layout_constraintTop_toBottomOf="@id/Duration"
+                local:layout_constraintLeft_toLeftOf="@id/Duration" />
+
+            <View
+                android:id="@+id/DurationBottomBorder"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="56dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/DurationLabel" />
+
+            <!-- DELETE -->
+
+            <ImageView
+                android:id="@+id/DeleteIcon"
+                android:layout_width="56dp"
                 android:layout_height="48dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditDurationBottomBorder">
-                <ImageView
-                    android:id="@+id/EditTimeEntryDeleteIcon"
-                    android:scaleType="center"
-                    android:src="@drawable/delete"
-                    android:layout_width="56dp"
-                    android:layout_height="match_parent" />
-                <TextView
-                    android:id="@+id/EditTimeEntryDeleteLabel"
-                    android:textSize="15sp"
-                    android:gravity="center_vertical"
-                    android:text="@string/DeleteEntry"
-                    android:textColor="@color/errorText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_toRightOf="@id/EditTimeEntryDeleteIcon" />
-            </LinearLayout>
+                android:scaleType="center"
+                android:src="@drawable/delete"
+                local:layout_constraintTop_toBottomOf="@id/DurationBottomBorder"
+                local:layout_constraintLeft_toLeftOf="parent" />
+
             <View
-                android:background="@color/separator"
+                android:id="@+id/DeleteButton"
+                android:background="?attr/selectableItemBackground"
+                local:layout_constraintTop_toTopOf="@id/DeleteIcon"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+            <TextView
+                android:id="@+id/DeleteLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:gravity="center_vertical"
+                android:text="@string/DeleteEntry"
+                android:textColor="@color/errorText"
+                android:textSize="15sp"
+                local:layout_constraintLeft_toRightOf="@id/DeleteIcon"
+                local:layout_constraintTop_toBottomOf="@id/DurationBottomBorder" />
+
+            <View
+                android:id="@+id/DeleteBottomBorder"
+                android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginLeft="56dp"
-                android:layout_width="match_parent"
-                android:layout_below="@id/EditTimeEntryDeleteContainer" />
-        </RelativeLayout>
+                android:background="@color/separator"
+                local:layout_constraintTop_toBottomOf="@id/DeleteLabel" />
+        </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
-</RelativeLayout>
+</LinearLayout>
