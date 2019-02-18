@@ -8,14 +8,18 @@ using Android.Support.V7.Util;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Giskard.ViewHolders;
+using Toggl.Multivac.Extensions;
 using Toggl.Foundation.MvvmCross.Interfaces;
 using Handler = Android.OS.Handler;
+using Toggl.Giskard.Adapters.DiffingStrategies;
 
 namespace Toggl.Giskard.Adapters
 {
     public abstract class BaseRecyclerAdapter<T> : RecyclerView.Adapter
-        where T: IDiffable<T>
+        where T : IEquatable<T>
     {
+        private readonly IDiffingStrategy<T> diffingStrategy;
+
         public IObservable<T> ItemTapObservable => itemTapSubject.AsObservable();
 
         private Subject<T> itemTapSubject = new Subject<T>();
@@ -34,9 +38,22 @@ namespace Toggl.Giskard.Adapters
             set => SetItems(value ?? new List<T>());
         }
 
-        protected BaseRecyclerAdapter()
+        protected BaseRecyclerAdapter(IDiffingStrategy<T> diffingStrategy)
         {
             HasStableIds = true;
+
+            this.diffingStrategy = normalizeDiffingStrategy(diffingStrategy);
+        }
+
+        private IDiffingStrategy<T> normalizeDiffingStrategy(IDiffingStrategy<T> diffingStrategy)
+        {
+            if (diffingStrategy != null)
+                return diffingStrategy;
+
+            if (typeof(T).ImplementsOrDerivesFrom<IDiffableByIdentifier<T>>())
+                return new IdentifierEqualityDiffingStrategy<T>();
+
+            return new EquatableDiffingStrategy<T>();
         }
 
         protected BaseRecyclerAdapter(IntPtr javaReference, JniHandleOwnership transfer)
@@ -93,7 +110,7 @@ namespace Toggl.Giskard.Adapters
             var handler = new Handler();
             Task.Run(() =>
             {
-                var diffResult = DiffUtil.CalculateDiff(new BaseDiffCallBack(oldItems, newItems));
+                var diffResult = DiffUtil.CalculateDiff(new BaseDiffCallBack(oldItems, newItems, diffingStrategy));
                 handler.Post(() =>
                 {
                     dispatchUpdates(newItems, diffResult);
@@ -123,23 +140,29 @@ namespace Toggl.Giskard.Adapters
         {
             private IList<T> oldItems;
             private IList<T> newItems;
+            private IDiffingStrategy<T> diffingStrategy;
 
-            public BaseDiffCallBack(IList<T> oldItems, IList<T> newItems)
+            public BaseDiffCallBack(IList<T> oldItems, IList<T> newItems, IDiffingStrategy<T> diffingStrategy)
             {
                 this.oldItems = oldItems;
                 this.newItems = newItems;
+                this.diffingStrategy = diffingStrategy;
             }
 
             public override bool AreContentsTheSame(int oldItemPosition, int newItemPosition)
             {
                 var oldItem = oldItems[oldItemPosition];
                 var newItem = newItems[newItemPosition];
-                return oldItem.Equals(newItem);
+
+                return diffingStrategy.AreContentsTheSame(oldItem, newItem);
             }
 
             public override bool AreItemsTheSame(int oldItemPosition, int newItemPosition)
             {
-                return oldItems[oldItemPosition].Identifier == newItems[newItemPosition].Identifier;
+                var oldItem = oldItems[oldItemPosition];
+                var newItem = newItems[newItemPosition];
+
+                return diffingStrategy.AreItemsTheSame(oldItem, newItem);
             }
 
             public override int NewListSize => newItems.Count;
