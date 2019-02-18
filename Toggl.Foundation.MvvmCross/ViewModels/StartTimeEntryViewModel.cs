@@ -183,7 +183,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IMvxCommand ToggleProjectSuggestionsCommand { get; }
 
-        public IMvxAsyncCommand<AutocompleteSuggestion> SelectSuggestionCommand { get; }
 
         public IMvxCommand<ProjectSuggestion> ToggleTaskSuggestionsCommand { get; }
 
@@ -195,6 +194,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction Back { get; }
         public UIAction Done { get; }
+        public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
+
 
         public StartTimeEntryViewModel(
             ITimeService timeService,
@@ -244,6 +245,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
+            SelectSuggestion = rxActionFactory.FromAsync<AutocompleteSuggestion>(selectSuggestion);
 
             DurationTapped = new MvxCommand(durationTapped);
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
@@ -251,7 +253,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             SetStartDateCommand = new MvxAsyncCommand(setStartDate);
             ToggleTagSuggestionsCommand = new MvxCommand(toggleTagSuggestions);
             ToggleProjectSuggestionsCommand = new MvxCommand(toggleProjectSuggestions);
-            SelectSuggestionCommand = new MvxAsyncCommand<AutocompleteSuggestion>(selectSuggestion);
+
             ToggleTaskSuggestionsCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
             var queryByType = queryByTypeSubject
@@ -509,7 +511,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             var createdTag = await interactorFactory.CreateTag(CurrentQuery, textFieldInfo.WorkspaceId).Execute();
             var tagSuggestion = new TagSuggestion(createdTag);
-            await SelectSuggestionCommand.ExecuteAsync(tagSuggestion);
+            await SelectSuggestion.Execute(tagSuggestion);
             hasAnyTags = true;
             toggleTagSuggestions();
         }

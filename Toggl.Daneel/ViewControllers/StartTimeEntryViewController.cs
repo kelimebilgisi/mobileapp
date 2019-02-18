@@ -87,10 +87,13 @@ namespace Toggl.Daneel.ViewControllers
             var source = new StartTimeEntryTableViewSource(SuggestionsTableView);
             SuggestionsTableView.Source = source;
 
+            source.Rx().ModelSelected()
+                .Subscribe(ViewModel.SelectSuggestion.Inputs)
+                .DisposedBy(disposeBag);
+
             ViewModel.Suggestions
                 .Subscribe(SuggestionsTableView.Rx().ReloadSections(source))
                 .DisposedBy(disposeBag);
-
 
 //            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
@@ -109,25 +112,12 @@ namespace Toggl.Daneel.ViewControllers
             //TableView
 /*
             bindingSet.Bind(source)
-                      .For(v => v.SelectSuggestionCommand)
-                      .To(vm => vm.SelectSuggestionCommand);
-
-            bindingSet.Bind(source)
-                      .For(v => v.CreateCommand)
-                      .To(vm => vm.CreateCommand);
-
-
-            bindingSet.Bind(source)
                       .For(v => v.IsSuggestingProjects)
                       .To(vm => vm.IsSuggestingProjects);
 
             bindingSet.Bind(source)
                       .For(v => v.Text)
                       .To(vm => vm.CurrentQuery);
-
-            bindingSet.Bind(source)
-                      .For(v => v.SuggestCreation)
-                      .To(vm => vm.SuggestCreation);
 
             bindingSet.Bind(source)
                       .For(v => v.ShouldShowNoTagsInfoMessage)
