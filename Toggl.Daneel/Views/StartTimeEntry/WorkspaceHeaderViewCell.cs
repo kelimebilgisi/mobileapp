@@ -9,7 +9,7 @@ using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public sealed partial class WorkspaceHeaderViewCell : BaseTableHeaderFooterView<WorkspaceGroupedCollection<object>>, IHeaderViewCellWithHideableTopSeparator
+    public sealed partial class WorkspaceHeaderViewCell : BaseTableHeaderFooterView<string>, IHeaderViewCellWithHideableTopSeparator
     {
         public static readonly string Identifier = nameof(WorkspaceHeaderViewCell);
         public static readonly UINib Nib;
@@ -32,7 +32,7 @@ namespace Toggl.Daneel.Views
 
         protected override void UpdateView()
         {
-            WorkspaceLabel.Text = Item.WorkspaceName;
+            WorkspaceLabel.Text = Item;
         }
     }
 }

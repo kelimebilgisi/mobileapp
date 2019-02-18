@@ -86,7 +86,14 @@ namespace Toggl.Daneel.ViewControllers
 
             var source = new StartTimeEntryTableViewSource(SuggestionsTableView);
             SuggestionsTableView.Source = source;
-            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+
+            ViewModel.Suggestions
+                .Subscribe(SuggestionsTableView.Rx().ReloadSections(source))
+                .DisposedBy(disposeBag);
+
+
+//            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+
 
             var invertedVisibilityConverter = new MvxInvertedVisibilityValueConverter();
             var invertedBoolConverter = new BoolToConstantValueConverter<bool>(false, true);
@@ -98,24 +105,17 @@ namespace Toggl.Daneel.ViewControllers
 
             var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
 
+            Console.WriteLine(ViewModel.SuggestCreation);
             //TableView
-            bindingSet.Bind(source)
-                      .For(v => v.ObservableCollection)
-                      .To(vm => vm.Suggestions);
-
-            bindingSet.Bind(source)
-                      .For(v => v.UseGrouping)
-                      .To(vm => vm.UseGrouping);
-
+/*
             bindingSet.Bind(source)
                       .For(v => v.SelectSuggestionCommand)
                       .To(vm => vm.SelectSuggestionCommand);
 
-/*
             bindingSet.Bind(source)
                       .For(v => v.CreateCommand)
                       .To(vm => vm.CreateCommand);
-*/
+
 
             bindingSet.Bind(source)
                       .For(v => v.IsSuggestingProjects)
@@ -136,6 +136,7 @@ namespace Toggl.Daneel.ViewControllers
             bindingSet.Bind(source)
                       .For(v => v.ShouldShowNoProjectsInfoMessage)
                       .To(vm => vm.ShouldShowNoProjectsInfoMessage);
+                      */
 
             //Text
             bindingSet.Bind(TimeInput)

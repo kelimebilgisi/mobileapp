@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -93,20 +92,6 @@
                             <constraint firstAttribute="width" constant="90" id="4uR-RI-qFC"/>
                         </constraints>
                     </button>
-                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="2h9-bI-ekt" userLabel="Top Separator">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="1"/>
-                        <color key="backgroundColor" red="0.90980392156862744" green="0.90980392156862744" blue="0.90980392156862744" alpha="1" colorSpace="calibratedRGB"/>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="1" id="bfC-By-E5i"/>
-                        </constraints>
-                    </view>
-                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Unr-Lo-53U" userLabel="Bottom Separator">
-                        <rect key="frame" x="0.0" y="43" width="320" height="1"/>
-                        <color key="backgroundColor" red="0.90980392156862744" green="0.90980392156862744" blue="0.90980392156862744" alpha="1" colorSpace="calibratedRGB"/>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="1" id="cOX-DX-zhg"/>
-                        </constraints>
-                    </view>
                 </subviews>
                 <constraints>
                     <constraint firstItem="f0I-td-4NK" firstAttribute="centerY" secondItem="YTl-1W-gDM" secondAttribute="centerY" id="39C-JU-DHI"/>
@@ -120,20 +105,13 @@
                 </constraints>
             </tableViewCellContentView>
             <constraints>
-                <constraint firstItem="2h9-bI-ekt" firstAttribute="top" secondItem="cxk-wN-pdQ" secondAttribute="top" id="5fw-SK-MOe"/>
                 <constraint firstItem="uyu-uY-1fB" firstAttribute="height" secondItem="cxk-wN-pdQ" secondAttribute="height" id="73L-wb-pu1"/>
-                <constraint firstItem="Unr-Lo-53U" firstAttribute="width" secondItem="cxk-wN-pdQ" secondAttribute="width" id="Cug-hb-x7F"/>
                 <constraint firstAttribute="trailing" secondItem="uyu-uY-1fB" secondAttribute="trailing" id="Q85-y6-xP6"/>
                 <constraint firstAttribute="trailing" secondItem="f0I-td-4NK" secondAttribute="trailing" constant="16" id="SJz-pY-ynP"/>
-                <constraint firstAttribute="trailing" secondItem="2h9-bI-ekt" secondAttribute="trailing" id="TRW-v1-Uga"/>
-                <constraint firstItem="Unr-Lo-53U" firstAttribute="centerX" secondItem="cxk-wN-pdQ" secondAttribute="centerX" id="agq-Kh-TIl"/>
                 <constraint firstItem="uyu-uY-1fB" firstAttribute="centerY" secondItem="cxk-wN-pdQ" secondAttribute="centerY" id="pCK-zW-CMA"/>
-                <constraint firstItem="2h9-bI-ekt" firstAttribute="leading" secondItem="cxk-wN-pdQ" secondAttribute="leading" id="pFe-yd-RdM"/>
-                <constraint firstAttribute="bottom" secondItem="Unr-Lo-53U" secondAttribute="bottom" id="rii-Gb-VsW"/>
             </constraints>
             <connections>
                 <outlet property="AmountOfTasksLabel" destination="Xiq-G1-JxK" id="name-outlet-Xiq-G1-JxK"/>
-                <outlet property="BottomSeparatorView" destination="Unr-Lo-53U" id="ulh-xp-l4Y"/>
                 <outlet property="ClientNameLabel" destination="fDA-Bu-6tn" id="name-outlet-fDA-Bu-6tn"/>
                 <outlet property="FadeView" destination="v2v-lT-XQa" id="egS-VE-OYZ"/>
                 <outlet property="FadeViewTrailingConstraint" destination="6hV-bI-J9u" id="Uox-Xj-BX4"/>
@@ -142,7 +120,6 @@
                 <outlet property="SelectedProjectView" destination="W8V-Gy-R8r" id="Eh7-Fx-ZFz"/>
                 <outlet property="ToggleTaskImage" destination="f0I-td-4NK" id="name-outlet-f0I-td-4NK"/>
                 <outlet property="ToggleTasksButton" destination="uyu-uY-1fB" id="name-outlet-uyu-uY-1fB"/>
-                <outlet property="TopSeparatorView" destination="2h9-bI-ekt" id="name-outlet-2h9-bI-ekt"/>
             </connections>
             <point key="canvasLocation" x="113" y="20"/>
         </tableViewCell>

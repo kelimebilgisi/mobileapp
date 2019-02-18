@@ -87,13 +87,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 if (IsSuggestingProjects)
                     return CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes
                            && shouldSuggestProjectCreation;
-
+/*
                 if (IsSuggestingTags)
                     return Suggestions.None(c => c.Any(s =>
                                s is TagSuggestion tS
                                && tS.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
                            && CurrentQuery.IsAllowedTagByteSize();
-
+*/
                 return false;
             }
         }
@@ -114,8 +114,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 || IsBillable
                 || StartTime != parameter.StartTime
                 || Duration != parameter.Duration;
-
-        public bool UseGrouping { get; set; }
 
         public string CurrentQuery { get; private set; }
 
@@ -167,8 +165,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public TimeSpan? Duration { get; private set; }
 
-        public MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>> Suggestions { get; }
-            = new MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>>();
+        public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
+            Suggestions { get; private set; }
 
         public ITogglDataSource DataSource => dataSource;
 
@@ -258,6 +256,23 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ToggleProjectSuggestionsCommand = new MvxCommand(toggleProjectSuggestions);
             SelectSuggestionCommand = new MvxAsyncCommand<AutocompleteSuggestion>(selectSuggestion);
             ToggleTaskSuggestionsCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+
+            var queryByType = queryByTypeSubject
+                .AsObservable()
+                .SelectMany(type => autocompleteProvider.Query(new QueryInfo("", type)));
+
+            var queryByText = querySubject
+                .AsObservable()
+                .StartWith(textFieldInfo)
+                .Select(QueryInfo.ParseFieldInfo)
+                .Do(onParsedQuery)
+                .ObserveOn(schedulerProvider.BackgroundScheduler)
+                .SelectMany(autocompleteProvider.Query);
+
+            Suggestions = Observable.Merge(queryByText, queryByType)
+                .Select(items => items.ToList()) // This is line is needed for now to read objects from realm
+                .Select(toSuggestions)
+                .AsDriver(schedulerProvider);
         }
 
         public void Init()
@@ -271,19 +286,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public override void Prepare()
         {
-            var queryByTypeObservable = queryByTypeSubject
-                .AsObservable()
-                .SelectMany(type => autocompleteProvider.Query(new QueryInfo("", type)));
 
-            querySubject.AsObservable()
-                .StartWith(textFieldInfo)
-                .Select(QueryInfo.ParseFieldInfo)
-                .Do(onParsedQuery)
-                .ObserveOn(schedulerProvider.BackgroundScheduler)
-                .SelectMany(autocompleteProvider.Query)
-                .Merge(queryByTypeObservable)
-                .Subscribe(onSuggestions)
-                .DisposedBy(disposeBag);
         }
 
         public override void Prepare(StartTimeEntryParameters parameter)
@@ -564,6 +567,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void toggleTaskSuggestions(ProjectSuggestion projectSuggestion)
         {
+            /*
             var grouping = Suggestions.FirstOrDefault(s => s.WorkspaceId == projectSuggestion.WorkspaceId);
             if (grouping == null) return;
 
@@ -579,6 +583,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     grouping.WorkspaceName, grouping.WorkspaceId, getSuggestionsWithTasks(grouping)
                 )
             );
+            */
         }
 
         private void toggleBillable()
@@ -654,14 +659,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IsSuggestingProjects = suggestsProjects;
         }
 
-        private void onSuggestions(IEnumerable<AutocompleteSuggestion> suggestions)
+        private IEnumerable<CollectionSection<string, AutocompleteSuggestion>> toSuggestions(IEnumerable<AutocompleteSuggestion> suggestions)
         {
             var filteredSuggestions = filterSuggestions(suggestions);
-            var groupedSuggestions = groupSuggestions(filteredSuggestions).ToList();
+            var groupedSuggestions = groupSuggestions(filteredSuggestions);
 
-            UseGrouping = groupedSuggestions.Count > 1;
-            Suggestions.ReplaceWith(groupedSuggestions);
-
+            return groupedSuggestions;
+/*
             RaisePropertyChanged(nameof(SuggestCreation));
 
             if (suggestionsLoadingStopwatches.ContainsKey(CurrentQuery))
@@ -669,6 +673,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 suggestionsLoadingStopwatches[CurrentQuery]?.Stop();
                 suggestionsLoadingStopwatches = new Dictionary<string, IStopwatch>();
             }
+*/
         }
 
         private IEnumerable<AutocompleteSuggestion> filterSuggestions(IEnumerable<AutocompleteSuggestion> suggestions)
@@ -687,24 +692,34 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return suggestions;
         }
 
-        private IEnumerable<WorkspaceGroupedCollection<AutocompleteSuggestion>> groupSuggestions(
+        private IEnumerable<CollectionSection<string, AutocompleteSuggestion>> groupSuggestions(
             IEnumerable<AutocompleteSuggestion> suggestions)
         {
             var firstSuggestion = suggestions.FirstOrDefault();
             if (firstSuggestion is ProjectSuggestion)
+            {
                 return suggestions
                     .Cast<ProjectSuggestion>()
                     .OrderBy(ps => ps.ProjectName)
-                    .GroupByWorkspaceAddingNoProject()
-                    .OrderByDefaultWorkspaceAndName(defaultWorkspace?.Id ?? 0);
+                    .Where(suggestion => !string.IsNullOrEmpty(suggestion.WorkspaceName))
+                    .GroupBy(suggestion => suggestion.WorkspaceId)
+                    .OrderByDescending(group => group.First().WorkspaceId == (defaultWorkspace?.Id ?? 0))
+                    .ThenBy(group => group.First().WorkspaceName)
+                    .Select(group =>
+                        new CollectionSection<string, AutocompleteSuggestion>(group.First().WorkspaceName, group));
+            }
 
             if (IsSuggestingTags)
                 suggestions = suggestions.Where(suggestion => suggestion.WorkspaceId == textFieldInfo.WorkspaceId);
 
             return suggestions
-                .GroupBy(suggestion => new { suggestion.WorkspaceName, suggestion.WorkspaceId })
-                .Select(grouping => new WorkspaceGroupedCollection<AutocompleteSuggestion>(
-                    grouping.Key.WorkspaceName, grouping.Key.WorkspaceId, grouping.Distinct(AutocompleteSuggestionComparer.Instance)));
+                .GroupBy(suggestion => suggestion.WorkspaceId)
+                .Select(group =>
+                    new CollectionSection<string, AutocompleteSuggestion>(
+                        group.First().WorkspaceName,
+                        group.Distinct(AutocompleteSuggestionComparer.Instance)
+                    )
+                );
         }
 
         private async Task setBillableValues(long? currentProjectId)
