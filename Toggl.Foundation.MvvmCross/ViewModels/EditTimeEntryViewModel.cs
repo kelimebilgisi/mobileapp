@@ -194,10 +194,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             isInaccessibleSubject.OnNext(timeEntry.IsInaccessible);
 
-            syncErrorMessageSubject.OnNext(
-                timeEntry.IsInaccessible
-                ? Resources.InaccessibleTimeEntryErrorMessage
-                : timeEntry.LastSyncErrorMessage);
+            var faultyTimeEntry = timeEntries.FirstOrDefault(te => te.IsInaccessible || !string.IsNullOrEmpty(te.LastSyncErrorMessage));
+            if (faultyTimeEntry != null)
+            {
+                syncErrorMessageSubject.OnNext(
+                    faultyTimeEntry.IsInaccessible
+                    ? Resources.InaccessibleTimeEntryErrorMessage
+                    : timeEntry.LastSyncErrorMessage);
+            }
 
             interactorFactory.GetPreferences().Execute()
                 .Subscribe(preferencesSubject)
