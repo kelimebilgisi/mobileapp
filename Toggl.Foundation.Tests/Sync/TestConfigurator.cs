@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Toggl.Foundation.Sync;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Foundation.Tests.Sync
 {
@@ -60,9 +61,9 @@ namespace Toggl.Foundation.Tests.Sync
                 .ToList();
         }
 
-        private static bool isStateResultProperty(PropertyInfo p)
+        private static bool isStateResultProperty(PropertyInfo property)
         {
-            return typeof(IStateResult).IsAssignableFrom(p.PropertyType);
+            return property.PropertyType.ImplementsOrDerivesFrom<IStateResult>();
         }
     }
 }

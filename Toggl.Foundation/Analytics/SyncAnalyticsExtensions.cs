@@ -1,6 +1,7 @@
 ﻿using System;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Models.Interfaces;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Foundation.Analytics
 {
@@ -19,33 +20,33 @@ namespace Toggl.Foundation.Analytics
 
         internal static IAnalyticsEvent<string> DefaultSyncAnalyticsExtensionsSearchStrategy(Type entityType, IAnalyticsService analyticsService)
         {
-            if (typeof(IThreadSafeWorkspace).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeWorkspace>())
                 return analyticsService.WorkspaceSyncError;
-           
-            if (typeof(IThreadSafeUser).IsAssignableFrom(entityType))
+
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeUser>())
                 return analyticsService.UserSyncError;
 
-            if (typeof(IThreadSafeWorkspaceFeature).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeWorkspaceFeature>())
                 return analyticsService.WorkspaceFeaturesSyncError;
-           
-            if (typeof(IThreadSafePreferences).IsAssignableFrom(entityType))
+
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafePreferences>())
                 return analyticsService.PreferencesSyncError;
-           
-            if (typeof(IThreadSafeTag).IsAssignableFrom(entityType))
+
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeTag>())
                 return analyticsService.TagsSyncError;
 
-            if (typeof(IThreadSafeClient).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeClient>())
                 return analyticsService.ClientsSyncError;
 
-            if (typeof(IThreadSafeProject).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeProject>())
                 return analyticsService.ProjectsSyncError;
 
-            if (typeof(IThreadSafeTask).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeTask>())
                 return analyticsService.TasksSyncError;
 
-            if (typeof(IThreadSafeTimeEntry).IsAssignableFrom(entityType))
+            if (entityType.ImplementsOrDerivesFrom<IThreadSafeTimeEntry>())
                 return analyticsService.TimeEntrySyncError;
-               
+
             throw new ArgumentException($"The entity '{entityType.Name}' has no corresponding analytics events and should not be used.");
         }
     }
