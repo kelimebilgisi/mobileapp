@@ -2,15 +2,16 @@
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding.Views;
+using Toggl.Daneel.Cells;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Daneel.Views.Interfaces;
 using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public sealed partial class WorkspaceHeaderViewCell : MvxTableViewHeaderFooterView, IHeaderViewCellWithHideableTopSeparator
+    public sealed partial class WorkspaceHeaderViewCell : BaseTableHeaderFooterView<WorkspaceGroupedCollection<object>>, IHeaderViewCellWithHideableTopSeparator
     {
-        public static readonly NSString Key = new NSString(nameof(WorkspaceHeaderViewCell));
+        public static readonly string Identifier = nameof(WorkspaceHeaderViewCell);
         public static readonly UINib Nib;
 
         public bool TopSeparatorHidden
@@ -29,18 +30,9 @@ namespace Toggl.Daneel.Views
             // Note: this .ctor should not contain any initialization logic.
         }
 
-        public override void AwakeFromNib()
+        protected override void UpdateView()
         {
-            base.AwakeFromNib();
-
-            this.DelayBind(() =>
-            {
-                var bindingSet = this.CreateBindingSet<WorkspaceHeaderViewCell, WorkspaceGroupedCollection<object>>();
-
-                bindingSet.Bind(WorkspaceLabel).To(vm => vm.WorkspaceName);
-
-                bindingSet.Apply();
-            });
+            WorkspaceLabel.Text = Item.WorkspaceName;
         }
     }
 }

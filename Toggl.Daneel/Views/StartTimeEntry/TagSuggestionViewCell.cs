@@ -2,14 +2,15 @@
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding.Views;
+using Toggl.Daneel.Cells;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public sealed partial class TagSuggestionViewCell : MvxTableViewCell
+    public sealed partial class TagSuggestionViewCell : BaseTableViewCell<TagSuggestion>
     {
-        public static readonly NSString Key = new NSString(nameof(TagSuggestionViewCell));
+        public static readonly string Identifier = nameof(TagSuggestionViewCell);
         public static readonly UINib Nib;
 
         static TagSuggestionViewCell()
@@ -22,16 +23,9 @@ namespace Toggl.Daneel.Views
             // Note: this .ctor should not contain any initialization logic.
         }
 
-        public override void AwakeFromNib()
+        protected override void UpdateView()
         {
-            base.AwakeFromNib();
-
-            this.DelayBind(() =>
-            {
-                var bindingSet = this.CreateBindingSet<TagSuggestionViewCell, TagSuggestion>();
-                bindingSet.Bind(NameLabel).To(vm => vm.Name);
-                bindingSet.Apply();
-            });
+            NameLabel.Text = Item.Name;
         }
     }
 }

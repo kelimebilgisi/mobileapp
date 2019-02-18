@@ -5,7 +5,10 @@ using MvvmCross.Platforms.Ios.Binding;
 using MvvmCross.Platforms.Ios.Binding.Views;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using MvvmCross.Plugin.Visibility;
+using MvvmCross.UI;
+using Toggl.Daneel.Cells;
 using Toggl.Daneel.Combiners;
+using Toggl.Daneel.Transformations;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Converters;
 using Toggl.Foundation.MvvmCross.Helper;
@@ -13,12 +16,14 @@ using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public partial class StartTimeEntryViewCell : MvxTableViewCell
+    public partial class StartTimeEntryViewCell : BaseTableViewCell<TimeEntrySuggestion>
     {
         private const float NoProjectDistance = 16;
         private const float HasProjectDistance = 8;
 
-        public static readonly NSString Key = new NSString(nameof(StartTimeEntryViewCell));
+        private ProjectTaskClientToAttributedString projectTaksClientToAttributedString;
+
+        public static readonly string Identifier = nameof(StartTimeEntryViewCell);
         public static readonly UINib Nib;
 
         static StartTimeEntryViewCell()
@@ -35,42 +40,25 @@ namespace Toggl.Daneel.Views
         {
             base.AwakeFromNib();
 
-            this.DelayBind(() =>
-            {
-                var visibilityConverter = new MvxVisibilityValueConverter();
-                var descriptionTopDistanceValueConverter = new BoolToConstantValueConverter<nfloat>(HasProjectDistance, NoProjectDistance);
-                var projectTaskClientCombiner = new ProjectTaskClientValueCombiner(
-                    ProjectLabel.Font.CapHeight,
-                    Color.Suggestions.ClientColor.ToNativeColor(),
-                    true
-                );
+            projectTaksClientToAttributedString = new ProjectTaskClientToAttributedString(
+                ProjectLabel.Font.CapHeight,
+                Color.Suggestions.ClientColor.ToNativeColor(),
+                true);
+        }
 
-                var bindingSet = this.CreateBindingSet<StartTimeEntryViewCell, TimeEntrySuggestion>();
+        protected override void UpdateView()
+        {
+            //Text
+            DescriptionLabel.Text = Item.Description;
+            ProjectLabel.AttributedText = projectTaksClientToAttributedString.Convert(
+                Item.ProjectName,
+                Item.TaskName,
+                Item.ClientName,
+                MvxColor.ParseHexString(Item.ProjectColor).ToNativeColor());
 
-                //Text
-                bindingSet.Bind(DescriptionLabel).To(vm => vm.Description);
-
-                bindingSet.Bind(ProjectLabel)
-                    .For(v => v.AttributedText)
-                    .ByCombining(projectTaskClientCombiner,
-                        v => v.ProjectName,
-                        v => v.TaskName,
-                        v => v.ClientName,
-                        v => v.ProjectColor);
-
-                //Visibility
-                bindingSet.Bind(DescriptionTopDistanceConstraint)
-                          .For(v => v.Constant)
-                          .To(vm => vm.HasProject)
-                          .WithConversion(descriptionTopDistanceValueConverter);
-
-                bindingSet.Bind(ProjectLabel)
-                          .For(v => v.BindVisibility())
-                          .To(vm => vm.HasProject)
-                          .WithConversion(visibilityConverter);
-
-                bindingSet.Apply();
-            });
+            //Visibility
+            DescriptionTopDistanceConstraint.Constant = Item.HasProject ? HasProjectDistance : NoProjectDistance;
+            ProjectLabel.Hidden = !Item.HasProject;
         }
     }
 }

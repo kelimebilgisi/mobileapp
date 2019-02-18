@@ -2,14 +2,15 @@
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Platforms.Ios.Binding.Views;
+using Toggl.Daneel.Cells;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using UIKit;
 
 namespace Toggl.Daneel.Views
 {
-    public sealed partial class TaskSuggestionViewCell : MvxTableViewCell
+    public sealed partial class TaskSuggestionViewCell : BaseTableViewCell<TaskSuggestion>
     {
-        public static readonly NSString Key = new NSString(nameof(TaskSuggestionViewCell));
+        public static readonly string Identifier = nameof(TaskSuggestionViewCell);
         public static readonly UINib Nib;
 
         static TaskSuggestionViewCell()
@@ -27,15 +28,11 @@ namespace Toggl.Daneel.Views
             base.AwakeFromNib();
 
             FadeView.FadeRight = true;
+        }
 
-            this.DelayBind(() =>
-            {
-                var bindingSet = this.CreateBindingSet<TaskSuggestionViewCell, TaskSuggestion>();
-
-                bindingSet.Bind(TaskNameLabel).To(vm => vm.Name);
-
-                bindingSet.Apply();
-            });
+        protected override void UpdateView()
+        {
+            TaskNameLabel.Text = Item.Name;
         }
     }
 }
