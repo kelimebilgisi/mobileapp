@@ -4,7 +4,7 @@ using Toggl.Multivac;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
-    public abstract class SelectableClientBaseViewModel : IDiffable<SelectableClientBaseViewModel>
+    public abstract class SelectableClientBaseViewModel : IDiffableByIdentifier<SelectableClientBaseViewModel>
     {
         public string Name { get; set; }
         public bool Selected { get; set; }

@@ -6,7 +6,7 @@ using Toggl.Multivac;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableBeginningOfWeekViewModel : IDiffable<SelectableBeginningOfWeekViewModel>
+    public sealed class SelectableBeginningOfWeekViewModel : IDiffableByIdentifier<SelectableBeginningOfWeekViewModel>
     {
         public BeginningOfWeek BeginningOfWeek { get; }
 
