@@ -296,6 +296,9 @@
     <Compile Include="Activities\SendFeedbackActivity.ViewBinds.cs">
       <DependentUpon>SendFeedbackActivity.cs</DependentUpon>
     </Compile>
+    <Compile Include="Adapters\DiffingStrategies\EquatableDiffingStrategy.cs" />
+    <Compile Include="Adapters\DiffingStrategies\IdentifierEqualityDiffingStrategy.cs" />
+    <Compile Include="Adapters\DiffingStrategies\IDiffingStrategy.cs" />
     <Compile Include="Adapters\ReportsCalendarShortcutAdapter.cs" />
     <Compile Include="Adapters\SelectCreatableEntityRecyclerAdapter.cs" />
     <Compile Include="Adapters\SelectDurationFormatRecyclerAdapter.cs" />
