@@ -38,11 +38,11 @@ namespace Toggl.Giskard.Adapters
             set => SetItems(value ?? new List<T>());
         }
 
-        protected BaseRecyclerAdapter(IDiffingStrategy<T> diffingStrategy)
+        protected BaseRecyclerAdapter(IDiffingStrategy<T> diffingStrategy = null)
         {
-            HasStableIds = true;
-
             this.diffingStrategy = normalizeDiffingStrategy(diffingStrategy);
+
+            HasStableIds = this.diffingStrategy.HasStableIds;
         }
 
         private IDiffingStrategy<T> normalizeDiffingStrategy(IDiffingStrategy<T> diffingStrategy)
@@ -82,7 +82,8 @@ namespace Toggl.Giskard.Adapters
 
         public override long GetItemId(int position)
         {
-            return items[position].Identifier;
+            var item = items[position];
+            return diffingStrategy.GetItemId(item);
         }
 
         public virtual T GetItem(int viewPosition)

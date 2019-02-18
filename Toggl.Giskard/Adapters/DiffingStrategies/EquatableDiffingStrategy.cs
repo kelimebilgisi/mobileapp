@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Android.Support.V7.Widget;
+using System;
 using System.Linq;
 
 namespace Toggl.Giskard.Adapters.DiffingStrategies
@@ -15,5 +16,9 @@ namespace Toggl.Giskard.Adapters.DiffingStrategies
         {
             return item.Equals(other);
         }
+
+        public long GetItemId(T item) => RecyclerView.NoId;
+
+        public bool HasStableIds => false;
     }
 }

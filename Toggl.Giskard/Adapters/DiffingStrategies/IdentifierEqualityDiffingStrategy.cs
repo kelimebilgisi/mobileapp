@@ -27,5 +27,9 @@ namespace Toggl.Giskard.Adapters.DiffingStrategies
 
             return itemDiffable.Identifier == otherDiffable.Identifier;
         }
+
+        public long GetItemId(T item) => ((IDiffableByIdentifier<T>)item).Identifier;
+
+        public bool HasStableIds => true;
     }
 }
