@@ -9,6 +9,7 @@ using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Sync.States.Push;
 using Toggl.Foundation.Tests.Helpers;
+using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant;
 using Toggl.Ultrawave.Exceptions;
 using Xunit;
@@ -168,7 +169,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Push.BaseStates
         {
             var testAnalyticsService = (ITestAnalyticsService)analyticsService;
 
-            return typeof(IThreadSafeTestModel).IsAssignableFrom(entityType)
+            return entityType.ImplementsOrDerivesFrom<IThreadSafeTestModel>()
                 ? testAnalyticsService.TestEvent
                 : SyncAnalyticsExtensions.DefaultSyncAnalyticsExtensionsSearchStrategy(entityType, analyticsService);
         }

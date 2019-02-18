@@ -10,7 +10,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar
 {
     [Preserve(AllMembers = true)]
     [AddINotifyPropertyChangedInterface]
-    public sealed class ReportsCalendarDayViewModel : IDiffable<ReportsCalendarDayViewModel>
+    public sealed class ReportsCalendarDayViewModel : IDiffableByIdentifier<ReportsCalendarDayViewModel>
     {
         private readonly DateTimeOffset dateTime;
 

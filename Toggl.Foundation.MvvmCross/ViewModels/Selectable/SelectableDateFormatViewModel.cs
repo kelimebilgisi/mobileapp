@@ -5,7 +5,7 @@ using Toggl.Multivac;
 namespace Toggl.Foundation.MvvmCross.ViewModels.Selectable
 {
     [Preserve]
-    public sealed class SelectableDateFormatViewModel : IDiffable<SelectableDateFormatViewModel>
+    public sealed class SelectableDateFormatViewModel : IDiffableByIdentifier<SelectableDateFormatViewModel>
     {
         public long Identifier => DateFormat.GetHashCode(); 
 

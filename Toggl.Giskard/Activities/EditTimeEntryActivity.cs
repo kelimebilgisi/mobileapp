@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Android.App;
@@ -15,7 +14,6 @@ using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Helper;
 using Toggl.Multivac.Extensions;
-using static Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 using TimeEntryExtensions = Toggl.Giskard.Extensions.TimeEntryExtensions;
 
 namespace Toggl.Giskard.Activities

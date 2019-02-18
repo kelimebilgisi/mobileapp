@@ -183,9 +183,9 @@ namespace Toggl.Daneel
 
         public static class Factory
         {
-            public static SnackBar CreateUndoSnackBar(Action onUndo)
+            public static SnackBar CreateUndoSnackBar(Action onUndo, string text)
             {
-                var snackBar = SnackBar.Create(Resources.EntryDeleted);
+                var snackBar = SnackBar.Create(text);
                 snackBar.AddButton(Resources.UndoButtonTitle, onUndo);
                 return snackBar;
             }

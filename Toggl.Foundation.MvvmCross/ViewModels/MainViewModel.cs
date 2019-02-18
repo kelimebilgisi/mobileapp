@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
 using Toggl.Foundation;
@@ -30,7 +29,6 @@ using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Settings;
-using System.Collections.Immutable;
 
 [assembly: MvxNavigation(typeof(MainViewModel), ApplicationUrls.Main.Regex)]
 namespace Toggl.Foundation.MvvmCross.ViewModels
@@ -77,7 +75,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IObservable<bool> ShouldShowStoppedTimeEntryNotification { get; private set; }
         public IObservable<IThreadSafeTimeEntry> CurrentRunningTimeEntry { get; private set; }
 
-        public IObservable<IImmutableList<CollectionSection<DaySummaryViewModel, TimeEntryViewModel>>> TimeEntries => TimeEntriesViewModel.TimeEntries;
+        public IObservable<IEnumerable<CollectionSection<DaySummaryViewModel, LogItemViewModel>>> TimeEntries
+            => TimeEntriesViewModel.TimeEntries;
 
         public RatingViewModel RatingViewModel { get; }
         public SuggestionsViewModel SuggestionsViewModel { get; }
@@ -92,8 +91,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public InputAction<bool> StartTimeEntry { get; private set; }
         public InputAction<long> SelectTimeEntry { get; private set; }
         public InputAction<TimeEntryStopOrigin> StopTimeEntry { get; private set; }
-        public InputAction<TimeEntryViewModel> DeleteTimeEntry { get; private set; }
-        public InputAction<TimeEntryViewModel> ContinueTimeEntry { get; private set; }
+        public InputAction<long> ContinueTimeEntry { get; private set; }
 
         public ITimeService TimeService { get; }
 
@@ -251,8 +249,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             OpenSettings = rxActionFactory.FromAsync(openSettings);
             OpenSyncFailures = rxActionFactory.FromAsync(openSyncFailures);
             SelectTimeEntry = rxActionFactory.FromAsync<long>(timeEntrySelected);
-            DeleteTimeEntry = rxActionFactory.FromObservable<TimeEntryViewModel>(deleteTimeEntry);
-            ContinueTimeEntry = rxActionFactory.FromObservable<TimeEntryViewModel>(continueTimeEntry);
+            ContinueTimeEntry = rxActionFactory.FromObservable<long>(continueTimeEntry);
             StartTimeEntry = rxActionFactory.FromAsync<bool>(startTimeEntry, IsTimeEntryRunning.Invert());
             StopTimeEntry = rxActionFactory.FromAsync<TimeEntryStopOrigin>(stopTimeEntry, IsTimeEntryRunning);
 
@@ -333,7 +330,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task viewDisappearedAsync()
         {
-            await TimeEntriesViewModel.FinilizeDelayDeleteTimeEntryIfNeeded();
+            await TimeEntriesViewModel.FinalizeDelayDeleteTimeEntryIfNeeded();
         }
 
         public override void ViewAppearing()
@@ -413,11 +410,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return navigate<StartTimeEntryViewModel, StartTimeEntryParameters>(parameter);
         }
 
-        private IObservable<Unit> continueTimeEntry(TimeEntryViewModel timeEntry)
+        private IObservable<Unit> continueTimeEntry(long timeEntryId)
         {
-            return interactorFactory
-                .ContinueTimeEntry(timeEntry)
-                .Execute()
+            return interactorFactory.GetTimeEntryById(timeEntryId).Execute()
+                .Select(timeEntry => timeEntry.AsTimeEntryPrototype())
+                .SelectMany(prototype =>
+                    interactorFactory.ContinueTimeEntry(prototype).Execute())
                 .Do(_ => onboardingStorage.SetTimeEntryContinued())
                 .SelectUnit();
         }
@@ -448,18 +446,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private async Task refresh()
         {
             await dataSource.SyncManager.ForceFullSync();
-        }
-
-        private IObservable<Unit> deleteTimeEntry(TimeEntryViewModel timeEntry)
-        {
-            return interactorFactory
-                .DeleteTimeEntry(timeEntry.Id)
-                .Execute()
-                .Do(_ =>
-                {
-                    analyticsService.DeleteTimeEntry.Track();
-                    dataSource.SyncManager.PushSync();
-                });
         }
 
         private async Task stopTimeEntry(TimeEntryStopOrigin origin)

@@ -25,6 +25,8 @@ namespace Toggl.Daneel.Views.Calendar
 
         private CGPoint firstPoint;
 
+        private TimeSpan? previousDuration;
+
         private readonly ISubject<(DateTimeOffset, TimeSpan)> createFromSpanSuject = new Subject<(DateTimeOffset, TimeSpan)>();
 
         public IObservable<(DateTimeOffset, TimeSpan)> CreateFromSpan => createFromSpanSuject.AsObservable();
@@ -92,6 +94,7 @@ namespace Toggl.Daneel.Views.Calendar
             itemIndexPath = dataSource.InsertItemView(startTime, defaultDuration);
             impactFeedback.ImpactOccurred();
             selectionFeedback.Prepare();
+            previousDuration = defaultDuration;
         }
 
         private bool isDraggingDown(CGPoint point) => firstPoint.Y < point.Y;
@@ -127,11 +130,17 @@ namespace Toggl.Daneel.Views.Calendar
             var duration = endTime - startTime;
 
             dataSource.UpdateItemView(itemIndexPath, startTime, duration);
-            selectionFeedback.SelectionChanged();
+
+            if (duration != previousDuration)
+            {
+                selectionFeedback.SelectionChanged();
+                previousDuration = duration;
+            }
         }
 
         private void longPressEnded(CGPoint point)
         {
+            previousDuration = null;
             LastPoint = point;
 
             DateTimeOffset startTime;

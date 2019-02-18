@@ -2,18 +2,20 @@
 using Android.Runtime;
 using Android.Views;
 using Toggl.Foundation.MvvmCross.Interfaces;
+using Toggl.Giskard.Adapters.DiffingStrategies;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac;
 
 namespace Toggl.Giskard.Adapters
 {
     public sealed class SimpleAdapter<T> : BaseRecyclerAdapter<T>
-        where T : IDiffable<T>
+        where T : IEquatable<T>
     {
         private readonly int layoutId;
         private readonly Func<View, BaseRecyclerViewHolder<T>> createViewHolder;
 
-        public SimpleAdapter(int layoutId, Func<View, BaseRecyclerViewHolder<T>> createViewHolder)
+        public SimpleAdapter(int layoutId, Func<View, BaseRecyclerViewHolder<T>> createViewHolder, IDiffingStrategy<T> diffingStrategy = null)
+            : base(diffingStrategy)
         {
             Ensure.Argument.IsNotNull(createViewHolder, nameof(createViewHolder));
 

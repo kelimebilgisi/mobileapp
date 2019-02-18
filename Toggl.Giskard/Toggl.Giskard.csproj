@@ -296,6 +296,9 @@
     <Compile Include="Activities\SendFeedbackActivity.ViewBinds.cs">
       <DependentUpon>SendFeedbackActivity.cs</DependentUpon>
     </Compile>
+    <Compile Include="Adapters\DiffingStrategies\EquatableDiffingStrategy.cs" />
+    <Compile Include="Adapters\DiffingStrategies\IdentifierEqualityDiffingStrategy.cs" />
+    <Compile Include="Adapters\DiffingStrategies\IDiffingStrategy.cs" />
     <Compile Include="Adapters\ReportsCalendarShortcutAdapter.cs" />
     <Compile Include="Adapters\SelectCreatableEntityRecyclerAdapter.cs" />
     <Compile Include="Adapters\SelectDurationFormatRecyclerAdapter.cs" />
@@ -358,7 +361,6 @@
     <Compile Include="ViewHolders\CalendarDayCellViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientCreationSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientSelectionViewHolder.cs" />
-    <Compile Include="ViewHelpers\TimeEntryCollectionViewModel.cs" />
     <Compile Include="ViewHelpers\TimeEntryViewData.cs" />
     <Compile Include="ViewHolders\ColorSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\Country\CountrySelectionViewHolder.cs" />
@@ -466,23 +468,18 @@
     <Compile Include="Tiles\NewTimeEntryTileService.cs" />
     <Compile Include="Views\TagsListRecyclerView.cs" />
     <Compile Include="TemplateSelectors\TagsListTemplateSelector.cs" />
-    <Compile Include="Fragments\SelectTimeFragment.cs" />
-    <Compile Include="Adapters\SelectTimePagerAdapter.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Views\TogglDroidDatePicker.cs" />
     <Compile Include="Bindings\ViewAlphaTargetBinding.cs" />
     <Compile Include="Bindings\ViewUpsideDownTargetBinding.cs" />
     <Compile Include="Bindings\ViewHeightTargetBinding.cs" />
     <Compile Include="Views\SelectCountryRecyclerView.cs" />
     <Compile Include="Activities\SelectCountryActivity.cs" />
     <Compile Include="Helper\VibratorExtensions.cs" />
-    <Compile Include="Bindings\DatePickerBoundariesTargetBinding.cs" />
     <Compile Include="Activities\SignUpActivity.cs" />
     <Compile Include="Fragments\TermsOfServiceFragment.cs" />
     <Compile Include="Fragments\TermsOfServiceFragment.ViewBinds.cs">
       <DependentUpon>TermsOfServiceFragment.cs</DependentUpon>
     </Compile>
-    <Compile Include="Views\TogglDroidTimePicker.cs" />
     <Compile Include="Activities\ReactiveActivity.cs" />
     <Compile Include="Adapters\BaseRecyclerAdapter.cs" />
     <Compile Include="ViewHolders\BaseRecyclerViewHolder.cs" />
@@ -504,7 +501,6 @@
       <DependentUpon>AboutActivity.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\AutocompleteEditText.cs" />
-    <Compile Include="Views\NonSwipingViewPager.cs" />
     <Compile Include="Services\NotificationServiceAndroid.cs" />
     <Compile Include="ViewHolders\MainLogSectionViewHolder.cs" />
     <Compile Include="Adapters\ReactiveSectionedRecyclerAdapter.cs" />
@@ -869,13 +865,6 @@
     <AndroidResource Include="Resources\layout\TokenResetActivity.axml" />
     <AndroidResource Include="Resources\layout\EditTimeEntryTagCell.axml" />
     <AndroidResource Include="Resources\drawable\EditTextWhiteCursor.xml" />
-    <AndroidResource Include="Resources\layout\SelectTimeFragment.axml" />
-    <AndroidResource Include="Resources\layout\SelectTimeDurationPage.axml" />
-    <AndroidResource Include="Resources\layout\SelectStopDateTimeEditorPage.axml" />
-    <AndroidResource Include="Resources\layout\SelectDateTimeStartTimeTabHeader.axml" />
-    <AndroidResource Include="Resources\layout\SelectStartDateTimeEditorPage.axml" />
-    <AndroidResource Include="Resources\layout\SelectDateTimeStopTimeTabHeader.axml" />
-    <AndroidResource Include="Resources\layout\SelectDateTimeDurationTabHeader.axml" />
     <AndroidResource Include="Resources\drawable-hdpi\date_light.png" />
     <AndroidResource Include="Resources\drawable-mdpi\date_light.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\date_light.png" />

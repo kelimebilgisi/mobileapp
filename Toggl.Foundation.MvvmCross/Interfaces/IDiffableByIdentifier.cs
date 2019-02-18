@@ -2,7 +2,7 @@ using System;
 
 namespace Toggl.Foundation.MvvmCross.Interfaces
 {
-    public interface IDiffable<T> : IEquatable<T>
+    public interface IDiffableByIdentifier<T> : IEquatable<T>
     {
         long Identifier { get; }
     }

@@ -426,6 +426,9 @@ Start the timer and your most used time entries will appear here.</value>
     <data name="EntryDeleted">
         <value>Time entry was deleted</value>
     </data>
+    <data name="MultipleEntriesDeleted">
+        <value>{0} time entries deleted</value>
+    </data>
     <data name="UndoButtonTitle">
         <value>UNDO</value>
     </data>

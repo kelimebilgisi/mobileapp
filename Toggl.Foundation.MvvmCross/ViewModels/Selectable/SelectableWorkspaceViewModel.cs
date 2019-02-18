@@ -5,7 +5,7 @@ using Toggl.Multivac;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableWorkspaceViewModel : IDiffable<SelectableWorkspaceViewModel>
+    public sealed class SelectableWorkspaceViewModel : IDiffableByIdentifier<SelectableWorkspaceViewModel>
     {
         public long WorkspaceId { get; }
 

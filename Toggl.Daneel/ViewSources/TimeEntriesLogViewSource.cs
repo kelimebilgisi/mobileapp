@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using CoreGraphics;
@@ -9,21 +10,22 @@ using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
-using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
     public sealed class TimeEntriesLogViewSource
-        : BaseTableViewSource<DaySummaryViewModel, TimeEntryViewModel>
+        : BaseTableViewSource<DaySummaryViewModel, LogItemViewModel>
     {
         private const int rowHeight = 64;
         private const int headerHeight = 48;
 
-        private readonly Subject<TimeEntryViewModel> continueTapSubject = new Subject<TimeEntryViewModel>();
-        private readonly Subject<TimeEntryViewModel> swipeToContinueSubject = new Subject<TimeEntryViewModel>();
-        private readonly Subject<TimeEntryViewModel> swipeToDeleteSubject = new Subject<TimeEntryViewModel>();
+        private readonly Subject<LogItemViewModel> continueTapSubject = new Subject<LogItemViewModel>();
+        private readonly Subject<LogItemViewModel> swipeToContinueSubject = new Subject<LogItemViewModel>();
+        private readonly Subject<LogItemViewModel> swipeToDeleteSubject = new Subject<LogItemViewModel>();
+        private readonly Subject<GroupId> toggleGroupExpansionSubject = new Subject<GroupId>();
+
         private readonly ReplaySubject<TimeEntriesLogViewCell> firstCellSubject = new ReplaySubject<TimeEntriesLogViewCell>(1);
         private readonly Subject<bool> isDraggingSubject = new Subject<bool>();
 
@@ -32,9 +34,11 @@ namespace Toggl.Daneel.ViewSources
 
         public const int SpaceBetweenSections = 20;
 
-        public IObservable<TimeEntryViewModel> ContinueTap { get; }
-        public IObservable<TimeEntryViewModel> SwipeToContinue { get; }
-        public IObservable<TimeEntryViewModel> SwipeToDelete { get; }
+        public IObservable<LogItemViewModel> ContinueTap { get; }
+        public IObservable<LogItemViewModel> SwipeToContinue { get; }
+        public IObservable<LogItemViewModel> SwipeToDelete { get; }
+        public IObservable<GroupId> ToggleGroupExpansion { get; }
+
         public IObservable<TimeEntriesLogViewCell> FirstCell { get; }
         public IObservable<bool> IsDragging { get; }
 
@@ -47,16 +51,14 @@ namespace Toggl.Daneel.ViewSources
 
             if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
             {
-                deleteTableViewRowAction = UITableViewRowAction.Create(
-                    UITableViewRowActionStyle.Destructive,
-                    Resources.Delete,
-                    handleDeleteTableViewRowAction);
-                deleteTableViewRowAction.BackgroundColor = Foundation.MvvmCross.Helper.Color.TimeEntriesLog.DeleteSwipeActionBackground.ToNativeColor();
+                deleteTableViewRowAction = createLegacySwipeDeleteAction();
             }
 
             ContinueTap = continueTapSubject.AsObservable();
             SwipeToContinue = swipeToContinueSubject.AsObservable();
             SwipeToDelete = swipeToDeleteSubject.AsObservable();
+            ToggleGroupExpansion = toggleGroupExpansionSubject.AsObservable();
+
             FirstCell = firstCellSubject.AsObservable();
             IsDragging = isDraggingSubject.AsObservable();
         }
@@ -85,13 +87,20 @@ namespace Toggl.Daneel.ViewSources
         {
             var cell = (TimeEntriesLogViewCell)tableView.DequeueReusableCell(TimeEntriesLogViewCell.Identifier);
 
-            cell.Item = ModelAt(indexPath);
+            var model = ModelAt(indexPath);
+
             cell.ContinueButtonTap
-                .Subscribe(() => continueTapSubject.OnNext(cell.Item))
+                .Subscribe(() => continueTapSubject.OnNext(model))
+                .DisposedBy(cell.DisposeBag);
+
+            cell.ToggleGroup
+                .Subscribe(() => toggleGroupExpansionSubject.OnNext(model.GroupId))
                 .DisposedBy(cell.DisposeBag);
 
             if (indexPath.Row == 0 && indexPath.Section == 0)
                 firstCellSubject.OnNext(cell);
+
+            cell.Item = model;
 
             return cell;
         }
@@ -104,36 +113,10 @@ namespace Toggl.Daneel.ViewSources
         }
 
         public override UISwipeActionsConfiguration GetLeadingSwipeActionsConfiguration(UITableView tableView, NSIndexPath indexPath)
-        {
-            if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
-                return null;
-
-            var item = ModelAt(indexPath);
-            if (item == null)
-                return null;
-
-            return UISwipeActionsConfiguration
-                .FromActions(new[] { continueSwipeActionFor(item) });
-        }
+            => createSwipeActionConfiguration(continueSwipeActionFor, indexPath);
 
         public override UISwipeActionsConfiguration GetTrailingSwipeActionsConfiguration(UITableView tableView, NSIndexPath indexPath)
-        {
-            if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
-                return null;
-
-            var item = ModelAt(indexPath);
-            if (item == null)
-                return null;
-
-            return UISwipeActionsConfiguration
-                .FromActions(new[] { deleteSwipeActionFor(item) });
-        }
-
-        public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
-        {
-            base.RowSelected(tableView, indexPath);
-            tableView.DeselectRow(indexPath, true);
-        }
+            => createSwipeActionConfiguration(deleteSwipeActionFor, indexPath);
 
         public override void DraggingStarted(UIScrollView scrollView)
         {
@@ -147,18 +130,41 @@ namespace Toggl.Daneel.ViewSources
 
         private void handleDeleteTableViewRowAction(UITableViewRowAction rowAction, NSIndexPath indexPath)
         {
-            var timeEntry = ModelAt(indexPath);
-            swipeToDeleteSubject.OnNext(timeEntry);
+            var item = ModelAt(indexPath);
+            swipeToDeleteSubject.OnNext(item);
         }
 
-        private UIContextualAction continueSwipeActionFor(TimeEntryViewModel timeEntry)
+        private UITableViewRowAction createLegacySwipeDeleteAction()
+        {
+            var deleteAction = UITableViewRowAction.Create(
+                UITableViewRowActionStyle.Destructive,
+                Resources.Delete,
+                handleDeleteTableViewRowAction);
+            deleteAction.BackgroundColor = Foundation.MvvmCross.Helper.Color.TimeEntriesLog.DeleteSwipeActionBackground.ToNativeColor();
+            return deleteAction;
+        }
+
+        private UISwipeActionsConfiguration createSwipeActionConfiguration(
+            Func<LogItemViewModel, UIContextualAction> factory, NSIndexPath indexPath)
+        {
+            if (!UIDevice.CurrentDevice.CheckSystemVersion(11, 0))
+                return null;
+
+            var item = ModelAt(indexPath);
+            if (item == null)
+                return null;
+
+            return UISwipeActionsConfiguration.FromActions(new[] { factory(item) });
+        }
+
+        private UIContextualAction continueSwipeActionFor(LogItemViewModel viewModel)
         {
             var continueAction = UIContextualAction.FromContextualActionStyle(
                 UIContextualActionStyle.Normal,
                 Resources.Continue,
                 (action, sourceView, completionHandler) =>
                 {
-                    swipeToContinueSubject.OnNext(timeEntry);
+                    swipeToContinueSubject.OnNext(viewModel);
                     completionHandler.Invoke(finished: true);
                 }
             );
@@ -166,14 +172,14 @@ namespace Toggl.Daneel.ViewSources
             return continueAction;
         }
 
-        private UIContextualAction deleteSwipeActionFor(TimeEntryViewModel timeEntry)
+        private UIContextualAction deleteSwipeActionFor(LogItemViewModel viewModel)
         {
             var deleteAction = UIContextualAction.FromContextualActionStyle(
                 UIContextualActionStyle.Destructive,
                 Resources.Delete,
                 (action, sourceView, completionHandler) =>
                 {
-                    swipeToDeleteSubject.OnNext(timeEntry);
+                    swipeToDeleteSubject.OnNext(viewModel);
                     completionHandler.Invoke(finished: true);
                 }
             );

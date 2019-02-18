@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using Toggl.Foundation.Calendar;
 using Toggl.Foundation.Models;
+using Toggl.Foundation.Models.Interfaces;
 
 namespace Toggl.Foundation.Extensions
 {
@@ -41,6 +43,17 @@ namespace Toggl.Foundation.Extensions
                 tagIds: null, 
                 isBillable: false
             );
+
+        public static ITimeEntryPrototype AsTimeEntryPrototype(this IThreadSafeTimeEntry timeEntry)
+            => new TimeEntryPrototype(
+                timeEntry.WorkspaceId,
+                timeEntry.Description,
+                TimeSpan.FromSeconds(timeEntry.Duration ?? 0.0),
+                timeEntry.Start,
+                timeEntry.Project?.Id,
+                timeEntry.Task?.Id,
+                timeEntry.TagIds.ToArray(),
+                timeEntry.Billable);
 
         private sealed class TimeEntryPrototype : ITimeEntryPrototype
         {

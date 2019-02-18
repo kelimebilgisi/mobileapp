@@ -12,7 +12,7 @@ namespace Toggl.Foundation.Models
         {
             Client = entity.Client == null ? null : Models.Client.From(entity.Client);
             Workspace = entity.Workspace == null ? null : Models.Workspace.From(entity.Workspace);
-            Tasks = entity.Tasks == null ? null : entity.Tasks.Select(Models.Task.From).ToArray();
+            Tasks = entity.Tasks == null ? null : entity.Tasks.Select(Models.Task.From);
             SyncStatus = entity.SyncStatus;
             LastSyncErrorMessage = entity.LastSyncErrorMessage;
             IsDeleted = entity.IsDeleted;

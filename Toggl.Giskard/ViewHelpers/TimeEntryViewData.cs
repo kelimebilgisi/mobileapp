@@ -2,8 +2,7 @@ using Android.Graphics;
 using Android.Text;
 using Android.Text.Style;
 using Android.Views;
-using Toggl.Foundation.MvvmCross.Transformations;
-using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
 using Toggl.Giskard.Extensions;
 using static Toggl.Foundation.Helper.Color;
 
@@ -11,9 +10,8 @@ namespace Toggl.Giskard.ViewHelpers
 {
     public class TimeEntryViewData
     {
-        public TimeEntryViewModel TimeEntryViewModel { get; }
+        public LogItemViewModel ViewModel { get; }
         public ISpannable ProjectTaskClientText { get; }
-        public string DurationText { get; }
 
         public ViewStates ProjectTaskClientVisibility { get; }
         public ViewStates HasTagsIconVisibility { get; }
@@ -25,23 +23,23 @@ namespace Toggl.Giskard.ViewHelpers
         public ViewStates AddDescriptionLabelVisibility { get; }
         public ViewStates DescriptionVisibility { get; }
 
-        public TimeEntryViewData(TimeEntryViewModel timeEntryViewModel)
+        public TimeEntryViewData(LogItemViewModel viewModel)
         {
-            TimeEntryViewModel = timeEntryViewModel;
+            ViewModel = viewModel;
 
             var spannableString = new SpannableStringBuilder();
-            if (TimeEntryViewModel.HasProject)
+            if (viewModel.HasProject)
             {
-                spannableString.Append(TimeEntryViewModel.ProjectName, new ForegroundColorSpan(Color.ParseColor(TimeEntryViewModel.ProjectColor)), SpanTypes.ExclusiveInclusive);
+                spannableString.Append(viewModel.ProjectName, new ForegroundColorSpan(Color.ParseColor(viewModel.ProjectColor)), SpanTypes.ExclusiveInclusive);
 
-                if (!string.IsNullOrEmpty(TimeEntryViewModel.TaskName))
+                if (!string.IsNullOrEmpty(viewModel.TaskName))
                 {
-                    spannableString.Append($": {TimeEntryViewModel.TaskName}");
+                    spannableString.Append($": {viewModel.TaskName}");
                 }
 
-                if (!string.IsNullOrEmpty(TimeEntryViewModel.ClientName))
+                if (!string.IsNullOrEmpty(viewModel.ClientName))
                 {
-                    spannableString.Append($" {TimeEntryViewModel.ClientName}", new ForegroundColorSpan(Color.ParseColor(ClientNameColor)), SpanTypes.ExclusiveExclusive);
+                    spannableString.Append($" {viewModel.ClientName}", new ForegroundColorSpan(Color.ParseColor(ClientNameColor)), SpanTypes.ExclusiveExclusive);
                 }
 
                 ProjectTaskClientText = spannableString;
@@ -53,18 +51,14 @@ namespace Toggl.Giskard.ViewHelpers
                 ProjectTaskClientVisibility = ViewStates.Gone;
             }
 
-            DurationText = TimeEntryViewModel.Duration.HasValue
-                ? DurationAndFormatToString.Convert(TimeEntryViewModel.Duration.Value, TimeEntryViewModel.DurationFormat)
-                : "";
-
-            DescriptionVisibility = TimeEntryViewModel.HasDescription.ToVisibility();
-            AddDescriptionLabelVisibility = (!TimeEntryViewModel.HasDescription).ToVisibility();
-            ContinueImageVisibility = TimeEntryViewModel.CanContinue.ToVisibility();
-            ErrorImageViewVisibility = (!TimeEntryViewModel.CanContinue).ToVisibility();
-            ErrorNeedsSyncVisibility = TimeEntryViewModel.NeedsSync.ToVisibility();
-            ContinueButtonVisibility = TimeEntryViewModel.CanContinue.ToVisibility();
-            BillableIconVisibility = TimeEntryViewModel.IsBillable.ToVisibility();
-            HasTagsIconVisibility = TimeEntryViewModel.HasTags.ToVisibility();
+            DescriptionVisibility = viewModel.HasDescription.ToVisibility();
+            AddDescriptionLabelVisibility = (!viewModel.HasDescription).ToVisibility();
+            ContinueImageVisibility = viewModel.CanContinue.ToVisibility();
+            ErrorImageViewVisibility = (!viewModel.CanContinue).ToVisibility();
+            ErrorNeedsSyncVisibility = viewModel.NeedsSync.ToVisibility();
+            ContinueButtonVisibility = viewModel.CanContinue.ToVisibility();
+            BillableIconVisibility = viewModel.IsBillable.ToVisibility();
+            HasTagsIconVisibility = viewModel.HasTags.ToVisibility();
         }
     }
 }
