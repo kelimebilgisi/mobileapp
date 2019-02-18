@@ -195,8 +195,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction Back { get; }
         public UIAction Done { get; }
-        public UIAction Create { get; }
-
 
         public StartTimeEntryViewModel(
             ITimeService timeService,
@@ -246,7 +244,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
-            Create = rxActionFactory.FromAsync(create);
 
             DurationTapped = new MvxCommand(durationTapped);
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
@@ -467,6 +464,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     updateUiWith(textFieldInfo.FromTagSuggestion(tagSuggestion));
                     break;
 
+                case CreateEntitySuggestion createEntitySuggestion:
+                    if (IsSuggestingProjects)
+                    {
+                        createProject();
+                    }
+                    else
+                    {
+                        createTag();
+                    }
+                    break;
+
                 default:
                     return;
             }
@@ -479,10 +487,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     Resources.Cancel
                 ).Select(Invert);
         }
-
-
-        private Task create()
-            => IsSuggestingProjects ? createProject() : createTag();
 
         private async Task createProject()
         {
@@ -724,7 +728,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (canCreateProjectsInWorkspace && IsSuggestingProjects && !textFieldInfo.HasProject &&
                 CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes &&
                 !string.IsNullOrEmpty(CurrentQuery) &&
-                sections.None(section => section.Items.Any(item => ((ProjectSuggestion)item).ProjectName.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
+                sections.None(section => section.Items.Any(item => item is ProjectSuggestion projectSuggestion && projectSuggestion.ProjectName.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
                 )
             {
                 return sections
@@ -733,6 +737,24 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         new CollectionSection<string, AutocompleteSuggestion>(
                             "",
                             new[] { new CreateEntitySuggestion(Resources.CreateProject, textFieldInfo.Description) }
+                        )
+                    );
+            }
+
+            if (IsSuggestingTags &&
+                !string.IsNullOrEmpty(CurrentQuery) &&
+                CurrentQuery.IsAllowedTagByteSize() &&
+                sections.None(section => section.Items.Any(item =>
+                    item is TagSuggestion tagSuggestion &&
+                    tagSuggestion.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
+            )
+            {
+                return sections
+                    .ToList()
+                    .Prepend(
+                        new CollectionSection<string, AutocompleteSuggestion>(
+                            "",
+                            new[] { new CreateEntitySuggestion(Resources.CreateTag, textFieldInfo.Description) }
                         )
                     );
             }
