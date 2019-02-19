@@ -105,12 +105,6 @@ namespace Toggl.Daneel.ViewSources
                 default:
                     throw new InvalidOperationException("Wrong cell type");
             }
-
-            /*
-            cell.LayoutMargins = UIEdgeInsets.Zero;
-            cell.SeparatorInset = UIEdgeInsets.Zero;
-            cell.PreservesSuperviewLayoutMargins = false;
-            */
         }
 
         public override UIView GetViewForHeader(UITableView tableView, nint section)
