@@ -44,6 +44,17 @@ namespace Toggl.Giskard.Views.Calendar
                        && layoutParams.ViewLayoutPosition >= 0
                        && layoutParams.ViewLayoutPosition < anchorCount;
             }
+
+            public void AssignCoordinateFromPadding()
+            {
+                Coordinate = OrientationHelper.StartAfterPadding;
+            }
+
+            public void AssignFromView(View referenceChild, int position)
+            {
+                Coordinate = OrientationHelper.GetDecoratedStart(referenceChild);
+                Position = position;
+            }
         }
     }
 }
