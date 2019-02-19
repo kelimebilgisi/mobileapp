@@ -5,7 +5,7 @@ using Microsoft.Reactive.Testing;
 
 namespace Toggl.Foundation.Tests.TestExtensions
 {
-    public static class ReactiveExtensions
+    public static class TestSchedulerExtensions
     {
         public static void Schedule(this TestScheduler self, TimeSpan ticks, Action action)
             => self.Schedule(Unit.Default, ticks, (_, __) =>
