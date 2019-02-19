@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LinearLayout
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:local="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/EditTimeEntryTagCellBackground"
-    android:gravity="center_vertical"
+	xmlns:tools="http://schemas.android.com/tools"
+	xmlns:local="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingLeft="8dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="4dp"
+    android:background="@drawable/LightBlueRoundedRectangle"
+    android:layout_marginRight="6dp"
     android:layout_width="wrap_content"
-    android:layout_height="match_parent">
-    <LinearLayout
-        android:paddingTop="4dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingBottom="4dp"
-        android:background="@drawable/LightBlueRoundedRectangle"
-        android:layout_marginRight="6dp"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/Text"
+        tools:text="@string/Tag"
+        android:textSize="12sp"
+        android:textColor="@color/buttonBlue"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/EditTimeEntryTagCellText"
-            local:MvxBind="Text ."
-            android:text="@string/Tag"
-            android:textSize="12sp"
-            android:textColor="@color/buttonBlue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+        android:layout_height="wrap_content" />
 </LinearLayout>
