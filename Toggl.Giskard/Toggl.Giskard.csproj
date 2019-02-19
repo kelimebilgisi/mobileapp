@@ -374,6 +374,7 @@
     <Compile Include="ViewHolders\ReportsItemCellViewHolder.cs" />
     <Compile Include="ViewHolders\ReportsWorkspaceNameViewHolder.cs" />
     <Compile Include="Views\BarChartView.cs" />
+    <Compile Include="Views\CalendarRecyclerView.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorInfo.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutSate.cs" />
@@ -984,6 +985,13 @@
     <AndroidResource Include="Resources\layout\WelcomeBackPlaceholder.axml" />
     <AndroidResource Include="Resources\layout\ReportsActivity.axml" />
     <AndroidResource Include="Resources\layout\MainActivity.axml" />
+    <AndroidResource Include="Resources\layout\CalendarOnboardingView.axml" />
+    <AndroidResource Include="Resources\drawable-hdpi\calendar_onboarding.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\calendar_onboarding.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\calendar_onboarding.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\calendar_onboarding.png" />
+    <AndroidResource Include="Resources\drawable-xxxhdpi\calendar_onboarding.png" />    
+    <AndroidResource Include="Resources\drawable\BlueButton.axml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Toggl.Foundation\Toggl.Foundation.csproj">

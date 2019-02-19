@@ -774,4 +774,16 @@ Use them to add keywords to your time entries.</value>
     <data name="ShowReportsInvocationPhrase">
         <value>Show Report</value>
     </data>
+    <data name="TwelveHoursFormat">
+        <value>h tt</value>
+    </data> 
+    <data name="TwentyFourHoursFormat">
+        <value>HH:mm</value>
+    </data> 
+    <data name="EditingTwelveHoursFormat">
+        <value>h:mm tt</value>
+    </data> 
+    <data name="EditingTwentyFourHoursFormat">
+        <value>HH:mm</value>
+    </data>
 </root>

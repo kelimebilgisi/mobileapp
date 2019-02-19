@@ -26,10 +26,10 @@ namespace Toggl.Daneel.ViewSources
 {
     public sealed class CalendarCollectionViewSource : MvxCollectionViewSource, ICalendarCollectionViewLayoutDataSource
     {
-        private static readonly string twelveHoursFormat = "h tt";
-        private static readonly string twentyFourHoursFormat = "HH:mm";
-        private static readonly string editingTwelveHoursFormat = "h:mm tt";
-        private static readonly string editingTwentyFourHoursFormat = "HH:mm";
+        private static readonly string twelveHoursFormat = Resources.TwelveHoursFormat;
+        private static readonly string twentyFourHoursFormat = Resources.TwentyFourHoursFormat;
+        private static readonly string editingTwelveHoursFormat = Resources.EditingTwelveHoursFormat;
+        private static readonly string editingTwentyFourHoursFormat = Resources.EditingTwentyFourHoursFormat;
 
         private readonly string itemReuseIdentifier = nameof(CalendarItemView);
         private readonly string hourReuseIdentifier = nameof(HourSupplementaryView);

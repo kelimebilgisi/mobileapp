@@ -1557,5 +1557,29 @@ namespace Toggl.Foundation {
                 return ResourceManager.GetString("ShowReportsInvocationPhrase", resourceCulture);
             }
         }
+        
+        public static string TwelveHoursFormat {
+            get {
+                return ResourceManager.GetString("TwelveHoursFormat", resourceCulture);
+            }
+        }
+        
+        public static string TwentyFourHoursFormat {
+            get {
+                return ResourceManager.GetString("TwentyFourHoursFormat", resourceCulture);
+            }
+        }
+        
+        public static string EditingTwelveHoursFormat {
+            get {
+                return ResourceManager.GetString("EditingTwelveHoursFormat", resourceCulture);
+            }
+        }
+        
+        public static string EditingTwentyFourHoursFormat {
+            get {
+                return ResourceManager.GetString("EditingTwentyFourHoursFormat", resourceCulture);
+            }
+        }
     }
 }
