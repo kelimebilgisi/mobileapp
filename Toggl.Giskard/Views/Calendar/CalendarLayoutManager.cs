@@ -50,7 +50,6 @@ namespace Toggl.Giskard.Views.Calendar
 
             var startOffset = 0;
             var endOffset = 0;
-            var firstLayoutDirection = TOWARDS_THE_END;
 
             DetachAndScrapAttachedViews(recycler);
 
@@ -61,6 +60,54 @@ namespace Toggl.Giskard.Views.Calendar
             layoutState.Extra = extraForEnd;
             fill(recycler, state);
             //todo: fill towards the start when we handle saving state
+            //todo: fix possible gaps
+
+            if (state.IsPreLayout)
+            {
+                orientationHelper.OnLayoutComplete();
+            }
+            else
+            {
+                anchorInfo.Reset();
+            }
+        }
+
+        public override void OnLayoutCompleted(RecyclerView.State state)
+        {
+            base.OnLayoutCompleted(state);
+            anchorInfo.Reset();
+        }
+
+        // don't scroll horizontally
+        public override int ScrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state)
+            => 0;
+
+        public override int ScrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            //todo: handle vertical scroll
+            //offset views;
+            //handle recycling;
+            //fill space created by gaps caused by scroll
+            //anchors will be laid out first, followed by anchored views
+            return 0;
+        }
+
+        public override int ComputeVerticalScrollOffset(RecyclerView.State state)
+        {
+            //todo: calculate vertical scroll offset based on anchors
+            return base.ComputeVerticalScrollOffset(state);
+        }
+
+        public override int ComputeVerticalScrollRange(RecyclerView.State state)
+        {
+            //todo: calculate the of the whole calendar (anchor height * anchor count)
+            return base.ComputeVerticalScrollRange(state);
+        }
+
+        public override int ComputeVerticalScrollExtent(RecyclerView.State state)
+        {
+            //todo: calculate the space taken to fill the available space in the screen with anchors
+            return base.ComputeVerticalScrollExtent(state);
         }
 
         private int fill(RecyclerView.Recycler recycler, RecyclerView.State state)
@@ -162,44 +209,6 @@ namespace Toggl.Giskard.Views.Calendar
             }
 
             //todo: or maybe layout anchored views here?
-        }
-
-        public override void OnLayoutCompleted(RecyclerView.State state)
-        {
-            base.OnLayoutCompleted(state);
-            //todo: reset internal layout state data
-        }
-
-        // don't scroll horizontally
-        public override int ScrollHorizontallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state)
-            => 0;
-
-        public override int ScrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
-        {
-            //todo: handle vertical scroll
-            //offset views;
-            //handle recycling;
-            //fill space created by gaps caused by scroll
-            //anchors will be laid out first, followed by anchored views
-            return 0;
-        }
-
-        public override int ComputeVerticalScrollOffset(RecyclerView.State state)
-        {
-            //todo: calculate vertical scroll offset based on anchors
-            return base.ComputeVerticalScrollOffset(state);
-        }
-
-        public override int ComputeVerticalScrollRange(RecyclerView.State state)
-        {
-            //todo: calculate the of the whole calendar (anchor height * anchor count)
-            return base.ComputeVerticalScrollRange(state);
-        }
-
-        public override int ComputeVerticalScrollExtent(RecyclerView.State state)
-        {
-            //todo: calculate the space taken to fill the available space in the screen with anchors
-            return base.ComputeVerticalScrollExtent(state);
         }
 
         private void updateAnchorInfoForLayout()
