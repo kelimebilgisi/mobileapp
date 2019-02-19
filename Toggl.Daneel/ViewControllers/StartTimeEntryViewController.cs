@@ -113,10 +113,9 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(TimeLabel.Rx().Text())
                 .DisposedBy(disposeBag);
 
-            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
+            Placeholder.Text = ViewModel.PlaceholderText;
 
-            bindingSet.Bind(Placeholder)
-                      .To(vm => vm.PlaceholderText);
+            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
 
             //Buttons
             bindingSet.Bind(TagsButton)
