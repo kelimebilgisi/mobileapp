@@ -62,23 +62,23 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             ViewModel.IsManualModeEnabled
-                .Subscribe(manualModeSwitch.Rx().Checked())
+                .Subscribe(manualModeSwitch.Rx().CheckedObserver())
                 .DisposedBy(DisposeBag);
 
             ViewModel.IsGroupingTimeEntries
-               .Subscribe(groupTimeEntriesSwitch.Rx().Checked())
+               .Subscribe(groupTimeEntriesSwitch.Rx().CheckedObserver())
                .DisposedBy(DisposeBag);
 
             ViewModel.UseTwentyFourHourFormat
-                .Subscribe(is24hoursModeSwitch.Rx().Checked())
+                .Subscribe(is24hoursModeSwitch.Rx().CheckedObserver())
                 .DisposedBy(DisposeBag);
 
             ViewModel.AreRunningTimerNotificationsEnabled
-                .Subscribe(runningTimerNotificationsSwitch.Rx().Checked())
+                .Subscribe(runningTimerNotificationsSwitch.Rx().CheckedObserver())
                 .DisposedBy(DisposeBag);
 
             ViewModel.AreStoppedTimerNotificationsEnabled
-                .Subscribe(stoppedTimerNotificationsSwitch.Rx().Checked())
+                .Subscribe(stoppedTimerNotificationsSwitch.Rx().CheckedObserver())
                 .DisposedBy(DisposeBag);
 
             ViewModel.DateFormat
