@@ -21,7 +21,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         public override RecyclerView.LayoutParams GenerateDefaultLayoutParams()
         {
-            return new RecyclerView.LayoutParams(RecyclerView.LayoutParams.WrapContent,RecyclerView.LayoutParams.WrapContent);
+            return new RecyclerView.LayoutParams(RecyclerView.LayoutParams.WrapContent, RecyclerView.LayoutParams.WrapContent);
         }
 
         public override bool CanScrollVertically() => true;
@@ -73,6 +73,7 @@ namespace Toggl.Giskard.Views.Calendar
                 {
                     layoutState.ScrollingOffset += layoutState.Available;
                 }
+
                 recycleByLayoutState(recycler);
             }
 
@@ -106,6 +107,7 @@ namespace Toggl.Giskard.Views.Calendar
                     {
                         layoutState.ScrollingOffset += layoutState.Available;
                     }
+
                     recycleByLayoutState(recycler);
                 }
 
@@ -152,7 +154,7 @@ namespace Toggl.Giskard.Views.Calendar
                 anchorBottom = layoutState.Offset + layoutChunkResult.Consumed;
             }
 
-            LayoutDecoratedWithMargins(view, anchorLeft,anchorRight, anchorTop, anchorBottom);
+            LayoutDecoratedWithMargins(view, anchorLeft, anchorRight, anchorTop, anchorBottom);
 
             if (layoutParams.IsItemRemoved || layoutParams.IsItemChanged)
             {
@@ -247,7 +249,8 @@ namespace Toggl.Giskard.Views.Calendar
                     if (invalidMatch == null && layoutParams.IsItemRemoved)
                     {
                         invalidMatch = candidate;
-                    } else if (matchOutOfBounds == null && isOutOfBounds(candidate))
+                    }
+                    else if (matchOutOfBounds == null && isOutOfBounds(candidate))
                     {
                         matchOutOfBounds = candidate;
                     }
@@ -273,7 +276,66 @@ namespace Toggl.Giskard.Views.Calendar
 
         private void recycleByLayoutState(RecyclerView.Recycler recycler)
         {
+            if (layoutState.Recycle)
+            {
+                if (layoutState.LayoutDirection == TOWARDS_THE_START)
+                {
+                    recycleViewsFromEnd(recycler, layoutState.ScrollingOffset);
+                }
+                else
+                {
+                    recycleViewsFromStart(recycler, layoutState.ScrollingOffset);
+                }
+            }
+        }
 
+        private void recycleViewsFromStart(RecyclerView.Recycler recycler, int scrollingOffset)
+        {
+            if (scrollingOffset < 0) return;
+
+            var currentChildCount = ChildCount;
+
+            for (var i = 0; i < currentChildCount; i++)
+            {
+                var child = GetChildAt(i);
+                if (orientationHelper.GetDecoratedEnd(child) > scrollingOffset || orientationHelper.GetTransformedEndWithDecoration(child) > scrollingOffset)
+                {
+                    recycleChildren(recycler, 0, i);
+                    return;
+                }
+            }
+        }
+
+        private void recycleViewsFromEnd(RecyclerView.Recycler recycler, int scrollingOffset)
+        {
+            if (scrollingOffset < 0) return;
+            var limit = orientationHelper.End - scrollingOffset;
+            var currentChildCount = ChildCount;
+            for (var i = currentChildCount - 1; i >= 0; i--)
+            {
+                var child = GetChildAt(i);
+                if (orientationHelper.GetDecoratedStart(child) < limit || orientationHelper.GetTransformedStartWithDecoration(child) < limit)
+                {
+                    recycleChildren(recycler, currentChildCount - 1, i);
+                    return;
+                }
+            }
+        }
+
+        private void recycleChildren(RecyclerView.Recycler recycler, int startIndex, int endIndex)
+        {
+            if (startIndex == endIndex) return;
+
+            if (endIndex > startIndex)
+            {
+                for (var i = endIndex - 1; i >= startIndex; i--)
+                    RemoveAndRecycleViewAt(i, recycler);
+            }
+            else
+            {
+                for (var i = startIndex; i > endIndex; i--)
+                    RemoveAndRecycleViewAt(i, recycler);
+            }
         }
 
         private struct LayoutChunkResult
