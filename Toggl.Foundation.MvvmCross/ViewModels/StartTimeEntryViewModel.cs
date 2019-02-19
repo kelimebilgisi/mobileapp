@@ -461,8 +461,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             if (isSuggestingTags.Value)
             {
-                updateUiWith(textFieldInfo.RemoveTagQueryIfNeeded());
                 isSuggestingTags.Accept(false);
+                updateUiWith(textFieldInfo.RemoveTagQueryIfNeeded());
+                queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
                 return;
             }
 
