@@ -115,6 +115,10 @@ namespace Toggl.Daneel.ViewControllers
 
             Placeholder.Text = ViewModel.PlaceholderText;
 
+            // Buttons
+            //ViewModel.IsSuggestingTags
+
+
             var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
 
             //Buttons

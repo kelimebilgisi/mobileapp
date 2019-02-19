@@ -60,7 +60,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISubject<TextFieldInfo> uiSubject = new ReplaySubject<TextFieldInfo>();
         private readonly ISubject<TextFieldInfo> querySubject = new Subject<TextFieldInfo>();
         private readonly ISubject<AutocompleteSuggestionType> queryByTypeSubject = new Subject<AutocompleteSuggestionType>();
-        private readonly ISubject<TimeSpan> displayedTime = new BehaviorSubject<TimeSpan>(TimeSpan.Zero);
+        private readonly BehaviorRelay<TimeSpan> displayedTime = new BehaviorRelay<TimeSpan>(TimeSpan.Zero);
 
         private bool isDirty => !string.IsNullOrEmpty(textFieldInfo.Description)
                                 || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
@@ -92,8 +92,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public bool IsBillable { get; private set; } = false;
         public bool IsSuggestingTags { get; private set; }
         public bool IsSuggestingProjects { get; private set; }
-
-        public DurationFormat DisplayedTimeFormat { get; } = DurationFormat.Improved;
 
         public bool IsBillableAvailable { get; private set; } = false;
 
@@ -239,7 +237,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             timeService.CurrentDateTimeObservable
                 .Where(_ => isRunning)
-                .Subscribe(currentTime => displayedTime.OnNext(currentTime - startTime))
+                .Subscribe(currentTime => displayedTime.Accept(currentTime - startTime))
                 .DisposedBy(disposeBag);
         }
 
@@ -347,7 +345,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 duration = runningTime;
             }
 
-            displayedTime.OnNext(runningTime);
+            displayedTime.Accept(runningTime);
         }
 
         private async Task selectSuggestion(AutocompleteSuggestion suggestion)
@@ -629,7 +627,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     items = (IList<AutocompleteSuggestion>)items.Append(NoEntityInfoMessage.CreateProject());
                 }
             }
-            else if (IsSuggestingTags)
+
+            if (IsSuggestingTags)
             {
                 if (shouldAddTagCreationSuggestion())
                 {
