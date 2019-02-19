@@ -6,19 +6,21 @@ using System.Reactive.Linq;
 using System.Threading;
 using CoreGraphics;
 using Foundation;
+using Toggl.Daneel.Autocomplete;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Calendar;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using UIKit;
+using Constants = Toggl.Foundation.Helper.Constants;
 using Math = System.Math;
 
 namespace Toggl.Daneel.Views.Calendar
 {
     public sealed class CalendarCollectionViewLayout : UICollectionViewLayout
     {
-        private const int hoursPerDay = 24;
+        private const int hoursPerDay = Constants.HoursPerDay;
 
         public const float HourHeight = 56;
 
