@@ -275,14 +275,15 @@
                 local:layout_constraintTop_toTopOf="@+id/TagsIcon"
                 tools:text="Add tags" />
 
-            <toggl.giskard.views.TagsListRecyclerView
+            <android.support.v7.widget.RecyclerView
                 android:id="@+id/TagsRecyclerView"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:clickable="false"
                 local:layout_constraintLeft_toRightOf="@id/TagsIcon"
                 local:layout_constraintRight_toRightOf="parent"
-                local:layout_constraintTop_toTopOf="@+id/TagsIcon" />
+                local:layout_constraintTop_toTopOf="@+id/TagsIcon"
+                local:layout_constraintBottom_toBottomOf="@+id/TagsIcon" />
 
             <View
                 android:id="@+id/TagsBottomBorder"
