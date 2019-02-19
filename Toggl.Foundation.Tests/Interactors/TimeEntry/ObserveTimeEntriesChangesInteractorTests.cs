@@ -1,7 +1,6 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Reactive.Testing;
 using NSubstitute;
@@ -15,7 +14,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
     public class ObserveTimeEntriesChangesInteractorTests : BaseInteractorTests
     {
         [Fact, LogIfTooSlow]
-        public async Task GetsAnEventWhenAChangeToTimeEntriesHappens()
+        public void GetsAnEventWhenAChangeToTimeEntriesHappens()
         {
             var createSubject = new Subject<IThreadSafeTimeEntry>();
             var deleteSubject = new Subject<long>();

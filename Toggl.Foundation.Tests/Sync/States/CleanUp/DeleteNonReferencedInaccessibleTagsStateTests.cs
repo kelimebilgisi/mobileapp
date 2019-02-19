@@ -59,7 +59,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            tagsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeTag>>(arg =>
+            await tagsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeTag>>(arg =>
                 arg.All(tag => unreferencedTags.Contains(tag)) &&
                 arg.None(tag => neededTags.Contains(tag))));
         }

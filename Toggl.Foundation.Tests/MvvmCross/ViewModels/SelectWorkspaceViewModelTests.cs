@@ -8,6 +8,7 @@ using NSubstitute;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Extensions;
 using Xunit;
 
@@ -104,7 +105,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.Close.Execute();
+                await ViewModel.Close.Execute(TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long>());
@@ -117,7 +118,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(expectedId);
                 await ViewModel.Initialize();
 
-                ViewModel.Close.Execute();
+                await ViewModel.Close.Execute(TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), expectedId);
@@ -133,7 +134,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var selectableWorkspace = new SelectableWorkspaceViewModel(Workspace, true);
 
-                ViewModel.SelectWorkspace.Execute(selectableWorkspace);
+               await ViewModel.SelectWorkspace.Execute(selectableWorkspace, TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long>());
@@ -147,7 +148,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 Workspace.IsEligibleForProjectCreation().Returns(true);
                 var selectableWorkspace = new SelectableWorkspaceViewModel(Workspace, true);
 
-                ViewModel.SelectWorkspace.Execute(selectableWorkspace);
+                await ViewModel.SelectWorkspace.Execute(selectableWorkspace, TestScheduler);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),

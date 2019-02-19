@@ -54,10 +54,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task ClosesWhenAnotherWorkspaceIsFetched()
             {
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
-                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
+                InteractorFactory
+                    .GetAllWorkspaces()
+                    .Execute()
+                    .Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                ViewModel.TryAgain.Execute();
-                TestScheduler.Start();
+                await ViewModel.TryAgain.Execute(TestScheduler);
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
@@ -67,10 +69,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             public async Task ResetsNoWorkspaceStateWhenAnotherWorkspaceIsFetched()
             {
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
-                InteractorFactory.GetAllWorkspaces().Execute().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
+                InteractorFactory
+                    .GetAllWorkspaces()
+                    .Execute()
+                    .Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                ViewModel.TryAgain.Execute();
-                TestScheduler.Start();
+                await ViewModel.TryAgain.Execute(TestScheduler);
 
                 AccessRestrictionStorage.Received().SetNoWorkspaceStateReached(Arg.Is(false));
             }
@@ -80,8 +84,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>()));
 
-                ViewModel.TryAgain.Execute();
-                TestScheduler.Start();
+                await ViewModel.TryAgain.Execute(TestScheduler);
 
                 await NavigationService.DidNotReceive().Close(Arg.Is(ViewModel));
                 AccessRestrictionStorage.DidNotReceive().SetNoWorkspaceStateReached(Arg.Any<bool>());
@@ -96,8 +99,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var workspace = Substitute.For<IThreadSafeWorkspace>();
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace>() { workspace }));
 
-                ViewModel.CreateWorkspaceWithDefaultName.Execute();
-                TestScheduler.Start();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute(TestScheduler);
 
                 observer.Values().AssertEqual(
                     false,
@@ -117,8 +119,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 user.Fullname.Returns(name);
                 DataSource.User.Current.Returns(Observable.Return(user));
 
-                ViewModel.CreateWorkspaceWithDefaultName.Execute();
-                TestScheduler.Start();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute(TestScheduler);
 
                 await InteractorFactory.CreateDefaultWorkspace().Received().Execute();
             }
@@ -130,8 +131,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace> { workspace }));
 
-                ViewModel.CreateWorkspaceWithDefaultName.Execute();
-                TestScheduler.Start();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute(TestScheduler);
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Unit.Default);
             }
@@ -143,8 +143,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
                 DataSource.Workspaces.GetAll().Returns(Observable.Return(new List<IThreadSafeWorkspace> { workspace }));
 
-                ViewModel.CreateWorkspaceWithDefaultName.Execute();
-                TestScheduler.Start();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute(TestScheduler);
 
                 AccessRestrictionStorage.Received().SetNoWorkspaceStateReached(Arg.Is(false));
             }
@@ -156,8 +155,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.IsLoading.Subscribe(observer);
                 InteractorFactory.CreateDefaultWorkspace().Execute().Returns(Observable.Return(Unit.Default));
 
-                ViewModel.CreateWorkspaceWithDefaultName.Execute();
-                TestScheduler.Start();
+                await ViewModel.CreateWorkspaceWithDefaultName.Execute(TestScheduler);
 
                 observer.Values().AssertEqual(
                     false,

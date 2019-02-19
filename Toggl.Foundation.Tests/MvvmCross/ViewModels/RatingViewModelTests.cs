@@ -13,6 +13,7 @@ using Toggl.Foundation.Services;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.PrimeRadiant;
 using Xunit;
+using Toggl.Foundation.Tests.TestExtensions;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -207,10 +208,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task HidesTheViewModel()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
-                    NavigationService.Received().ChangePresentation(
+                    await NavigationService.Received().ChangePresentation(
                         Arg.Is<ToggleRatingViewVisibilityHint>(hint => hint.ShouldHide == true)
                     );
                 }
@@ -223,8 +223,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task PerformsTheCorrectAction()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
                     EnsureCorrectActionWasPerformed();
                 }
@@ -232,8 +231,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task TracksTheAppropriateEventWithTheExpectedParameter()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
                     AnalyticsService
                         .UserFinishedRatingViewSecondStep
@@ -244,8 +242,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task TracksTheCorrectEvent()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
                     ExpectedEvent.Received().Track();
                 }
@@ -253,8 +250,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task StoresTheAppropriateRatingViewOutcomeAndTime()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
                     OnboardingStorage
                         .Received()
@@ -294,8 +290,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task DoesNothing()
                 {
-                    ViewModel.PerformMainAction.Execute();
-                    TestScheduler.Start();
+                    await ViewModel.PerformMainAction.Execute(TestScheduler);
 
                     RatingService.DidNotReceive().AskForRating();
                 }
@@ -360,7 +355,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 }
 
                 [Fact, LogIfTooSlow]
-                public async Task TracksTheCorrectEvent()
+                public void TracksTheCorrectEvent()
                 {
                     ViewModel.Dismiss();
 

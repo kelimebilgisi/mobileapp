@@ -59,7 +59,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetch).SingleAsync();
 
-            dataSource.Received().Delete(Arg.Is<long>(id => runningTimeEntry.Id == id));
+            await dataSource.Received().Delete(Arg.Is<long>(id => runningTimeEntry.Id == id));
         }
 
         [Theory, LogIfTooSlow]
@@ -82,7 +82,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetch).SingleAsync();
 
-            dataSource.DidNotReceive().Delete(Arg.Any<long>());
+            await dataSource.DidNotReceive().Delete(Arg.Any<long>());
         }
 
         [Theory, LogIfTooSlow]
@@ -106,7 +106,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
 
             await state.Start(fetch).SingleAsync();
 
-            dataSource.DidNotReceive().Delete(Arg.Any<long>());
+            await dataSource.DidNotReceive().Delete(Arg.Any<long>());
         }
 
         private void configureDataSource(IEnumerable<IThreadSafeTimeEntry> timeEntries)

@@ -5,11 +5,9 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
-using Toggl.Foundation.MvvmCross.Helper;
-using Toggl.Foundation.MvvmCross.Parameters;
-using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
@@ -73,8 +71,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task OpensAppSettings()
             {
-                ViewModel.RequestAccess.Execute(Unit.Default);
-                TestScheduler.Start();
+                await ViewModel.RequestAccess.Execute(TestScheduler);
 
                 PermissionsService.Received().OpenAppSettings();
             }
@@ -85,10 +82,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task NavigatesToTheUpcomingEvents()
             {
-                ViewModel.OpenUpcomingEvents.Execute();
-                TestScheduler.Start();
+                await ViewModel.OpenUpcomingEvents.Execute(TestScheduler);
 
-                NavigationService.Received().Navigate<UpcomingEventsNotificationSettingsViewModel, Unit>();
+                await NavigationService.Received().Navigate<UpcomingEventsNotificationSettingsViewModel, Unit>();
             }
         }
     }

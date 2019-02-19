@@ -9,6 +9,7 @@ using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.MvvmCross.ViewModels.Selectable;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Xunit;
 using static Toggl.Multivac.Extensions.FunctionalExtensions;
@@ -140,8 +141,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         false
                     );
 
-                    ViewModel.SelectCalendar.Execute(selectableUserCalendar);
-                    TestScheduler.Start();
+                    await ViewModel.SelectCalendar.Execute(selectableUserCalendar, TestScheduler);
 
                     Received.InOrder(() =>
                     {

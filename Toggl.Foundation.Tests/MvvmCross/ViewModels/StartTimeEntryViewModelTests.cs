@@ -1889,7 +1889,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public async Task SortsProjectsByName()
+            public void SortsProjectsByName()
             {
                 var suggestions = new List<ProjectSuggestion>();
                 suggestions.Add(getProjectSuggestion(3, 0));
@@ -1907,6 +1907,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 projectNames(ViewModel.Suggestions[1]).Should().BeInAscendingOrder();
             }
 
+            [Fact]
             public async Task SortsTasksByName()
             {
                 var suggestions = new List<ProjectSuggestion>();

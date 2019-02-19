@@ -7,6 +7,7 @@ using System.Reactive.Subjects;
 using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
+using Microsoft.Reactive.Testing;
 using NSubstitute;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
@@ -18,6 +19,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Xunit;
@@ -33,6 +35,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected IInteractorFactory InteractorFactory { get; } = Substitute.For<IInteractorFactory>();
             protected IAnalyticsService AnalyticsService { get; } = Substitute.For<IAnalyticsService>();
             protected TestSchedulerProvider SchedulerProvider { get; } = new TestSchedulerProvider();
+            protected TestScheduler TestScheduler => TestScheduler;
             protected IRxActionFactory RxActionFactory { get; }
 
             protected TimeEntriesViewModel ViewModel { get; private set; }
@@ -321,8 +324,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async ThreadingTask ShowsTheUndoUI()
             {
-                viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.Start();
+                await viewModel.DelayDeleteTimeEntry.Execute(timeEntry, TestScheduler);
 
                 observer.Received().OnNext(true);
             }
@@ -330,8 +332,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async ThreadingTask DoesNotHideTheUndoUITooEarly()
             {
-                var observable = viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks - 1);
+                var observable = viewModel.DelayDeleteTimeEntry.Execute(timeEntry, TestScheduler);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks - 1);
                 await observable;
 
                 observer.Received().OnNext(true);
@@ -341,23 +343,22 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async ThreadingTask HidesTheUndoUIAfterSeveralSeconds()
             {
-                viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.Start();
-
+                await viewModel.DelayDeleteTimeEntry.Execute(timeEntry, TestScheduler);
+                
                 observer.Received().OnNext(true);
                 observer.Received().OnNext(false);
             }
 
             [Fact]
-            public async ThreadingTask DoesNotHideTheUndoUIIfAnotherItemWasDeletedWhileWaiting()
+            public void DoesNotHideTheUndoUIIfAnotherItemWasDeletedWhileWaiting()
             {
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
                 var timeEntryB = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
                 viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
-                SchedulerProvider.TestScheduler.AdvanceBy((long)(Constants.UndoTime.Ticks * 0.5));
+                TestScheduler.AdvanceBy((long)(Constants.UndoTime.Ticks * 0.5));
                 viewModel.DelayDeleteTimeEntry.Execute(timeEntryB);
-                SchedulerProvider.TestScheduler.AdvanceBy((long)(Constants.UndoTime.Ticks * 0.6));
+                TestScheduler.AdvanceBy((long)(Constants.UndoTime.Ticks * 0.6));
 
                 observer.Received().OnNext(true);
             }
@@ -369,11 +370,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeEntryB = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
                 var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
                 var observableB = viewModel.DelayDeleteTimeEntry.Execute(timeEntryB);
                 await observableA;
 
-                InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
+                await InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
             }
 
             [Fact]
@@ -382,10 +383,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
                 var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
                 await viewModel.FinilizeDelayDeleteTimeEntryIfNeeded();
 
-                InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
+                await InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
             }
 
             [Fact]
@@ -394,9 +395,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
                 var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
 
-                InteractorFactory.DidNotReceive().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
+                await InteractorFactory.DidNotReceive().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
             }
         }
 
@@ -413,33 +414,33 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact]
-            public async ThreadingTask DoesNotDeleteTheTimeEntryIfTheUndoIsInitiatedBeforeTheUndoPeriodIsOver()
+            public void DoesNotDeleteTheTimeEntryIfTheUndoIsInitiatedBeforeTheUndoPeriodIsOver()
             {
                 viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
                 viewModel.CancelDeleteTimeEntry.Execute();
-                SchedulerProvider.TestScheduler.Start();
+                TestScheduler.Start();
 
                 InteractorFactory.DidNotReceive().DeleteTimeEntry(Arg.Is(timeEntry.Id));
             }
 
             [Fact]
-            public async ThreadingTask DeletesTheTimeEntryIfTheUndoIsInitiatedAfterTheUndoPeriodIsOver()
+            public void DeletesTheTimeEntryIfTheUndoIsInitiatedAfterTheUndoPeriodIsOver()
             {
                 viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks);
                 viewModel.CancelDeleteTimeEntry.Execute();
 
                 InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntry.Id));
             }
 
             [Fact]
-            public async ThreadingTask HidesTheUndoUI()
+            public void HidesTheUndoUI()
             {
                 viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
-                SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
+                TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
                 viewModel.CancelDeleteTimeEntry.Execute();
-                SchedulerProvider.TestScheduler.Start();
+                TestScheduler.Start();
 
                 observer.Received().OnNext(true);
                 observer.Received().OnNext(false);

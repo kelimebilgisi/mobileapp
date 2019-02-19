@@ -10,9 +10,8 @@ using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Xunit;
 using System.Reactive.Linq;
-using Toggl.Foundation.MvvmCross;
-using Toggl.Foundation.Services;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -46,7 +45,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheSelectColorAction : SelectColorViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void ChangesTheSelectedColor()
+            public async Task ChangesTheSelectedColor()
             {
                 var initiallySelectedColor = Color.DefaultProjectColors.First();
                 var colorToSelect = Color.DefaultProjectColors.Last();
@@ -57,7 +56,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectColor.Execute(colorToSelect);
+                await ViewModel.SelectColor.Execute(colorToSelect, TestScheduler);
 
                 observer.Messages
                     .Select( m => m.Value.Value)
@@ -77,7 +76,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectColor.Execute(colorToSelect);
+                await ViewModel.SelectColor.Execute(colorToSelect, TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == colorToSelect.ARGB));
@@ -95,7 +94,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Prepare(parameters);
 
-                ViewModel.SelectColor.Execute(colorToSelect);
+                await ViewModel.SelectColor.Execute(colorToSelect, TestScheduler);
 
                 await NavigationService.DidNotReceive()
                     .Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
@@ -192,8 +191,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                ViewModel.Close.Execute();
-                TestScheduler.Start();
+                await ViewModel.Close.Execute(TestScheduler);
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
             }
@@ -205,9 +203,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var parameters = ColorParameters.Create(color, true);
                 ViewModel.Prepare(parameters);
 
-                ViewModel.Close.Execute();
-                TestScheduler.Start();
-
+                await ViewModel.Close.Execute(TestScheduler);
+                
                 NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Is(color)).Wait();
             }
         }
@@ -217,8 +214,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ClosesTheViewModel()
             {
-                ViewModel.Close.Execute();
-                TestScheduler.Start();
+                await ViewModel.Close.Execute(TestScheduler);
 
                 await NavigationService.Received().Close(Arg.Is(ViewModel), Arg.Any<MvxColor>());
             }
@@ -229,10 +225,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var parameters = ColorParameters.Create(MvxColors.Azure, true);
                 ViewModel.Prepare(parameters);
                 var expected = Color.DefaultProjectColors.First();
-                ViewModel.SelectColor.Execute(expected);
+                await ViewModel.SelectColor.Execute(expected, TestScheduler);
 
-                ViewModel.Save.Execute();
-                TestScheduler.Start();
+                await ViewModel.Save.Execute(TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Is<MvxColor>(c => c.ARGB == expected.ARGB));

@@ -116,7 +116,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public void ReturnsFalseWheThePasswordIsValidButTheViewIsLoading()
+            public async Task ReturnsFalseWheThePasswordIsValidButTheViewIsLoading()
             {
                 var scheduler = new TestScheduler();
                 var never = Observable.Never<ITogglDataSource>();
@@ -124,9 +124,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Password.OnNext(ValidPassword.ToString());
                 var nextIsEnabledObserver = Observe(ViewModel.NextIsEnabled);
 
-                ViewModel.Done.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Done.Execute(TestScheduler);
+                
                 nextIsEnabledObserver.LastEmittedValue().Should().BeFalse();
             }
         }
@@ -147,16 +146,16 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheDoneCommand : TokenResetViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public async Task DoesNotAttemptToLoginWhileThePasswordIsNotValid()
+            public void DoesNotAttemptToLoginWhileThePasswordIsNotValid()
             {
                 ViewModel.Password.OnNext(InvalidPassword.ToString());
                 var executionObserver = TestScheduler.CreateObserver<Unit>();
 
                 ViewModel.Done.Execute().Subscribe(executionObserver);
-
                 TestScheduler.Start();
+
                 executionObserver.Messages.Last().Value.Kind.Should().Be(NotificationKind.OnError);
-                await UserAccessManager.DidNotReceive().RefreshToken(Arg.Any<Password>());
+                UserAccessManager.DidNotReceive().RefreshToken(Arg.Any<Password>());
             }
 
             [Fact, LogIfTooSlow]
@@ -164,9 +163,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.Password.OnNext(ValidPassword.ToString());
 
-                ViewModel.Done.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Done.Execute(TestScheduler);
+                
                 await UserAccessManager.Received().RefreshToken(Arg.Is(ValidPassword));
             }
 
@@ -177,9 +175,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 UserAccessManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
 
-                ViewModel.Done.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Done.Execute(TestScheduler);
+                
                 await NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
             }
 
@@ -193,8 +190,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 UserAccessManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Return(Substitute.For<ITogglDataSource>()));
 
-                ViewModel.Done.Execute();
-                TestScheduler.Start();
+                await ViewModel.Done.Execute(TestScheduler);
 
                 isLoadingObserver.LastEmittedValue().Should().BeFalse();
             }
@@ -208,23 +204,23 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var isLoadingObserver = Observe(ViewModel.Done.Executing);
 
                 ViewModel.Done.Execute();
-
                 TestScheduler.Start();
+                
                 var messages = isLoadingObserver.Messages.ToList();
                 isLoadingObserver.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
-            public async Task DoesNotNavigateWhenTheLoginFails()
+            public void DoesNotNavigateWhenTheLoginFails()
             {
-                ViewModel.Password.OnNext(ValidPassword.ToString());
                 UserAccessManager.RefreshToken(Arg.Any<Password>())
                             .Returns(Observable.Throw<ITogglDataSource>(new Exception()));
+                ViewModel.Password.OnNext(ValidPassword.ToString());
+                TestScheduler.Start();
 
                 ViewModel.Done.Execute();
-
-                TestScheduler.Start();
-                await NavigationService.DidNotReceive().Navigate<MainViewModel>();
+                
+                NavigationService.DidNotReceive().Navigate<MainViewModel>();
             }
         }
 
@@ -244,9 +240,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await setup();
 
-                ViewModel.SignOut.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.SignOut.Execute(TestScheduler);
+                
                 await InteractorFactory.Received().Logout(LogoutSource.TokenReset).Execute();
             }
 
@@ -255,9 +250,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await setup();
 
-                ViewModel.SignOut.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.SignOut.Execute(TestScheduler);
+                
                 await NavigationService.Received().Navigate<LoginViewModel>();
             }
 
@@ -266,9 +260,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await setup(hasUnsyncedData: true);
 
-                ViewModel.SignOut.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.SignOut.Execute(TestScheduler);
+                
                 await DialogService.Received().Confirm(
                     Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
             }
@@ -278,9 +271,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await setup(hasUnsyncedData: true, userConfirmsSignout: false);
 
-                ViewModel.SignOut.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.SignOut.Execute(TestScheduler);
+                
                 InteractorFactory.DidNotReceive().Logout(Arg.Any<LogoutSource>());
             }
         }

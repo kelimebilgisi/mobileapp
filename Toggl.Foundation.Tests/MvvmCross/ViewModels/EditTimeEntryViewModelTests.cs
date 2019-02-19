@@ -8,9 +8,7 @@ using FluentAssertions;
 using FsCheck;
 using FsCheck.Xunit;
 using NSubstitute;
-using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.DTOs;
-using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.Services;
@@ -24,7 +22,6 @@ using Xunit;
 using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.StringExtensions;
 using Task = System.Threading.Tasks.Task;
-using Toggl.Foundation.Tests.Mocks;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -195,7 +192,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task ShowsTheConfirmationDialogIfTheDurationChanges()
             {
-                ViewModel.StopCommand.Execute();
+                ViewModel.StopCommand.Execute(TestScheduler);
 
                 await ViewModel.CloseCommand.ExecuteAsync();
 
@@ -375,7 +372,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(Id);
                 ViewModel.Initialize().Wait();
 
-                ViewModel.StopCommand.Execute();
+                ViewModel.StopCommand.Execute(TestScheduler);
 
                 ViewModel.StopTime.Should().Be(now);
             }
@@ -387,7 +384,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(Id);
                 ViewModel.Initialize().Wait();
 
-                ViewModel.StopCommand.Execute();
+                ViewModel.StopCommand.Execute(TestScheduler);
 
                 ViewModel.IsTimeEntryRunning.Should().BeFalse();
             }
@@ -441,7 +438,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         Arg.Any<EditDurationParameters>())
                     .Returns(newDurationParameter);
 
-                ViewModel.SelectDurationCommand.Execute();
+                ViewModel.SelectDurationCommand.Execute(TestScheduler);
 
                 AnalyticsService.Received()
                                 .EditViewTapped
@@ -489,7 +486,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public void SetsTheOnboardingStorageFlag()
             {
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 OnboardingStorage.Received().EditedTimeEntry();
             }
@@ -497,7 +494,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task InitiatesPushSync()
             {
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await DataSource.SyncManager.Received().PushSync();
             }
@@ -509,7 +506,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Throw<IThreadSafeTimeEntry>(new Exception()));
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await DataSource.SyncManager.DidNotReceive().PushSync();
             }
@@ -539,7 +536,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(parameter);
                 await ViewModel.SelectProjectCommand.ExecuteAsync();
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await InteractorFactory.Received()
                     .UpdateTimeEntry(Arg.Is<EditTimeEntryDto>(dto => dto.WorkspaceId == project.WorkspaceId))
@@ -571,7 +568,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(SelectProjectParameter.WithIds(newProjectId, null, workspaceId));
                 await ViewModel.SelectProjectCommand.ExecuteAsync();
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await InteractorFactory
                     .Received()
@@ -598,7 +595,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(SelectProjectParameter.WithIds(null, null, newWorkspaceId));
                 await ViewModel.SelectProjectCommand.ExecuteAsync();
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await InteractorFactory
                     .Received()
@@ -617,7 +614,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(timeEntry.Id);
                 await ViewModel.Initialize();
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 ViewModel.IsEditingDescription.Should().Be(false);
             }
@@ -633,7 +630,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.Description = description;
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await InteractorFactory
                     .Received()
@@ -652,7 +649,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.Description = description;
 
-                ViewModel.SaveCommand.Execute();
+                ViewModel.SaveCommand.Execute(TestScheduler);
 
                 await InteractorFactory
                     .Received()
@@ -675,7 +672,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
 
                 ViewModel.IsEditingDescription = true;
-                ViewModel.ConfirmCommand.Execute();
+                ViewModel.ConfirmCommand.Execute(TestScheduler);
 
                 ViewModel.IsEditingDescription.Should().Be(false);
 
@@ -691,7 +688,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public void TracksBillableTap()
             {
-                ViewModel.ToggleBillableCommand.Execute();
+                ViewModel.ToggleBillableCommand.Execute(TestScheduler);
 
                 AnalyticsService.Received()
                                 .EditViewTapped
@@ -704,7 +701,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public void TracksDescriptionTap()
             {
-                ViewModel.StartEditingDescriptionCommand.Execute();
+                ViewModel.StartEditingDescriptionCommand.Execute(TestScheduler);
 
                 AnalyticsService.Received()
                      .EditViewTapped
@@ -851,7 +848,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(id);
                 await ViewModel.Initialize();
 
-                ViewModel.DismissSyncErrorMessageCommand.Execute();
+                ViewModel.DismissSyncErrorMessageCommand.Execute(TestScheduler);
 
                 ViewModel.SyncErrorMessageVisible.Should().BeFalse();
             }
@@ -865,7 +862,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 timeEntry = Substitute.For<IThreadSafeTimeEntry>();
                 timeEntry.Id.Returns(Id);
-                InteractorFactory.GetTimeEntryById(Arg.Is<long>(Id))
+                InteractorFactory.GetTimeEntryById(Arg.Is(Id))
                     .Execute()
                     .Returns(Observable.Return(timeEntry));
             }
@@ -937,7 +934,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Prepare(id);
                 viewModel.Initialize().Wait();
                 viewModel.IsEditingDescription = false;
-                viewModel.ConfirmCommand.Execute();
+                viewModel.ConfirmCommand.Execute(TestScheduler);
 
                 InteractorFactory
                     .Received()

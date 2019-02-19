@@ -69,7 +69,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
+            await projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
                 arg.All(project => unreferencedProjects.Contains(project)) &&
                 arg.None(project => neededProjects.Contains(project))));
         }
@@ -106,7 +106,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
+            await projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
                 arg.All(project => unreferencedProjects.Contains(project)) &&
                 arg.None(project => neededProjects.Contains(project))));
         }
@@ -149,7 +149,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
+            await projectsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeProject>>(arg =>
                 arg.All(project => unreferencedProjects.Contains(project)) &&
                 arg.None(project => neededProjects.Contains(project))));
         }

@@ -67,7 +67,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            tasksDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeTask>>(arg =>
+            await tasksDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeTask>>(arg =>
                 arg.All(task => unreferencedTasks.Contains(task)) &&
                 arg.None(task => neededTasks.Contains(task))));
         }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Reactive.Testing;
 using NSubstitute;
@@ -19,7 +18,7 @@ namespace Toggl.Foundation.Tests.Interactors.Workspace
         public sealed class TheObserveAllWorkspacesInteractor : BaseInteractorTests
         {
             [Fact, LogIfTooSlow]
-            public async Task GetsAllChangesToWorkspaces()
+            public void GetsAllChangesToWorkspaces()
             {
                 var createSubject = new Subject<IThreadSafeWorkspace>();
                 DataSource.Workspaces.Created.Returns(createSubject.AsObservable());
@@ -47,7 +46,7 @@ namespace Toggl.Foundation.Tests.Interactors.Workspace
             }
 
             [Fact, LogIfTooSlow]
-            public async Task DoesntEmitIfWorkspacesDidntChange()
+            public void DoesntEmitIfWorkspacesDidntChange()
             {
                 var createSubject = new Subject<IThreadSafeWorkspace>();
                 DataSource.Workspaces.Created.Returns(createSubject.AsObservable());

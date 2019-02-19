@@ -17,7 +17,7 @@ namespace Toggl.Foundation.Tests.Interactors.Workspace
         public sealed class TheObserveAllWorkspacesInteractorTests : BaseInteractorTests
         {
             [Fact, LogIfTooSlow]
-            public async Task GetsAnEventWhenAChangeToWorkspacesHappens()
+            public void GetsAnEventWhenAChangeToWorkspacesHappens()
             {
                 var createSubject = new Subject<IThreadSafeWorkspace>();
                 var deleteSubject = new Subject<long>();

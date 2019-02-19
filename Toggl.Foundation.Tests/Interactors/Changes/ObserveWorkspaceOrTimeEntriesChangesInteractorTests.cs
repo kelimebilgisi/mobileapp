@@ -15,7 +15,7 @@ namespace Toggl.Foundation.Tests.Interactors.Changes
     public class ObserveWorkspaceOrTimeEntriesChangesInteractorTests : BaseInteractorTests
     {
         [Fact, LogIfTooSlow]
-        public async Task GetsAnEventWhenAChangeToWorkspacesHappens()
+        public void GetsAnEventWhenAChangeToWorkspacesHappens()
         {
             var createSubject = new Subject<IThreadSafeWorkspace>();
             DataSource.Workspaces.Created.Returns(createSubject.AsObservable());
@@ -36,7 +36,7 @@ namespace Toggl.Foundation.Tests.Interactors.Changes
         }
 
         [Fact, LogIfTooSlow]
-        public async Task GetsAnEventWhenAChangeToTimeEntriesHappens()
+        public void GetsAnEventWhenAChangeToTimeEntriesHappens()
         {
             var createSubject = new Subject<IThreadSafeTimeEntry>();
             DataSource.TimeEntries.Created.Returns(createSubject.AsObservable());
@@ -58,7 +58,7 @@ namespace Toggl.Foundation.Tests.Interactors.Changes
 
 
         [Fact, LogIfTooSlow]
-        public async Task GetsAnEventWhenAChangeToTimeEntriesOrWorkspacesHappens()
+        public void GetsAnEventWhenAChangeToTimeEntriesOrWorkspacesHappens()
         {
             var timeEntryCreateSubject = new Subject<IThreadSafeTimeEntry>();
             DataSource.TimeEntries.Created.Returns(timeEntryCreateSubject.AsObservable());

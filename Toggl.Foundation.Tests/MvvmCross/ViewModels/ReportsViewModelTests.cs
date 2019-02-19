@@ -525,8 +525,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 DialogService.Select(Arg.Any<string>(), Arg.Any<IEnumerable<(string, IThreadSafeWorkspace)>>(), Arg.Any<int>())
                     .Returns(Observable.Return(mockWorkspace));
 
-                ViewModel.SelectWorkspace.Execute();
-                TestScheduler.Start();
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 await ReportsProvider.Received().GetProjectSummary(Arg.Is(mockWorkspace.Id), Arg.Any<DateTimeOffset>(),
                     Arg.Any<DateTimeOffset>());
@@ -545,9 +544,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 InteractorFactory.GetDefaultWorkspace().Execute().Returns(Observable.Return(mockWorkspace));
 
                 await ViewModel.Initialize();
-
-                ViewModel.SelectWorkspace.Execute();
                 TestScheduler.Start();
+
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 observer.Messages.AssertEqual(
                     ReactiveTest.OnNext(1, ""),
@@ -560,11 +559,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 TimeService.CurrentDateTime.Returns(DateTimeOffset.Now);
                 await ViewModel.Initialize();
+                TestScheduler.Start();
                 DialogService.Select(Arg.Any<string>(), Arg.Any<IEnumerable<(string, IThreadSafeWorkspace)>>(), Arg.Any<int>())
                     .Returns(Observable.Return<IThreadSafeWorkspace>(null));
 
-                ViewModel.SelectWorkspace.Execute();
-                TestScheduler.Start();
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 await ReportsProvider.DidNotReceive().GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
                     Arg.Any<DateTimeOffset>());
@@ -575,13 +574,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 TimeService.CurrentDateTime.Returns(DateTimeOffset.Now);
                 await ViewModel.Initialize();
+                TestScheduler.Start();
 
                 var mockWorkspace = new MockWorkspace { Id = WorkspaceId };
                 DialogService.Select(Arg.Any<string>(), Arg.Any<IEnumerable<(string, IThreadSafeWorkspace)>>(), Arg.Any<int>())
                     .Returns(Observable.Return<IThreadSafeWorkspace>(mockWorkspace));
 
-                ViewModel.SelectWorkspace.Execute();
-                TestScheduler.Start();
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 await ReportsProvider.DidNotReceive().GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
                     Arg.Any<DateTimeOffset>());
@@ -638,11 +637,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 TimeService.CurrentDateTime.Returns(DateTimeOffset.Now);
                 prepareWorkspace(isProEnabled: false);
-
                 await ViewModel.Initialize();
-
-                ViewModel.SelectWorkspace.Execute();
                 TestScheduler.Start();
+
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 isEnabledObserver.LastEmittedValue().Should().BeFalse();
             }
@@ -656,8 +654,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await Initialize();
                 TestScheduler.Start();
 
-                ViewModel.SelectWorkspace.Execute();
-                TestScheduler.Start();
+                await ViewModel.SelectWorkspace.Execute(TestScheduler);
 
                 isEnabledObserver.LastEmittedValue().Should().BeTrue();
             }
@@ -703,7 +700,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 }
                 TestScheduler.Start();
 
-                ReportsProvider.Received(numberOfAppearances).GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
+                await ReportsProvider.Received(numberOfAppearances).GetProjectSummary(Arg.Any<long>(), Arg.Any<DateTimeOffset>(),
                     Arg.Any<DateTimeOffset>());
             }
         }

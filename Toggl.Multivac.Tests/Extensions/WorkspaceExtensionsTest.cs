@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Multivac.Extensions;
@@ -16,7 +15,7 @@ namespace Toggl.Multivac.Tests
             [InlineData(true, false, true)]
             [InlineData(false, true, false)]
             [InlineData(true, true, true)]
-            public async Task ReturnsAppropriateValue(
+            public void ReturnsAppropriateValue(
                 bool isAdmin,
                 bool onlyAdminCanCreateProject,
                 bool isEligibleForProjectCreation)

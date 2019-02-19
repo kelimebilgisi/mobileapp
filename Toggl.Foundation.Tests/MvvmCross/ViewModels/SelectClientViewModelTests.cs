@@ -174,9 +174,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.Close.Execute();
-                TestScheduler.Start();
-
+                await ViewModel.Close.Execute(TestScheduler);
+                
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long?>());
             }
@@ -186,9 +185,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.Close.Execute();
-                TestScheduler.Start();
-
+                await ViewModel.Close.Execute(TestScheduler);
+                
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), null);
             }
@@ -211,8 +209,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.SelectClient.Execute(client);
-                TestScheduler.Start();
+                await ViewModel.SelectClient.Execute(client, TestScheduler);
 
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), Arg.Any<long?>());
@@ -223,8 +220,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.SelectClient.Execute(client);
-                TestScheduler.Start();
+                await ViewModel.SelectClient.Execute(client, TestScheduler);
 
                 await NavigationService.Received().Close(
                     Arg.Is(ViewModel),
@@ -240,8 +236,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var newClient = new SelectableClientCreationViewModel("Some name of the client");
                 ViewModel.Prepare(Parameters);
 
-                ViewModel.SelectClient.Execute(newClient);
-                TestScheduler.Start();
+                await ViewModel.SelectClient.Execute(newClient, TestScheduler);
 
                 await InteractorFactory
                     .Received()
@@ -259,8 +254,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 await ViewModel.Initialize();
 
-                ViewModel.SelectClient.Execute(new SelectableClientCreationViewModel(name));
-                TestScheduler.Start();
+                await ViewModel.SelectClient.Execute(new SelectableClientCreationViewModel(name), TestScheduler);
 
                 await InteractorFactory
                     .Received()

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
-using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
@@ -43,8 +42,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task CallsTheOpenStoreMethodOfTheBrowserService()
             {
-                ViewModel.UpdateApp.Execute();
-                TestScheduler.Start();
+                await ViewModel.UpdateApp.Execute(TestScheduler);
 
                 BrowserService.Received().OpenStore();
             }
@@ -57,8 +55,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 const string togglWebsiteUrl = "https://toggl.com";
 
-                ViewModel.OpenWebsite.Execute();
-                TestScheduler.Start();
+                await ViewModel.OpenWebsite.Execute(TestScheduler);
 
                 BrowserService.Received().OpenUrl(Arg.Is(togglWebsiteUrl));
             }

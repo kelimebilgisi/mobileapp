@@ -10,8 +10,6 @@ using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Sync.States.Pull;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
-using Toggl.Multivac.Models;
-using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 
@@ -52,9 +50,9 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
-            dataSource.Received(2).Create(Arg.Any<IThreadSafeWorkspace>());
-            dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2));
-            dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3));
+            await dataSource.Received(2).Create(Arg.Any<IThreadSafeWorkspace>());
+            await dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2));
+            await dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3));
         }
 
         [Fact, LogIfTooSlow]
@@ -74,7 +72,7 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
-            dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(arg => arg.Id == 2));
+            await dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(arg => arg.Id == 2));
         }
 
         [Fact, LogIfTooSlow]
@@ -96,11 +94,11 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
-            dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2));
+            await dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 2));
 
-            dataSource.Received(2).Create(Arg.Any<IThreadSafeWorkspace>());
-            dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3));
-            dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 4));
+            await dataSource.Received(2).Create(Arg.Any<IThreadSafeWorkspace>());
+            await dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 3));
+            await dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => workspace.Id == 4));
         }
 
         [Fact, LogIfTooSlow]
@@ -121,8 +119,8 @@ namespace Toggl.Foundation.Tests.Sync.States.Pull
             var state = new PersistNewWorkspacesState(dataSource);
             await state.Start(newWorkspaces);
 
-            dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
-            dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
+            await dataSource.Received().Update(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
+            await dataSource.Received().Create(Arg.Is<IThreadSafeWorkspace>(workspace => !workspace.IsInaccessible));
         }
 
         private void prepareDatabase(IEnumerable<IThreadSafeWorkspace> workspaces)

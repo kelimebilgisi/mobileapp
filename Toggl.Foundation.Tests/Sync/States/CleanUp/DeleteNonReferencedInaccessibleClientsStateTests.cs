@@ -55,7 +55,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            clientsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeClient>>(arg =>
+            await clientsDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeClient>>(arg =>
                 arg.All(client => unreferencedClients.Contains(client)) &&
                 arg.None(client => neededClients.Contains(client))));
         }

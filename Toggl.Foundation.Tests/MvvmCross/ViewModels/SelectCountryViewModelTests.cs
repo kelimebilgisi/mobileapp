@@ -8,6 +8,7 @@ using FsCheck;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Models;
 using Xunit;
 
@@ -108,9 +109,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 var selectableCountry = new SelectableCountryViewModel(country, true);
 
-                ViewModel.SelectCountry.Execute(selectableCountry);
-
-                TestScheduler.Start();
+                await ViewModel.SelectCountry.Execute(selectableCountry, TestScheduler);
+                
                 await NavigationService.Received()
                     .Close(Arg.Is(ViewModel), country.Id);
             }

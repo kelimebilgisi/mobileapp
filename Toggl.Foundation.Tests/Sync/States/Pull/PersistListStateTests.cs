@@ -6,12 +6,9 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.DataSources.Interfaces;
-using Toggl.Foundation.Sync;
 using Toggl.Foundation.Sync.States;
 using Toggl.Foundation.Sync.States.Pull;
-using Toggl.Foundation.Tests.Helpers;
 using Toggl.PrimeRadiant;
-using Toggl.Ultrawave.Exceptions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.Sync.States
@@ -79,7 +76,7 @@ namespace Toggl.Foundation.Tests.Sync.States
 
             await state.Start(observables).SingleAsync();
 
-            dataSource.Received(1).BatchUpdate(Arg.Is<IEnumerable<IThreadSafeTestModel>>(
+            await dataSource.Received(1).BatchUpdate(Arg.Is<IEnumerable<IThreadSafeTestModel>>(
                 items => items.Count() == 2 && items.Any(item => item.Id == 1) && items.Any(item => item.Id == 2)));
         }
 

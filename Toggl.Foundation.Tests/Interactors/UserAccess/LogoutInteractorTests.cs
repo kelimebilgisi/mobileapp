@@ -46,7 +46,7 @@ namespace Toggl.Foundation.Tests.Interactors.UserAccess
         {
             await interactor.Execute();
 
-            SyncManager.Received().Freeze();
+            await SyncManager.Received().Freeze();
         }
 
         [Fact, LogIfTooSlow]

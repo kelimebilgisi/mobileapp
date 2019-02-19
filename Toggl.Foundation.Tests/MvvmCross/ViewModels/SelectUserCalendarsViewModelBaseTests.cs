@@ -13,6 +13,7 @@ using Toggl.Multivac.Extensions;
 using Xunit;
 using static Toggl.Multivac.Extensions.FunctionalExtensions;
 using Toggl.PrimeRadiant.Settings;
+using Toggl.Foundation.Tests.TestExtensions;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -119,9 +120,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var viewModelCalendars = await ViewModel.Calendars.LastAsync();
                 var calendarToBeSelected = viewModelCalendars.First().Items.First();
 
-                ViewModel.SelectCalendar.Execute(calendarToBeSelected);
-                TestScheduler.Start();
-
+                await ViewModel.SelectCalendar.Execute(calendarToBeSelected, TestScheduler);
+                
                 calendarToBeSelected.Selected.Should().BeTrue();
             }
 
@@ -141,11 +141,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var viewModelCalendars = await ViewModel.Calendars.LastAsync();
                 var calendarToBeSelected = viewModelCalendars.First().Items.First();
 
-                ViewModel.SelectCalendar.Execute(calendarToBeSelected); //Select the calendar
-                TestScheduler.Start();
-                ViewModel.SelectCalendar.Execute(calendarToBeSelected); //Deselect the calendar
-                TestScheduler.Start();
-
+                //Select the calendar
+                await ViewModel.SelectCalendar.Execute(calendarToBeSelected, TestScheduler);
+                //Deselect the calendar
+                await ViewModel.SelectCalendar.Execute(calendarToBeSelected, TestScheduler);
+                
                 calendarToBeSelected.Selected.Should().BeFalse();
             }
         }

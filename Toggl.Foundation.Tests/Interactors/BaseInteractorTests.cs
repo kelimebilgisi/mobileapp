@@ -7,7 +7,6 @@ using Toggl.Foundation.Shortcuts;
 using Toggl.PrimeRadiant;
 using Toggl.PrimeRadiant.Settings;
 using Toggl.Ultrawave.Network;
-using Toggl.Foundation.Services;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Login;

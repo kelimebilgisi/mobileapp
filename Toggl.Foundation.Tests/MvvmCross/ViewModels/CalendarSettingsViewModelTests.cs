@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -11,6 +10,7 @@ using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels.Selectable;
 using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Xunit;
 
@@ -67,7 +67,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task OpensAppSettings()
             {
-                ViewModel.RequestAccess.Execute();
+                await ViewModel.RequestAccess.Execute(TestScheduler);
 
                 PermissionsService.Received().OpenAppSettings();
             }
@@ -118,15 +118,11 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var firstCalendar = new UserCalendar("1", "1", "1");
                 var secondCalendar = new UserCalendar("2", "2", "2");
 
-                var observer = TestScheduler.CreateObserver<Unit>();
-                Observable.Concat(
-                    Observable.Defer(() =>
-                        ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(firstCalendar, false))),
-                    Observable.Defer(() =>
-                        ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(secondCalendar, false)))
-                ).Subscribe(observer);
+                await ViewModel.SelectCalendar
+                    .Execute(new SelectableUserCalendarViewModel(firstCalendar, false), TestScheduler);
 
-                TestScheduler.Start();
+                await ViewModel.SelectCalendar
+                    .Execute(new SelectableUserCalendarViewModel(secondCalendar, false), TestScheduler);
 
                 Received.InOrder(() =>
                 {

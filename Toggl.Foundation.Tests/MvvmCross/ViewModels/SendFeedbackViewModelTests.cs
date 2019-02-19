@@ -114,16 +114,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Fact, LogIfTooSlow]
-            public void EmitsFalseWhenFeedbackBeingSent()
+            public async Task EmitsFalseWhenFeedbackBeingSent()
             {
                 var observer = TestScheduler.CreateObserver<bool>();
                 var viewModel = CreateViewModel();
                 viewModel.SendEnabled.Subscribe(observer);
 
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeFalse();
             }
         }
@@ -131,7 +130,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheIsLoadingProperty : SendFeedbackViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void EmitsTrueWhenFeedbackBeingSent()
+            public async Task EmitsTrueWhenFeedbackBeingSent()
             {
                 SynchronizationContext.SetSynchronizationContext(new SynchronizationContext());
 
@@ -143,14 +142,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(false).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
-            public void EmitsFalseAfterNetworkRequestFailed()
+            public async Task EmitsFalseAfterNetworkRequestFailed()
             {
                 var mockedFeedbackInteractor = Substitute.For<IInteractor<IObservable<Unit>>>();
                 InteractorFactory.SendFeedback(Arg.Any<string>()).Returns(mockedFeedbackInteractor);
@@ -160,14 +158,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
-            public void DoesNotEmitFalseAfterNetworkRequestSucceed()
+            public async Task DoesNotEmitFalseAfterNetworkRequestSucceed()
             {
                 var mockedFeedbackInteractor = Substitute.For<IInteractor<IObservable<Unit>>>();
                 mockedFeedbackInteractor.Execute().Returns(Observable.Return(Unit.Default));
@@ -177,22 +174,20 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
-            public void EmitsFalseWhenUserDismissTheView()
+            public async Task EmitsFalseWhenUserDismissTheView()
             {
                 var observer = TestScheduler.CreateObserver<bool>();
                 var viewModel = CreateViewModel();
 
                 viewModel.IsLoading.StartWith(true).Subscribe(observer);
-                viewModel.Close.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Close.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeFalse();
             }
         }
@@ -200,20 +195,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheErrorObservable : SendFeedbackViewModelTest
         {
             [Fact, LogIfTooSlow]
-            public void EmitsNullWhenUserTapOnErrorView()
+            public async Task EmitsNullWhenUserTapOnErrorView()
             {
                 var observer = TestScheduler.CreateObserver<Exception>();
                 var viewModel = CreateViewModel();
 
                 viewModel.Error.StartWith(new Exception()).Subscribe(observer);
-                viewModel.DismissError.Execute();
+                await viewModel.DismissError.Execute(TestScheduler);
 
-                TestScheduler.Start();
                 observer.LastEmittedValue().Should().BeNull();
             }
 
             [Fact, LogIfTooSlow]
-            public void PassTheExceptionsForward()
+            public async Task PassTheExceptionsForward()
             {
                 var mockedFeedbackInteractor = Substitute.For<IInteractor<IObservable<Unit>>>();
                 InteractorFactory.SendFeedback(Arg.Any<string>()).Returns(mockedFeedbackInteractor);
@@ -224,9 +218,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Error.Subscribe(observer);
                 mockedFeedbackInteractor.Execute().Returns(Observable.Throw<Unit>(exception));
                 viewModel.FeedbackText.OnNext("some value");
-                viewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await viewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().Be(exception);
             }
         }
@@ -238,9 +231,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.FeedbackText.OnNext(string.Empty);
 
-                ViewModel.Close.Execute();
+                await ViewModel.Close.Execute(TestScheduler);
 
-                TestScheduler.Start();
                 await NavigationService.Received().Close(ViewModel, false);
             }
 
@@ -256,34 +248,32 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
 
             [Property]
-            public void ClosesTheDialogWithoutSendingFeedbackWhenUserConfirmsDestructiveAction(NonEmptyString feedbackText)
+            public async Task ClosesTheDialogWithoutSendingFeedbackWhenUserConfirmsDestructiveAction(NonEmptyString feedbackText)
             {
                 DialogService.ConfirmDestructiveAction(Arg.Any<ActionType>()).Returns(Observable.Return(true));
                 ViewModel.FeedbackText.OnNext(feedbackText.Get);
 
-                ViewModel.Close.Execute();
+                await ViewModel.Close.Execute(TestScheduler);
 
-                TestScheduler.Start();
-                NavigationService.Received().Close(ViewModel, false);
+                await NavigationService.Received().Close(ViewModel, false);
             }
 
             [Property]
-            public void DoesNotCloseTheDialogWhenUserCancelsDestructiveAction(NonEmptyString feedbackText)
+            public async Task DoesNotCloseTheDialogWhenUserCancelsDestructiveAction(NonEmptyString feedbackText)
             {
                 DialogService.ConfirmDestructiveAction(Arg.Any<ActionType>()).Returns(Observable.Return(false));
                 ViewModel.FeedbackText.OnNext(feedbackText.Get);
 
-                ViewModel.Close.Execute();
+                await ViewModel.Close.Execute(TestScheduler);
 
-                TestScheduler.Start();
-                NavigationService.DidNotReceive().Close(Arg.Any<IMvxViewModelResult<bool>>(), Arg.Any<bool>());
+                await NavigationService.DidNotReceive().Close(Arg.Any<IMvxViewModelResult<bool>>(), Arg.Any<bool>());
             }
         }
 
         public sealed class TheErrorViewTappedAction : SendFeedbackViewModelTest
         {
             [Fact]
-            public void HidesTheErrorView()
+            public async Task HidesTheErrorView()
             {
                 var observer = TestScheduler.CreateObserver<Exception>();
                 InteractorFactory.SendFeedback(Arg.Any<string>())
@@ -292,10 +282,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FeedbackText.OnNext("some feedback");
                 ViewModel.Error.Subscribe(observer);
 
-                ViewModel.Send.Execute();
-                ViewModel.DismissError.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Send.Execute(TestScheduler);
+                await ViewModel.DismissError.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().BeNull();
             }
         }
@@ -310,14 +299,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Execute()
                     .Returns(Observable.Return(Unit.Default));
 
-                ViewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Send.Execute(TestScheduler);
+                
                 await NavigationService.Received().Close(ViewModel, true);
             }
 
             [Fact]
-            public void ShowsErrorWhenSendingFeedbackFails()
+            public async Task ShowsErrorWhenSendingFeedbackFails()
             {
                 var observer = TestScheduler.CreateObserver<Exception>();
                 ViewModel.FeedbackText.OnNext("feedback");
@@ -327,9 +315,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Throw<Unit>(expectedException));
                 ViewModel.Error.Subscribe(observer);
 
-                ViewModel.Send.Execute();
-
-                TestScheduler.Start();
+                await ViewModel.Send.Execute(TestScheduler);
+                
                 observer.LastEmittedValue().Should().Be(expectedException);
             }
         }

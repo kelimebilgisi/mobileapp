@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
@@ -42,7 +41,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async Task OpensAppSettings()
             {
-                ViewModel.EnableAccess.Execute();
+                await ViewModel.EnableAccess.Execute(TestScheduler);
 
                 PermissionsService.Received().OpenAppSettings();
             }

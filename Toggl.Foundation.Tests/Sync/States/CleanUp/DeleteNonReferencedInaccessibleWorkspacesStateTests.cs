@@ -98,7 +98,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
+            await workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
                 arg => arg.All(ws => ws == inaccessibleUnreferenced)));
         }
 
@@ -120,7 +120,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
+            await workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
                 arg => arg.All(ws => ws == inaccessibleUnreferenced)));
         }
 
@@ -145,7 +145,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
+            await workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
                 arg => arg.All(ws => ws == inaccessibleUnreferenced)));
         }
 
@@ -167,7 +167,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
+            await workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
                 arg => arg.All(ws => ws == inaccessibleUnreferenced)));
         }
 
@@ -189,7 +189,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
+            await workspacesDataSource.Received().DeleteAll(Arg.Is<IEnumerable<IThreadSafeWorkspace>>(
                 arg => arg.All(ws => ws == inaccessibleUnreferenced)));
         }
 

@@ -38,7 +38,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            dataSource
+            await dataSource
                 .Received()
                 .DeleteAll(Arg.Is<IEnumerable<IThreadSafeTimeEntry>>(
                     arg => arg.All(te => syncedTimeEntries.Contains(te)) &&
@@ -66,7 +66,7 @@ namespace Toggl.Foundation.Tests.Sync.States.CleanUp
 
             await state.Start().SingleAsync();
 
-            dataSource
+            await dataSource
                 .Received()
                 .DeleteAll(Arg.Is<IEnumerable<IThreadSafeTimeEntry>>(
                     arg => arg.All(te => syncedInaccessibleTimeEntries.Contains(te)) &&

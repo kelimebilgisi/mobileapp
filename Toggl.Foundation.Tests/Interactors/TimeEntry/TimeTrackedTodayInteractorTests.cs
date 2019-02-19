@@ -182,7 +182,7 @@ namespace Toggl.Foundation.Tests.Interactors.TimeEntry
             }
 
             [Fact, LogIfTooSlow]
-            public async Task ReturnsATickingObservable()
+            public void ReturnsATickingObservable()
             {
                 DataSource.TimeEntries.GetAll(Arg.Any<Func<IDatabaseTimeEntry, bool>>(), Arg.Any<bool>())
                     .Returns(wherePredicateApplies(new[]

@@ -13,6 +13,7 @@ using Toggl.Foundation.Interactors;
 using System.Reactive;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Exceptions;
+using Toggl.Foundation.Tests.TestExtensions;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
@@ -98,8 +99,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.Initialize();
                 var selectedWorkspace = ViewModel.Workspaces.First();
 
-                ViewModel.SelectWorkspace.Execute(selectedWorkspace);
-                TestScheduler.Start();
+                await ViewModel.SelectWorkspace.Execute(selectedWorkspace, TestScheduler);
 
                 InteractorFactory.Received().SetDefaultWorkspace(selectedWorkspace.WorkspaceId);
                 await setDefaultWorkspaceInteractor.Received().Execute();
@@ -110,9 +110,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var selectedWorkspace = new SelectableWorkspaceViewModel(new MockWorkspace(), false);
 
-                ViewModel.SelectWorkspace.Execute(selectedWorkspace);
-                TestScheduler.Start();
-
+                await ViewModel.SelectWorkspace.Execute(selectedWorkspace, TestScheduler);
+                
                 await NavigationService.Received().Close(ViewModel, Unit.Default);
             }
         }
