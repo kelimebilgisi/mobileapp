@@ -61,10 +61,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISubject<TextFieldInfo> querySubject = new Subject<TextFieldInfo>();
         private readonly ISubject<AutocompleteSuggestionType> queryByTypeSubject = new Subject<AutocompleteSuggestionType>();
         private readonly BehaviorRelay<TimeSpan> displayedTime = new BehaviorRelay<TimeSpan>(TimeSpan.Zero);
+        private readonly BehaviorRelay<bool> isBillable = new BehaviorRelay<bool>(false);
+        private readonly BehaviorRelay<bool> isSuggestingTags = new BehaviorRelay<bool>(false);
+        private readonly BehaviorRelay<bool> isSuggestingProjects = new BehaviorRelay<bool>(false);
+        private readonly BehaviorRelay<bool> isBillableAvailable = new BehaviorRelay<bool>(false);
 
         private bool isDirty => !string.IsNullOrEmpty(textFieldInfo.Description)
                                 || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
-                                || IsBillable
+                                || isBillable.Value
                                 || startTime != parameter.StartTime
                                 || duration != parameter.Duration;
 
@@ -89,11 +93,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         //Properties
         public IObservable<TextFieldInfo> TextFieldInfoObservable { get; }
-        public bool IsBillable { get; private set; } = false;
-        public bool IsSuggestingTags { get; private set; }
-        public bool IsSuggestingProjects { get; private set; }
-
-        public bool IsBillableAvailable { get; private set; } = false;
+        public IObservable<bool> IsBillable { get; }
+        public IObservable<bool> IsSuggestingTags { get; }
+        public IObservable<bool> IsSuggestingProjects { get; }
+        public IObservable<bool> IsBillableAvailable { get; }
 
         public string PlaceholderText { get; private set; }
 
@@ -177,6 +180,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             DisplayedTime = displayedTime
                 .Select(time => time.ToFormattedString(DurationFormat.Improved))
                 .AsDriver(schedulerProvider);
+            IsSuggestingTags = isBillable.AsDriver(schedulerProvider);
+            IsSuggestingTags = isSuggestingTags.AsDriver(schedulerProvider);
+            IsSuggestingProjects = isSuggestingProjects.AsDriver(schedulerProvider);
+            IsBillableAvailable = isBillable.AsDriver(schedulerProvider);
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
@@ -463,10 +470,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void toggleTagSuggestions()
         {
-            if (IsSuggestingTags)
+            if (isSuggestingTags.Value)
             {
                 updateUiWith(textFieldInfo.RemoveTagQueryIfNeeded());
-                IsSuggestingTags = false;
+                isSuggestingTags.Accept(false);
                 return;
             }
 
@@ -479,9 +486,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private void toggleProjectSuggestions()
         {
-            if (IsSuggestingProjects)
+            if (isSuggestingProjects.Value)
             {
-                IsSuggestingProjects = false;
+                isSuggestingProjects.Accept(false);
                 updateUiWith(textFieldInfo.RemoveProjectQueryIfNeeded());
                 queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
                 return;
@@ -493,7 +500,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             if (textFieldInfo.HasProject)
             {
-                IsSuggestingProjects = true;
+                isSuggestingProjects.Accept(true);
                 queryByTypeSubject.OnNext(AutocompleteSuggestionType.Projects);
                 return;
             }
@@ -520,7 +527,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private void toggleBillable()
         {
             analyticsService.StartViewTapped.Track(StartViewTapSource.Billable);
-            IsBillable = !IsBillable;
+            isBillable.Accept(!isBillable.Value);
         }
 
         private async Task changeTime()
@@ -559,7 +566,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private IObservable<Unit> done()
         {
-            var timeEntry = textFieldInfo.AsTimeEntryPrototype(startTime, duration ?? TimeSpan.Zero, IsBillable);
+            var timeEntry = textFieldInfo.AsTimeEntryPrototype(startTime, duration ?? TimeSpan.Zero, isBillable.Value);
             return interactorFactory.CreateTimeEntry(timeEntry).Execute()
                 .Do(_ => navigationService.Close(this))
                 .SelectUnit();
@@ -577,18 +584,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             bool suggestsTags = parsedQuery.SuggestionType == AutocompleteSuggestionType.Tags;
             bool suggestsProjects = parsedQuery.SuggestionType == AutocompleteSuggestionType.Projects;
 
-            if (!IsSuggestingTags && suggestsTags)
+            if (!isSuggestingTags.Value && suggestsTags)
             {
                 analyticsService.StartEntrySelectTag.Track(ProjectTagSuggestionSource.TextField);
             }
 
-            if (!IsSuggestingProjects && suggestsProjects)
+            if (!isSuggestingProjects.Value && suggestsProjects)
             {
                 analyticsService.StartEntrySelectProject.Track(ProjectTagSuggestionSource.TextField);
             }
 
-            IsSuggestingTags = suggestsTags;
-            IsSuggestingProjects = suggestsProjects;
+            isSuggestingTags.Accept(suggestsTags);
+            isSuggestingProjects.Accept(suggestsProjects);
         }
 
         private IEnumerable<AutocompleteSuggestion> filter(IEnumerable<AutocompleteSuggestion> suggestions)
@@ -596,7 +603,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             suggestionsRenderingStopwatch = stopwatchProvider.Create(MeasuredOperation.StartTimeEntrySuggestionsRenderingTime);
             suggestionsRenderingStopwatch.Start();
 
-            if (textFieldInfo.HasProject && !IsSuggestingProjects && !IsSuggestingTags)
+            if (textFieldInfo.HasProject && !isSuggestingProjects.Value && !isSuggestingTags.Value)
             {
                 var projectId = textFieldInfo.Spans.OfType<ProjectSpan>().Single().ProjectId;
 
@@ -612,7 +619,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             IList<AutocompleteSuggestion> items = suggestions.ToList();
 
-            if (IsSuggestingProjects)
+            if (isSuggestingProjects.Value)
             {
                 if (shouldAddProjectCreationSuggestion())
                 {
@@ -628,7 +635,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 }
             }
 
-            if (IsSuggestingTags)
+            if (isSuggestingTags.Value)
             {
                 if (shouldAddTagCreationSuggestion())
                 {
@@ -675,7 +682,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     .ThenBy(group => group.First().WorkspaceName);
             }
 
-            if (IsSuggestingTags)
+            if (isSuggestingTags.Value)
                 suggestions = suggestions.Where(suggestion => suggestion.WorkspaceId == textFieldInfo.WorkspaceId);
 
             return suggestions
@@ -719,19 +726,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private async Task setBillableValues(long? currentProjectId)
         {
             var hasProject = currentProjectId.HasValue && currentProjectId.Value != ProjectSuggestion.NoProjectId;
+            bool billableAvailable;
             if (hasProject)
             {
                 var projectId = currentProjectId.Value;
-                IsBillableAvailable =
-                    await interactorFactory.IsBillableAvailableForProject(projectId).Execute();
-
-                IsBillable = IsBillableAvailable && await interactorFactory.ProjectDefaultsToBillable(projectId).Execute();
+                billableAvailable = await interactorFactory.IsBillableAvailableForProject(projectId).Execute();
+                isBillable.Accept(billableAvailable && await interactorFactory.ProjectDefaultsToBillable(projectId).Execute());
             }
             else
             {
-                IsBillable = false;
-                IsBillableAvailable = await interactorFactory.IsBillableAvailableForWorkspace(textFieldInfo.WorkspaceId).Execute();
+                isBillable.Accept(false);
+                billableAvailable = await interactorFactory.IsBillableAvailableForWorkspace(textFieldInfo.WorkspaceId).Execute();
             }
+
+            isBillableAvailable.Accept(billableAvailable);
         }
 
         private void queryWith(TextFieldInfo newTextFieldinfo)

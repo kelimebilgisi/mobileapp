@@ -97,12 +97,6 @@ namespace Toggl.Daneel.ViewControllers
 
             source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
-            var buttonColorConverter = new BoolToConstantValueConverter<UIColor>(
-                Color.StartTimeEntry.ActiveButton.ToNativeColor(),
-                Color.StartTimeEntry.InactiveButton.ToNativeColor()
-            );
-            var durationCombiner = new DurationValueCombiner();
-
             TimeInput.Rx().Duration()
                 .Subscribe(ViewModel.SetRunningTime.Inputs)
                 .DisposedBy(disposeBag);
@@ -116,32 +110,30 @@ namespace Toggl.Daneel.ViewControllers
             Placeholder.Text = ViewModel.PlaceholderText;
 
             // Buttons
-            //ViewModel.IsSuggestingTags
+            UIColor booleanToColor(bool b) => b
+                ? Color.StartTimeEntry.ActiveButton.ToNativeColor()
+                : Color.StartTimeEntry.InactiveButton.ToNativeColor();
 
+            ViewModel.IsBillable
+                .Select(booleanToColor)
+                .Subscribe(BillableButton.Rx().TintColor())
+                .DisposedBy(disposeBag);
 
-            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
+            ViewModel.IsSuggestingTags
+                .Select(booleanToColor)
+                .Subscribe(TagsButton.Rx().TintColor())
+                .DisposedBy(disposeBag);
 
-            //Buttons
-            bindingSet.Bind(TagsButton)
-                      .For(v => v.TintColor)
-                      .To(vm => vm.IsSuggestingTags)
-                      .WithConversion(buttonColorConverter);
-
-            bindingSet.Bind(BillableButton)
-                      .For(v => v.TintColor)
-                      .To(vm => vm.IsBillable)
-                      .WithConversion(buttonColorConverter);
-
-            bindingSet.Bind(ProjectsButton)
-                      .For(v => v.TintColor)
-                      .To(vm => vm.IsSuggestingProjects)
-                      .WithConversion(buttonColorConverter);
+            ViewModel.IsSuggestingProjects
+                .Select(booleanToColor)
+                .Subscribe(ProjectsButton.Rx().TintColor())
+                .DisposedBy(disposeBag);
 
             //Visibility
-            bindingSet.Bind(BillableButtonWidthConstraint)
-                      .For(v => v.Constant)
-                      .To(vm => vm.IsBillableAvailable)
-                      .WithConversion(new BoolToConstantValueConverter<nfloat>(42, 0));
+            ViewModel.IsBillableAvailable
+                .Select(b => b ? (nfloat)42 : 0)
+                .Subscribe(BillableButtonWidthConstraint.Rx().Constant())
+                .DisposedBy(disposeBag);
 
             // Actions
             CloseButton.Rx()
@@ -152,6 +144,8 @@ namespace Toggl.Daneel.ViewControllers
                 .BindAction(ViewModel.Done)
                 .DisposedBy(disposeBag);
 
+            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
+            
             //Commands
             bindingSet.Bind(BillableButton).To(vm => vm.ToggleBillableCommand);
             bindingSet.Bind(StartDateButton).To(vm => vm.SetStartDateCommand);
