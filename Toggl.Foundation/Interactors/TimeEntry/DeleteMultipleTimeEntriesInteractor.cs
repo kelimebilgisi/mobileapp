@@ -22,6 +22,7 @@ namespace Toggl.Foundation.Interactors
             IInteractorFactory interactorFactory,
             long[] ids)
         {
+            Ensure.Argument.IsNotNull(timeService, nameof(timeService));
             Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
 
@@ -33,10 +34,7 @@ namespace Toggl.Foundation.Interactors
 
         public IObservable<Unit> Execute()
             => interactorFactory.GetMultipleTimeEntriesById(ids).Execute()
-                .SelectMany(CommonFunctions.Identity)
-                .Select(te => te.Id)
-                .SelectMany(id => interactorFactory.DeleteTimeEntry(id).Execute())
-                .ToList()
+                .SelectMany(dataSource.DeleteAll)
                 .SelectUnit();
     }
 }

@@ -498,6 +498,9 @@ Start the timer and your most used time entries will appear here.</value>
     <data name="InaccessibleTimeEntryErrorMessage">
         <value>This time entry belongs to a workspace that you don't have access to anymore and it can't be synced. Move it to a different workspace by changing the project or delete it.</value>
     </data>
+    <data name="TimeEntriesGroupSyncErrorMessage">
+        <value>{0} out of {1} time entries in this group failed to sync. Open specific time entries for details.</value>
+    </data>
     <data name="Calendar">
         <value>Calendar</value>
     </data>

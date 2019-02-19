@@ -26,7 +26,7 @@ namespace Toggl.Foundation.Interactors
 
         IInteractor<IObservable<IThreadSafeTimeEntry>> UpdateTimeEntry(EditTimeEntryDto dto);
 
-        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> UpdateMultipleTimeEntries(EditTimeEntryDto dto, long[] ids);
+        IInteractor<IObservable<IEnumerable<IThreadSafeTimeEntry>>> UpdateMultipleTimeEntries(EditTimeEntryDto[] dtos);
 
         IInteractor<IObservable<IThreadSafeTimeEntry>> GetTimeEntryById(long id);
 

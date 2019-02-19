@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -149,7 +150,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             EditTimes = actionFactory.FromAsync<EditViewTapSource>(editTimes);
             StopTimeEntry = actionFactory.FromAction(stopTimeEntry);
             DismissSyncErrorMessage = actionFactory.FromAction(dismissSyncErrorMessage);
-            Save = actionFactory.FromAction(save);
+            Save = actionFactory.FromAsync(save);
             Delete = actionFactory.FromAsync(delete);
         }
 
@@ -193,10 +194,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             isInaccessibleSubject.OnNext(timeEntry.IsInaccessible);
 
-            syncErrorMessageSubject.OnNext(
-                timeEntry.IsInaccessible
-                ? Resources.InaccessibleTimeEntryErrorMessage
-                : timeEntry.LastSyncErrorMessage);
+            setupSyncError(timeEntries);
 
             interactorFactory.GetPreferences().Execute()
                 .Subscribe(preferencesSubject)
@@ -206,6 +204,29 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .Select(user => user.BeginningOfWeek)
                 .Subscribe(beginningOfWeekSubject)
                 .DisposedBy(disposeBag);
+        }
+
+        private void setupSyncError(IEnumerable<IThreadSafeTimeEntry> timeEntries)
+        {
+            var errorCount = timeEntries.Count(te => te.IsInaccessible || !string.IsNullOrEmpty(te.LastSyncErrorMessage));
+
+            if (errorCount == 0)
+                return;
+
+            if (IsEditingGroup)
+            {
+                var message = string.Format(Resources.TimeEntriesGroupSyncErrorMessage, errorCount, TimeEntryIds.Length);
+                syncErrorMessageSubject.OnNext(message);
+
+                return;
+            }
+
+            var timeEntry = timeEntries.First();
+
+            syncErrorMessageSubject.OnNext(
+                timeEntry.IsInaccessible
+                ? Resources.InaccessibleTimeEntryErrorMessage
+                : timeEntry.LastSyncErrorMessage);
         }
 
         public override void ViewAppeared()
@@ -386,11 +407,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             || originalTimeEntry.Billable != isBillableSubject.Value
             || originalTimeEntry.Duration != (long?)durationSubject.Value?.TotalSeconds;
 
-        private void save()
+        private async Task save()
         {
             OnboardingStorage.EditedTimeEntry();
 
-            var dto = new EditTimeEntryDto
+            var timeEntries = await interactorFactory.GetMultipleTimeEntriesById(TimeEntryIds).Execute();
+
+            var commonTimeEntryData = new EditTimeEntryDto
             {
                 Id = TimeEntryIds.First(),
                 Description = Description.Value?.Trim() ?? string.Empty,
@@ -400,30 +423,56 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 TaskId = taskId,
                 Billable = isBillableSubject.Value,
                 WorkspaceId = workspaceIdSubject.Value,
-                TagIds = new List<long>()
+                TagIds = tagIds.ToArray()
             };
 
+            var timeEntriesDtos = timeEntries
+                .Select(timeEntry => applyDataFromTimeEntry(commonTimeEntryData, timeEntry))
+                .ToArray();
+
             interactorFactory
-                .UpdateMultipleTimeEntries(dto, TimeEntryIds)
+                .UpdateMultipleTimeEntries(timeEntriesDtos)
                 .Execute()
                 .SubscribeToErrorsAndCompletion((Exception ex) => close(), () => close())
                 .DisposedBy(disposeBag);
         }
 
+        private EditTimeEntryDto applyDataFromTimeEntry(EditTimeEntryDto commonTimeEntryData, IThreadSafeTimeEntry timeEntry)
+        {
+            commonTimeEntryData.Id = timeEntry.Id;
+            commonTimeEntryData.StartTime = timeEntry.Start;
+            commonTimeEntryData.StopTime = calculateStopTime(timeEntry.Start, timeEntry.TimeSpanDuration());
+
+            return commonTimeEntryData;
+        }
+
         private async Task delete()
         {
-            var shouldDelete = await dialogService.ConfirmDestructiveAction(
-                ActionType.DeleteMultipleExistingTimeEntries, TimeEntryIds.Length);
+            var actionType = IsEditingGroup
+                ? ActionType.DeleteMultipleExistingTimeEntries
+                : ActionType.DeleteExistingTimeEntry;
 
-            if (!shouldDelete)
-                return;
+            var interactor = IsEditingGroup
+                ? interactorFactory.DeleteMultipleTimeEntries(TimeEntryIds)
+                : interactorFactory.DeleteTimeEntry(TimeEntryId);
 
-            await interactorFactory.DeleteMultipleTimeEntries(TimeEntryIds).Execute();
-            dataSource.SyncManager.InitiatePushSync();
+            await delete(actionType, TimeEntryIds.Length, interactor);
 
             analyticsService.DeleteTimeEntry.Track();
 
             await close();
+        }
+
+        private async Task delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> interactor)
+        {
+            var shouldDelete = await dialogService.ConfirmDestructiveAction(actionType, entriesCount);
+
+            if (!shouldDelete)
+                return;
+
+            await interactor.Execute();
+
+            dataSource.SyncManager.InitiatePushSync();
         }
 
         private Task close()
