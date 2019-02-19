@@ -2119,6 +2119,15 @@ namespace Toggl.Foundation {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} out of {1} time entries in this group failed to sync. Open specific time entries for details..
+        /// </summary>
+        public static string TimeEntriesGroupSyncErrorMessage {
+            get {
+                return ResourceManager.GetString("TimeEntriesGroupSyncErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Time entry suggestion.
         /// </summary>
         public static string TimeEntrySuggestion {

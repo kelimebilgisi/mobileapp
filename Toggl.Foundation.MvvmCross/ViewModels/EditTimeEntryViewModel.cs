@@ -194,14 +194,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             isInaccessibleSubject.OnNext(timeEntry.IsInaccessible);
 
-            var faultyTimeEntry = timeEntries.FirstOrDefault(te => te.IsInaccessible || !string.IsNullOrEmpty(te.LastSyncErrorMessage));
-            if (faultyTimeEntry != null)
-            {
-                syncErrorMessageSubject.OnNext(
-                    faultyTimeEntry.IsInaccessible
-                    ? Resources.InaccessibleTimeEntryErrorMessage
-                    : timeEntry.LastSyncErrorMessage);
-            }
+            setupSyncError(timeEntries);
 
             interactorFactory.GetPreferences().Execute()
                 .Subscribe(preferencesSubject)
@@ -211,6 +204,29 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .Select(user => user.BeginningOfWeek)
                 .Subscribe(beginningOfWeekSubject)
                 .DisposedBy(disposeBag);
+        }
+
+        private void setupSyncError(IEnumerable<IThreadSafeTimeEntry> timeEntries)
+        {
+            var errorCount = timeEntries.Count(te => te.IsInaccessible || !string.IsNullOrEmpty(te.LastSyncErrorMessage));
+
+            if (errorCount == 0)
+                return;
+
+            if (IsEditingGroup)
+            {
+                var message = string.Format(Resources.TimeEntriesGroupSyncErrorMessage, errorCount, TimeEntryIds.Length);
+                syncErrorMessageSubject.OnNext(message);
+
+                return;
+            }
+
+            var timeEntry = timeEntries.First();
+
+            syncErrorMessageSubject.OnNext(
+                timeEntry.IsInaccessible
+                ? Resources.InaccessibleTimeEntryErrorMessage
+                : timeEntry.LastSyncErrorMessage);
         }
 
         public override void ViewAppeared()
