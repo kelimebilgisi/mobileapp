@@ -96,6 +96,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DistinctUntilChanged()
                 .AsDriver(false, schedulerProvider);
 
+            startTimeSubject = new BehaviorSubject<DateTimeOffset>(DateTimeOffset.UtcNow);
             StartTime = startTimeSubject
                 .DistinctUntilChanged()
                 .AsDriver(default(DateTimeOffset), schedulerProvider);
@@ -172,7 +173,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceIdSubject.OnNext(timeEntry.WorkspaceId);
 
             Description.Accept(timeEntry.Description);
-
+             
             projectClientTaskSubject.OnNext(
                 (timeEntry.Project?.Name,
                 timeEntry.Project?.Color,
