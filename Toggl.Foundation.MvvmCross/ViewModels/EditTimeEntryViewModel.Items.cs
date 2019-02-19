@@ -106,18 +106,18 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IObservable<bool> IsSyncErrorMessageVisible { get; private set; }
 
         // Preferences
-        private BehaviorSubject<IThreadSafePreferences> preferencesSubject;
         private BehaviorSubject<BeginningOfWeek> beginningOfWeekSubject;
+        public IObservable<IThreadSafePreferences> Preferences { get; private set; }
 
         // Actions
-        public UIAction Close;
-        public UIAction SelectProject;
-        public UIAction SelectTags;
-        public UIAction ToggleBillable;
-        public InputAction<EditViewTapSource> EditTimes;
-        public UIAction StopTimeEntry;
-        public UIAction DismissSyncErrorMessage;
-        public UIAction Save;
-        public UIAction Delete;
+        public UIAction Close { get; private set; }
+        public UIAction SelectProject { get; private set; }
+        public UIAction SelectTags { get; private set; }
+        public UIAction ToggleBillable { get; private set; }
+        public InputAction<EditViewTapSource> EditTimes { get; private set; }
+        public UIAction StopTimeEntry { get; private set; }
+        public UIAction DismissSyncErrorMessage { get; private set; }
+        public UIAction Save { get; private set; }
+        public UIAction Delete { get; private set; }
     }
 }

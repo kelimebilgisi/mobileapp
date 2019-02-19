@@ -28,7 +28,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed partial class EditTimeEntryViewModel : MvxViewModel<long[]>
     {
-
         public EditTimeEntryViewModel(
             ITimeService timeService,
             ITogglDataSource dataSource,
@@ -140,8 +139,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DistinctUntilChanged()
                 .AsDriver(false, schedulerProvider);
 
-            preferencesSubject = new BehaviorSubject<IThreadSafePreferences>(null);
-
             // Actions
             Close = actionFactory.FromAsync(closeWithConfirmation);
             SelectProject = actionFactory.FromAsync(selectProject);
@@ -196,9 +193,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             setupSyncError(timeEntries);
 
-            interactorFactory.GetPreferences().Execute()
-                .Subscribe(preferencesSubject)
-                .DisposedBy(disposeBag);
+            Preferences = interactorFactory.GetPreferences().Execute()
+                .AsDriver(null, schedulerProvider);
 
             interactorFactory.GetCurrentUser().Execute()
                 .Select(user => user.BeginningOfWeek)
