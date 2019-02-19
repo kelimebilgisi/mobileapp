@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Disposables;
 using Foundation;
 using MvvmCross.Binding.BindingContext;
 using MvvmCross.Commands;
@@ -10,8 +11,11 @@ using MvvmCross.Plugin.Visibility;
 using MvvmCross.UI;
 using Toggl.Daneel.Cells;
 using Toggl.Daneel.Combiners;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Converters;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.Views
@@ -38,6 +42,9 @@ namespace Toggl.Daneel.Views
             set => BottomSeparatorView.Hidden = value;
         }
 
+        public CompositeDisposable DisposeBag = new CompositeDisposable();
+        public IObservable<ProjectSuggestion> ToggleTasks { get; private set; }
+
         static ProjectSuggestionViewCell()
         {
             Nib = UINib.FromName(nameof(ProjectSuggestionViewCell), NSBundle.MainBundle);
@@ -48,8 +55,6 @@ namespace Toggl.Daneel.Views
             // Note: this .ctor should not contain any initialization logic.
         }
 
-        public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
-
         public override void AwakeFromNib()
         {
             base.AwakeFromNib();
@@ -57,22 +62,20 @@ namespace Toggl.Daneel.Views
             FadeView.FadeRight = true;
             ClientNameLabel.LineBreakMode = UILineBreakMode.TailTruncation;
             ProjectNameLabel.LineBreakMode = UILineBreakMode.TailTruncation;
-            ToggleTasksButton.TouchUpInside += togglTasksButton;
         }
 
-        protected override void Dispose(bool disposing)
+        public override void PrepareForReuse()
         {
-            base.Dispose(disposing);
-
-            if (!disposing) return;
-            ToggleTasksButton.TouchUpInside -= togglTasksButton;
+            base.PrepareForReuse();
+            
+            DisposeBag.Dispose();
+            DisposeBag = new CompositeDisposable();
         }
-
-        private void togglTasksButton(object sender, EventArgs e)
-            => ToggleTasksCommand?.Execute(Item);
 
         protected override void UpdateView()
-        {
+        {            
+            ToggleTasks = ToggleTasksButton.Rx().Tap().SelectValue(Item);
+
             //Text
             ProjectNameLabel.Text = Item.ProjectName;
             ClientNameLabel.Text = Item.ClientName;

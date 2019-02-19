@@ -9,6 +9,7 @@ using Toggl.Daneel.Views.EntityCreation;
 using Toggl.Daneel.Views.StartTimeEntry;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Helper;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
@@ -72,7 +73,10 @@ namespace Toggl.Daneel.ViewSources
                         indexPath);
                     cell.Item = project;
 
-                    cell.ToggleTasksCommand = ToggleTasksCommand;
+                    cell.ToggleTasks
+                        .Subscribe(ToggleTasksCommand.Execute)
+                        .DisposedBy(cell.DisposeBag);
+
                     cell.TopSeparatorHidden = true;
                     cell.BottomSeparatorHidden = true;
                     return cell;

@@ -95,7 +95,7 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(SuggestionsTableView.Rx().ReloadSections(source))
                 .DisposedBy(disposeBag);
 
-//            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
 
             var invertedVisibilityConverter = new MvxInvertedVisibilityValueConverter();

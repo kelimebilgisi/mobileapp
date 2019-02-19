@@ -7,6 +7,7 @@ using Toggl.Daneel.Views;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Helper;
+using Toggl.Multivac.Extensions;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
@@ -43,7 +44,9 @@ namespace Toggl.Daneel.ViewSources
 
             if (cell is ProjectSuggestionViewCell projectCell)
             {
-                projectCell.ToggleTasksCommand = ToggleTasksCommand;
+                projectCell.ToggleTasks
+                    .Subscribe(ToggleTasksCommand.Execute)
+                    .DisposedBy(projectCell.DisposeBag);
 
                 var previousItemPath = NSIndexPath.FromItemSection(indexPath.Item - 1, indexPath.Section);
                 var previous = GetItemAt(previousItemPath);
