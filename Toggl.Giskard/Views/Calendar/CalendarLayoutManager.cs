@@ -1,3 +1,4 @@
+using System;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Foundation.Helper;
@@ -84,12 +85,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         public override int ScrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
         {
-            //todo: handle vertical scroll
-            //offset views;
-            //handle recycling;
-            //fill space created by gaps caused by scroll
-            //anchors will be laid out first, followed by anchored views
-            return 0;
+            return scrollBy(dy, recycler, state);
         }
 
         public override int ComputeVerticalScrollOffset(RecyclerView.State state)
@@ -345,6 +341,101 @@ namespace Toggl.Giskard.Views.Calendar
                 for (var i = startIndex; i > endIndex; i--)
                     RemoveAndRecycleViewAt(i, recycler);
             }
+        }
+
+        private int scrollBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            if (ChildCount == 0 || dy == 0)
+                return 0;
+
+            layoutState.Recycle = true;
+
+            var layoutDirection = dy > 0 ? TOWARDS_THE_END : TOWARDS_THE_START;
+            var absDy = Math.Abs(dy);
+
+            updateLayoutState(layoutDirection, absDy, true, state);
+
+            var consumed = layoutState.ScrollingOffset + fill(recycler, state);
+
+            if (consumed < 0) return 0;
+
+            var scrolled = absDy > consumed
+                ? layoutDirection * consumed
+                : dy;
+
+            orientationHelper.OffsetChildren(-scrolled);
+            layoutState.LastScrollDelta = scrolled;
+
+            return scrolled;
+        }
+
+        private void updateLayoutState(int layoutDirection, int requiredSpace, bool canUseExistingSpace, RecyclerView.State state)
+        {
+            layoutState.Extra = getExtraLayoutSpace(state);
+            layoutState.LayoutDirection = layoutDirection;
+
+            int scrollingOffset;
+            if (layoutDirection == TOWARDS_THE_END)
+            {
+                var child = getChildClosestToEnd();
+                if (child == null) return;
+                layoutState.Extra += orientationHelper.EndPadding;
+                layoutState.ItemDirection = layoutDirection;
+                layoutState.CurrentAnchorPosition = GetPosition(child) + layoutState.ItemDirection;
+                layoutState.Offset = orientationHelper.GetDecoratedEnd(child);
+                scrollingOffset = orientationHelper.GetDecoratedEnd(child) - orientationHelper.EndAfterPadding;
+            }
+            else
+            {
+                var child = getChildClosestToStart();
+                if (child == null) return;
+                layoutState.Extra += orientationHelper.StartAfterPadding;
+                layoutState.ItemDirection = layoutDirection;
+                layoutState.CurrentAnchorPosition = GetPosition(child) + layoutState.ItemDirection;
+                layoutState.Offset = orientationHelper.GetDecoratedStart(child);
+                scrollingOffset = -orientationHelper.GetDecoratedStart(child) + orientationHelper.StartAfterPadding;
+            }
+
+            layoutState.Available = requiredSpace;
+            if (canUseExistingSpace)
+            {
+                layoutState.Available -= scrollingOffset;
+            }
+
+            layoutState.ScrollingOffset = scrollingOffset;
+        }
+
+        private View getChildClosestToStart()
+        {
+            for (var i = 0; i < ChildCount; i++)
+            {
+                var candidate = GetChildAt(i);
+                if (isAnchor(candidate)) return candidate;
+            }
+
+            return null;
+        }
+
+        private View getChildClosestToEnd()
+        {
+            for (var i = ChildCount - 1; i >= 0; i--)
+            {
+                var candidate = GetChildAt(i);
+                if (isAnchor(candidate)) return candidate;
+            }
+
+            return null;
+        }
+
+        private bool isAnchor(View view)
+        {
+            //todo: check for tag or class, let's see
+            return true;
+        }
+
+        private int getExtraLayoutSpace(RecyclerView.State state)
+        {
+            return state.HasTargetScrollPosition ? orientationHelper.TotalSpace : 0;
         }
 
         private struct LayoutChunkResult
