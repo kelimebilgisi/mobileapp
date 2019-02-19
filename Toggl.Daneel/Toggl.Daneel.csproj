@@ -939,7 +939,6 @@
     <Compile Include="Views\EditDuration\WheelBackgroundView.cs" />
     <Compile Include="Views\EditDuration\BaseWheelView.cs" />
     <Compile Include="Views\EditDuration\WheelForegroundView.cs" />
-    <Compile Include="Extensions\NoEntityInfoMessageExtensions.cs" />
     <Compile Include="Views\Reports\LoadingPieChartView.cs" />
     <Compile Include="Views\SpiderOnARopeView.cs" />
     <Compile Include="Binding\SpiderOnARopeViewIsVisibleTargetBinding.cs" />

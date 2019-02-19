@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
+using CoreGraphics;
 using Foundation;
 using MvvmCross.Commands;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Views;
 using Toggl.Daneel.Views.EntityCreation;
 using Toggl.Daneel.Views.StartTimeEntry;
-using Toggl.Foundation;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Helper;
 using UIKit;
@@ -17,33 +17,17 @@ namespace Toggl.Daneel.ViewSources
     {
         private const int defaultRowHeight = 48;
         private const int headerHeight = 40;
-        private const int noEntityCellHeight = 60;
-        private const string tagIconIdentifier = "icIllustrationTagsSmall";
-        private const string projectIconIdentifier = "icIllustrationProjectsSmall";
+        private const int noEntityCellHeight = 108;
 
-        private readonly NoEntityInfoMessage noTagsInfoMessage
-            = new NoEntityInfoMessage(
-                text: Resources.NoTagsInfoMessage,
-                imageResource: tagIconIdentifier,
-                characterToReplace: '#');
-
-        private readonly NoEntityInfoMessage noProjectsInfoMessge
-            = new NoEntityInfoMessage(
-                text: Resources.NoProjectsInfoMessage,
-                imageResource: projectIconIdentifier,
-                characterToReplace: '@');
-
-        public bool ShouldShowNoTagsInfoMessage { get; set; }
-        public bool ShouldShowNoProjectsInfoMessage { get; set; }
         public Action TableRenderCallback { get; set; }
         public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
 
         public StartTimeEntryTableViewSource(UITableView tableView)
         {
-            tableView.TableFooterView = new UIView();
             tableView.SeparatorStyle = UITableViewCellSeparatorStyle.SingleLine;
             tableView.SeparatorColor = Color.StartTimeEntry.SeparatorColor.ToNativeColor();
             tableView.SeparatorInset = UIEdgeInsets.Zero;
+            tableView.TableFooterView = new UIView(new CGRect(0, 0, 0, 1));
             tableView.RegisterNibForCellReuse(TagSuggestionViewCell.Nib, TagSuggestionViewCell.Identifier);
             tableView.RegisterNibForCellReuse(TaskSuggestionViewCell.Nib, TaskSuggestionViewCell.Identifier);
             tableView.RegisterNibForCellReuse(StartTimeEntryViewCell.Nib, StartTimeEntryViewCell.Identifier);
@@ -109,20 +93,20 @@ namespace Toggl.Daneel.ViewSources
                     cell.Item = creteEntity;
                     return cell;
                 }
+
+                case NoEntityInfoMessage noEntityInfoMessage:
+                {
+                    var cell = (NoEntityInfoViewCell) tableView.DequeueReusableCell(NoEntityInfoViewCell.Identifier,
+                        indexPath);
+                    cell.Item = noEntityInfoMessage;
+                    return cell;
+                }
+
                 default:
                     throw new InvalidOperationException("Wrong cell type");
             }
 
             /*
-            case NoEntityInfoMessage noEntity:
-            {
-                var cell = (NoEntityInfoViewCell)tableView.DequeueReusableCell(NoEntityInfoViewCell.Identifier,
-                    indexPath);
-                cell.Item = noEntity;
-                //noEntityCell.NoEntityInfoMessage = getNoEntityInfoMessage();
-                return cell;
-            }
-
             cell.LayoutMargins = UIEdgeInsets.Zero;
             cell.SeparatorInset = UIEdgeInsets.Zero;
             cell.PreservesSuperviewLayoutMargins = false;
@@ -147,70 +131,22 @@ namespace Toggl.Daneel.ViewSources
             return headerHeight;
         }
 
+        public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath)
+        {
+            var model = ModelAt(indexPath);
+
+            if (model is NoEntityInfoMessage)
+                return noEntityCellHeight;
+
+            return defaultRowHeight;
+        }
+
         public override void WillDisplay(UITableView tableView, UITableViewCell cell, NSIndexPath indexPath)
         {
             if (tableView.IndexPathsForVisibleRows.Last().Row == indexPath.Row)
             {
                 TableRenderCallback();
             }
-        }
-
-        /*
-        public override nint RowsInSection(UITableView tableview, nint section)
-        {
-            if (UseGrouping) return base.RowsInSection(tableview, section);
-
-            return GetGroupAt(section).Count()
-                + (SuggestCreation ? 1 : 0)
-                + (ShouldShowNoTagsInfoMessage ? 1 : 0)
-                + (ShouldShowNoProjectsInfoMessage ? 1 : 0);
-        }
-
-        protected override object GetItemAt(NSIndexPath indexPath)
-        {
-            if (!UseGrouping && SuggestCreation)
-            {
-                var index = (int)indexPath.Item - 1;
-                if (index < 0) return GetCreateSuggestionItem();
-                if (ShouldShowNoTagsInfoMessage) return noTagsInfoMessage;
-                if (ShouldShowNoProjectsInfoMessage) return noProjectsInfoMessge;
-
-                var newIndexPath = NSIndexPath.FromRowSection(indexPath.Section, index);
-                return GroupedItems.ElementAtOrDefault(indexPath.Section)?.ElementAtOrDefault(index);
-            }
-
-            if (ShouldShowNoTagsInfoMessage) return noTagsInfoMessage;
-            if (ShouldShowNoProjectsInfoMessage) return noProjectsInfoMessge;
-
-            return base.GetItemAt(indexPath);
-        }
-
-        public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath)
-        {
-            if (!UseGrouping && SuggestCreation)
-            {
-                var index = (int)indexPath.Item - 1;
-                if (index < 0) return defaultRowHeight;
-
-                return ShouldShowNoTagsInfoMessage || ShouldShowNoProjectsInfoMessage
-                    ? noEntityCellHeight
-                    : defaultRowHeight;
-            }
-
-            return ShouldShowNoTagsInfoMessage || ShouldShowNoProjectsInfoMessage
-                ? defaultRowHeight + noEntityCellHeight
-                : defaultRowHeight;
-        }
-*/
-        private NoEntityInfoMessage getNoEntityInfoMessage()
-        {
-            if (ShouldShowNoTagsInfoMessage)
-                return noTagsInfoMessage;
-
-            if (ShouldShowNoProjectsInfoMessage)
-                return noProjectsInfoMessge;
-
-            throw new InvalidOperationException("This method should not be called, when there is no info message to be shown");
         }
     }
 }

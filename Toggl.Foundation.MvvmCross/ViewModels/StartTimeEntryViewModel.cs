@@ -199,7 +199,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.navigationService = navigationService;
             this.interactorFactory = interactorFactory;
             this.analyticsService = analyticsService;
-            this.autocompleteProvider = autocompleteProvider;
             this.schedulerProvider = schedulerProvider;
             this.intentDonationService = intentDonationService;
             this.stopwatchProvider = stopwatchProvider;
@@ -698,7 +697,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 sections.None(section => section.Items.Any(item => item is ProjectSuggestion projectSuggestion && projectSuggestion.ProjectName.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
                 )
             {
-                return sections
+                sections = sections
                     .ToList()
                     .Prepend(
                         new CollectionSection<string, AutocompleteSuggestion>(
@@ -716,12 +715,34 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     tagSuggestion.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
             )
             {
-                return sections
+                sections = sections
                     .ToList()
                     .Prepend(
                         new CollectionSection<string, AutocompleteSuggestion>(
                             "",
                             new[] { new CreateEntitySuggestion(Resources.CreateTag, textFieldInfo.Description) }
+                        )
+                    );
+            }
+
+            if (IsSuggestingTags && !hasAnyTags)
+            {
+                sections = sections.ToList()
+                    .Append(
+                        new CollectionSection<string, AutocompleteSuggestion>(
+                            "",
+                            new[] { NoEntityInfoMessage.CreateTag() }
+                        )
+                    );
+            }
+
+            if (IsSuggestingProjects && !hasAnyProjects)
+            {
+                sections = sections.ToList()
+                    .Append(
+                        new CollectionSection<string, AutocompleteSuggestion>(
+                            "",
+                            new[] { NoEntityInfoMessage.CreateProject() }
                         )
                     );
             }
