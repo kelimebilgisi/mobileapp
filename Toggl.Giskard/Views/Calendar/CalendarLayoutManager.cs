@@ -2,7 +2,7 @@ using Android.Support.V7.Widget;
 
 namespace Toggl.Giskard.Views.Calendar
 {
-    public class CalendarLayoutManager : RecyclerView.LayoutManager
+    public partial class CalendarLayoutManager : RecyclerView.LayoutManager
     {
         public override RecyclerView.LayoutParams GenerateDefaultLayoutParams()
         {
