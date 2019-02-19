@@ -108,17 +108,8 @@ namespace Toggl.Daneel.ViewControllers
 
             var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
 
-            Console.WriteLine(ViewModel.SuggestCreation);
             //TableView
-/*
-            bindingSet.Bind(source)
-                      .For(v => v.IsSuggestingProjects)
-                      .To(vm => vm.IsSuggestingProjects);
-
-            bindingSet.Bind(source)
-                      .For(v => v.Text)
-                      .To(vm => vm.CurrentQuery);
-
+            /*
             bindingSet.Bind(source)
                       .For(v => v.ShouldShowNoTagsInfoMessage)
                       .To(vm => vm.ShouldShowNoTagsInfoMessage);

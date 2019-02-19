@@ -33,12 +33,10 @@ namespace Toggl.Daneel.ViewSources
                 imageResource: projectIconIdentifier,
                 characterToReplace: '@');
 
-        public bool IsSuggestingProjects { get; set; }
         public bool ShouldShowNoTagsInfoMessage { get; set; }
         public bool ShouldShowNoProjectsInfoMessage { get; set; }
         public Action TableRenderCallback { get; set; }
         public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
-        public IMvxCommand<AutocompleteSuggestion> SelectSuggestionCommand { get; set; }
 
         public StartTimeEntryTableViewSource(UITableView tableView)
         {
@@ -168,14 +166,6 @@ namespace Toggl.Daneel.ViewSources
                 + (ShouldShowNoProjectsInfoMessage ? 1 : 0);
         }
 
-        public override nint NumberOfSections(UITableView tableView)
-        {
-            if (!UseGrouping) return 1;
-
-            return base.NumberOfSections(tableView);
-        }
-
-
         protected override object GetItemAt(NSIndexPath indexPath)
         {
             if (!UseGrouping && SuggestCreation)
@@ -195,15 +185,6 @@ namespace Toggl.Daneel.ViewSources
             return base.GetItemAt(indexPath);
         }
 
-        protected override UITableViewHeaderFooterView GetOrCreateHeaderViewFor(UITableView tableView)
-            => tableView.DequeueReusableHeaderFooterView(headerCellIdentifier);
-
-        protected override UITableViewCell GetOrCreateCellFor(UITableView tableView, NSIndexPath indexPath, object item)
-            => tableView.DequeueReusableCell(getIdentifier(item), indexPath);
-
-        public override nfloat GetHeightForHeader(UITableView tableView, nint section)
-            => !UseGrouping ? 0 : base.GetHeightForHeader(tableView, section);
-
         public override nfloat GetHeightForRow(UITableView tableView, NSIndexPath indexPath)
         {
             if (!UseGrouping && SuggestCreation)
@@ -220,47 +201,6 @@ namespace Toggl.Daneel.ViewSources
                 ? defaultRowHeight + noEntityCellHeight
                 : defaultRowHeight;
         }
-
-        public override void RowSelected(UITableView tableView, NSIndexPath indexPath)
-        {
-            base.RowSelected(tableView, indexPath);
-
-            var item = GetItemAt(indexPath);
-            if (item is AutocompleteSuggestion autocompleteSuggestion)
-                SelectSuggestionCommand.Execute(autocompleteSuggestion);
-        }
-
-        private string getIdentifier(object item)
-        {
-            switch (item)
-            {
-                case string _:
-                    return CreateEntityCellIdentifier;
-
-                case ProjectSuggestion _:
-                    return projectCellIdentifier;
-
-                case QuerySymbolSuggestion _:
-                    return emptySuggestionIdentifier;
-
-                case TagSuggestion _:
-                    return tagCellIdentifier;
-
-                case TaskSuggestion _:
-                    return taskCellIdentifier;
-
-                case NoEntityInfoMessage _:
-                    return noEntityInfoCellIdentifier;
-
-                default:
-                    return timeEntryCellIdentifier;
-            }
-        }
-
-        protected override object GetCreateSuggestionItem()
-            => IsSuggestingProjects
-                ? $"{Resources.CreateProject} \"{Text}\""
-                : $"{Resources.CreateTag} \"{Text}\"";
 */
         private NoEntityInfoMessage getNoEntityInfoMessage()
         {
@@ -272,9 +212,5 @@ namespace Toggl.Daneel.ViewSources
 
             throw new InvalidOperationException("This method should not be called, when there is no info message to be shown");
         }
-
-     /*   protected override WorkspaceGroupedCollection<AutocompleteSuggestion> CloneCollection(WorkspaceGroupedCollection<AutocompleteSuggestion> collection)
-            => new WorkspaceGroupedCollection<AutocompleteSuggestion>(collection.WorkspaceName, collection.WorkspaceId, collection);
-            */
     }
 }

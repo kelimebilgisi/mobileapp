@@ -48,7 +48,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly IAnalyticsService analyticsService;
-        private readonly IAutocompleteProvider autocompleteProvider;
         private readonly ISchedulerProvider schedulerProvider;
         private readonly IIntentDonationService intentDonationService;
         private readonly IStopwatchProvider stopwatchProvider;
@@ -75,39 +74,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private bool isRunning => !Duration.HasValue;
 
-        public bool SuggestCreation
-        {
-            get
-            {
-                if (IsSuggestingProjects && textFieldInfo.HasProject) return false;
-
-                if (string.IsNullOrEmpty(CurrentQuery))
-                    return false;
-
-                if (IsSuggestingProjects)
-                    return CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes
-                           && canCreateProjectsInWorkspace;
-/*
-                if (IsSuggestingTags)
-                    return Suggestions.None(c => c.Any(s =>
-                               s is TagSuggestion tS
-                               && tS.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery)))
-                           && CurrentQuery.IsAllowedTagByteSize();
-*/
-                return false;
-            }
-        }
-
         public long[] TagIds => textFieldInfo.Spans.OfType<TagSpan>().Select(span => span.TagId).Distinct().ToArray();
-
         public long? ProjectId => textFieldInfo.Spans.OfType<ProjectSpan>().SingleOrDefault()?.ProjectId;
-
         public long? TaskId => textFieldInfo.Spans.OfType<ProjectSpan>().SingleOrDefault()?.TaskId;
-
         public string Description => textFieldInfo.Description;
-
         public long WorkspaceId => textFieldInfo.WorkspaceId;
-
         public bool IsDirty
             => !string.IsNullOrEmpty(textFieldInfo.Description)
                 || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
@@ -116,13 +87,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 || Duration != parameter.Duration;
 
         public string CurrentQuery { get; private set; }
-
         public bool IsSuggestingTags { get; private set; }
-
         public bool IsSuggestingProjects { get; private set; }
 
         private TimeSpan displayedTime = TimeSpan.Zero;
-
         public TimeSpan DisplayedTime
         {
             get => displayedTime;
@@ -170,7 +138,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public ITogglDataSource DataSource => dataSource;
 
-
         public IMvxAsyncCommand SetStartDateCommand { get; }
 
         public IMvxAsyncCommand ChangeTimeCommand { get; }
@@ -183,7 +150,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IMvxCommand ToggleProjectSuggestionsCommand { get; }
 
-
         public IMvxCommand<ProjectSuggestion> ToggleTaskSuggestionsCommand { get; }
 
         public IOnboardingStorage OnboardingStorage { get; }
@@ -195,7 +161,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public UIAction Back { get; }
         public UIAction Done { get; }
         public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
-
 
         public StartTimeEntryViewModel(
             ITimeService timeService,
