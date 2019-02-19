@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Android.Support.V7.Widget;
+using Android.Views;
 
 namespace Toggl.Giskard.Views.Calendar
 {
@@ -49,6 +50,21 @@ namespace Toggl.Giskard.Views.Calendar
                 Recycle = false;
                 IsPreLayout = false;
                 ScrapList = null;
+            }
+
+            public bool HasMore()
+                => CurrentAnchorPosition >= 0 && CurrentAnchorPosition < anchorCount;
+
+            public View Next(RecyclerView.Recycler recycler)
+            {
+                if (ScrapList != null)
+                {
+                    //todo: check in the scrapList when layouting for predictive animations (if we do it)
+                }
+
+                var view = recycler.GetViewForPosition(CurrentAnchorPosition);
+                CurrentAnchorPosition += ItemDirection;
+                return view;
             }
         }
     }

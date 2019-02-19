@@ -10,6 +10,7 @@ namespace Toggl.Giskard.Views.Calendar
         private OrientationHelper orientationHelper;
         private AnchorInfo anchorInfo;
         private LayoutState layoutState;
+        private LayoutChunkResult layoutChunkResult = new LayoutChunkResult();
 
         public CalendarLayoutManager()
         {
@@ -40,9 +41,125 @@ namespace Toggl.Giskard.Views.Calendar
                 anchorInfo.IsValid = true;
             }
 
-            //todo: calculate extras
-            //todo: update layout state to fill layout
-            //todo: fill layout
+            //todo: handle extras needed to support scrollTo
+
+            var extraForStart = orientationHelper.StartAfterPadding;
+            var extraForEnd = orientationHelper.EndPadding;
+
+            //todo: layout extra children to support nice animations if pending scroll position exists
+
+            var startOffset = 0;
+            var endOffset = 0;
+            var firstLayoutDirection = TOWARDS_THE_END;
+
+            DetachAndScrapAttachedViews(recycler);
+
+            layoutState.IsPreLayout = state.IsPreLayout;
+
+            //fill towards the end
+            updateLayoutStateToFillEnd();
+            layoutState.Extra = extraForEnd;
+            fill(recycler, state);
+            //todo: fill towards the start when we handle saving state
+        }
+
+        private int fill(RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            //todo: handle focusable
+            var start = layoutState.Available;
+            if (layoutState.ScrollingOffset != INVALID_SCROLLING_OFFSET)
+            {
+                if (layoutState.Available < 0)
+                {
+                    layoutState.ScrollingOffset += layoutState.Available;
+                }
+                recycleByLayoutState(recycler);
+            }
+
+            var remainingSpace = layoutState.Available + layoutState.Extra;
+
+            while (remainingSpace > 0 && layoutState.HasMore())
+            {
+                layoutChunkResult.ResetInternal();
+
+                layoutChunk(recycler, state);
+
+                if (layoutChunkResult.IsFinished)
+                {
+                    break;
+                }
+
+                layoutState.Offset += layoutChunkResult.Consumed * layoutState.LayoutDirection;
+
+                // layoutChunk didn't request to be ignored Or We are laying  out scrap children Or Not doing pre-layout
+                if (!layoutChunkResult.IgnoreConsumed || layoutState.ScrapList != null || !state.IsPreLayout)
+                {
+                    layoutState.Available -= layoutChunkResult.Consumed;
+                    //important for recycling
+                    remainingSpace -= layoutChunkResult.Consumed;
+                }
+
+                if (layoutState.ScrollingOffset != INVALID_SCROLLING_OFFSET)
+                {
+                    layoutState.ScrollingOffset += layoutChunkResult.Consumed;
+                    if (layoutState.Available < 0)
+                    {
+                        layoutState.ScrollingOffset += layoutState.Available;
+                    }
+                    recycleByLayoutState(recycler);
+                }
+
+                //todo: handle focusable view logic (stop fill when you find a focusable view)
+            }
+
+            //todo: maybe layout anchored views here?
+            return start - layoutState.Available;
+        }
+
+        private void layoutChunk(RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            var view = layoutState.Next(recycler);
+            if (view == null || !(view.LayoutParameters is RecyclerView.LayoutParams layoutParams))
+            {
+                layoutChunkResult.IsFinished = true;
+                return;
+            }
+
+            //todo: check for scrap list if we do predictive animations
+            if (layoutState.LayoutDirection == TOWARDS_THE_END)
+                AddView(view);
+            else
+                AddView(view, 0);
+
+
+            MeasureChildWithMargins(view, 0, 0);
+            layoutChunkResult.Consumed = orientationHelper.GetDecoratedMeasurement(view);
+
+            var anchorLeft = PaddingLeft;
+            var anchorRight = anchorLeft + view.MeasuredWidth;
+
+            int anchorTop;
+            int anchorBottom;
+
+            if (layoutState.LayoutDirection == TOWARDS_THE_START)
+            {
+                anchorBottom = layoutState.Offset;
+                anchorTop = layoutState.Offset - layoutChunkResult.Consumed;
+            }
+            else
+            {
+                anchorTop = layoutState.Offset;
+                anchorBottom = layoutState.Offset + layoutChunkResult.Consumed;
+            }
+
+            LayoutDecoratedWithMargins(view, anchorLeft,anchorRight, anchorTop, anchorBottom);
+
+            if (layoutParams.IsItemRemoved || layoutParams.IsItemChanged)
+            {
+                layoutChunkResult.IgnoreConsumed = true;
+            }
+
+            //todo: or maybe layout anchored views here?
         }
 
         public override void OnLayoutCompleted(RecyclerView.State state)
@@ -142,6 +259,35 @@ namespace Toggl.Giskard.Views.Calendar
             }
 
             return matchOutOfBounds ?? invalidMatch;
+        }
+
+        private void updateLayoutStateToFillEnd()
+        {
+            layoutState.Offset = anchorInfo.Coordinate;
+            layoutState.Available = orientationHelper.EndAfterPadding - anchorInfo.Coordinate;
+            layoutState.CurrentAnchorPosition = anchorInfo.Position;
+            layoutState.ItemDirection = TOWARDS_THE_END;
+            layoutState.LayoutDirection = TOWARDS_THE_END;
+            layoutState.ScrollingOffset = INVALID_SCROLLING_OFFSET;
+        }
+
+        private void recycleByLayoutState(RecyclerView.Recycler recycler)
+        {
+
+        }
+
+        private struct LayoutChunkResult
+        {
+            public int Consumed { get; set; }
+            public bool IsFinished { get; set; }
+            public bool IgnoreConsumed { get; set; }
+
+            public void ResetInternal()
+            {
+                Consumed = 0;
+                IsFinished = false;
+                IgnoreConsumed = false;
+            }
         }
     }
 }
