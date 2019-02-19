@@ -81,7 +81,7 @@
                 android:visibility="visible"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                local:constraint_referenced_ids="GroupCount,GroupDuration,TimeMiddleGuide,TimeIcon,StartTimeButton,StartTime,StartDate,StartTimeLabel,StopTimeButton,StopTime,StopDate,StopTimeButtonEntry,EditEndTimeLabel,TimeBottomBorder,DurationButton,Duration,DurationLabel,DurationBottomBorder" />
+                local:constraint_referenced_ids="GroupCount,GroupDuration,TimeMiddleGuide,TimeIcon,StartTimeButton,StartTime,StartDate,StartTimeLabel,StopTimeButton,StopTime,StopDate,StopTimeButton,EditStopTimeLabel,TimeBottomBorder,DurationButton,Duration,DurationLabel,DurationBottomBorder" />
 			
             <android.support.constraint.Group
                 android:id="@+id/TimeEntriesGroupModeViews"
@@ -89,6 +89,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 local:constraint_referenced_ids="GroupCount,GroupDuration" />
+
+            <android.support.constraint.Group
+                android:id="@+id/StoppedTimeEntryStopTimeElements"
+                android:visibility="visible"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                local:constraint_referenced_ids="StopTime,StopDate" />
 
             <!-- ERROR MESSAGE -->
 
@@ -452,7 +459,7 @@
                 local:layout_constraintLeft_toRightOf="@id/TimeMiddleGuide" />
 
             <TextView
-                android:id="@+id/EditEndTimeLabel"
+                android:id="@+id/EditStopTimeLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
