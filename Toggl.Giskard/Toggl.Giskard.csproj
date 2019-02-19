@@ -374,6 +374,7 @@
     <Compile Include="ViewHolders\ReportsHeaderCellViewHolder.cs" />
     <Compile Include="ViewHolders\ReportsItemCellViewHolder.cs" />
     <Compile Include="ViewHolders\ReportsWorkspaceNameViewHolder.cs" />
+    <Compile Include="ViewHolders\StringViewHolder.cs" />
     <Compile Include="Views\BarChartView.cs" />
     <Compile Include="Views\EditDuration\Shapes\Arc.cs" />
     <Compile Include="Views\EditDuration\Shapes\Cap.cs" />
