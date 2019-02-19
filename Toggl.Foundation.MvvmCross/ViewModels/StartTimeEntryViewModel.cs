@@ -19,6 +19,7 @@ using Toggl.Foundation.Autocomplete.Span;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Diagnostics;
+using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
@@ -40,7 +41,7 @@ using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class StartTimeEntryViewModel : MvxViewModel<StartTimeEntryParameters>, ITimeEntryPrototype
+    public sealed class StartTimeEntryViewModel : MvxViewModel<StartTimeEntryParameters>
     {
         //Fields
         private readonly ITimeService timeService;
@@ -59,40 +60,38 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISubject<TextFieldInfo> querySubject = new Subject<TextFieldInfo>();
         private readonly ISubject<AutocompleteSuggestionType> queryByTypeSubject = new Subject<AutocompleteSuggestionType>();
 
+        private bool isDirty => !string.IsNullOrEmpty(textFieldInfo.Description)
+                                || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
+                                || IsBillable
+                                || startTime != parameter.StartTime
+                                || duration != parameter.Duration;
+
         private bool hasAnyTags;
         private bool hasAnyProjects;
         private bool canCreateProjectsInWorkspace;
         private IThreadSafeWorkspace defaultWorkspace;
         private StartTimeEntryParameters parameter;
-        private TextFieldInfo textFieldInfo = TextFieldInfo.Empty(0);
         private StartTimeEntryParameters initialParameters;
+
+        private TextFieldInfo textFieldInfo = TextFieldInfo.Empty(0);
+        private DateTimeOffset startTime;
+        private TimeSpan? duration;
+
         private IStopwatch startTimeEntryStopwatch;
         private Dictionary<string, IStopwatch> suggestionsLoadingStopwatches = new Dictionary<string, IStopwatch>();
         private IStopwatch suggestionsRenderingStopwatch;
 
+        private bool isRunning => !duration.HasValue;
+        private TimeSpan displayedTime = TimeSpan.Zero;
+
+        private string currentQuery;
+
         //Properties
         public IObservable<TextFieldInfo> TextFieldInfoObservable { get; }
-        public BeginningOfWeek BeginningOfWeek { get; private set; }
-
-        private bool isRunning => !Duration.HasValue;
-
-        public long[] TagIds => textFieldInfo.Spans.OfType<TagSpan>().Select(span => span.TagId).Distinct().ToArray();
-        public long? ProjectId => textFieldInfo.Spans.OfType<ProjectSpan>().SingleOrDefault()?.ProjectId;
-        public long? TaskId => textFieldInfo.Spans.OfType<ProjectSpan>().SingleOrDefault()?.TaskId;
-        public string Description => textFieldInfo.Description;
-        public long WorkspaceId => textFieldInfo.WorkspaceId;
-        public bool IsDirty
-            => !string.IsNullOrEmpty(textFieldInfo.Description)
-                || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
-                || IsBillable
-                || StartTime != parameter.StartTime
-                || Duration != parameter.Duration;
-
-        public string CurrentQuery { get; private set; }
+        public bool IsBillable { get; private set; } = false;
         public bool IsSuggestingTags { get; private set; }
         public bool IsSuggestingProjects { get; private set; }
 
-        private TimeSpan displayedTime = TimeSpan.Zero;
         public TimeSpan DisplayedTime
         {
             get => displayedTime;
@@ -100,11 +99,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             {
                 if (isRunning)
                 {
-                    StartTime = timeService.CurrentDateTime - value;
+                    startTime = timeService.CurrentDateTime - value;
                 }
                 else
                 {
-                    Duration = value;
+                    duration = value;
                 }
 
                 displayedTime = value;
@@ -115,28 +114,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public DurationFormat DisplayedTimeFormat { get; } = DurationFormat.Improved;
 
-        public bool IsBillable { get; private set; } = false;
-
         public bool IsBillableAvailable { get; private set; } = false;
 
-        public bool IsEditingProjects { get; private set; } = false;
-
-        public bool IsEditingTags { get; private set; } = false;
-
         public string PlaceholderText { get; private set; }
-
-        public bool ShouldShowNoTagsInfoMessage
-            => IsSuggestingTags && !hasAnyTags;
-
-        public bool ShouldShowNoProjectsInfoMessage
-            => IsSuggestingProjects && !hasAnyProjects;
-
-        public DateTimeOffset StartTime { get; private set; }
-
-        public TimeSpan? Duration { get; private set; }
-
-        public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
-            Suggestions { get; private set; }
 
         public ITogglDataSource DataSource => dataSource;
 
@@ -165,6 +145,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public UIAction Back { get; }
         public UIAction Done { get; }
         public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
+
+        public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
+            Suggestions { get; }
 
         public StartTimeEntryViewModel(
             ITimeService timeService,
@@ -255,16 +238,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Prepare(startTimeEntryParameters);
         }
 
-        public override void Prepare()
-        {
-
-        }
-
         public override void Prepare(StartTimeEntryParameters parameter)
         {
             this.parameter = parameter;
-            StartTime = parameter.StartTime;
-            Duration = parameter.Duration;
+            startTime = parameter.StartTime;
+            duration = parameter.Duration;
 
             PlaceholderText = parameter.PlaceholderText;
             if (!string.IsNullOrEmpty(parameter.EntryDescription))
@@ -274,7 +252,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             timeService.CurrentDateTimeObservable
                 .Where(_ => isRunning)
-                .Subscribe(currentTime => DisplayedTime = currentTime - StartTime)
+                .Subscribe(currentTime => DisplayedTime = currentTime - startTime)
                 .DisposedBy(disposeBag);
         }
 
@@ -331,10 +309,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             hasAnyTags = (await dataSource.Tags.GetAll()).Any();
             hasAnyProjects = (await dataSource.Projects.GetAll()).Any();
-
-            dataSource.User.Current
-                      .Subscribe(onUserChanged)
-                      .DisposedBy(disposeBag);
         }
 
         public override void ViewAppeared()
@@ -364,7 +338,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public async Task<bool> Close()
         {
-            if (IsDirty)
+            if (isDirty)
             {
                 var shouldDiscard = await dialogService.ConfirmDestructiveAction(ActionType.DiscardNewTimeEntry);
                 if (!shouldDiscard)
@@ -373,11 +347,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             await navigationService.Close(this);
             return true;
-        }
-
-        private void onUserChanged(IThreadSafeUser user)
-        {
-            BeginningOfWeek = user.BeginningOfWeek;
         }
 
         private async Task selectSuggestion(AutocompleteSuggestion suggestion)
@@ -467,7 +436,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var createProjectStopwatch = stopwatchProvider.CreateAndStore(MeasuredOperation.OpenCreateProjectViewFromStartTimeEntryView);
             createProjectStopwatch.Start();
 
-            var projectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(CurrentQuery);
+            var projectId = await navigationService.Navigate<EditProjectViewModel, string, long?>(currentQuery);
             if (projectId == null) return;
 
             var project = await interactorFactory.GetProjectById(projectId.Value).Execute();
@@ -481,19 +450,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private async Task createTag()
         {
-            var createdTag = await interactorFactory.CreateTag(CurrentQuery, textFieldInfo.WorkspaceId).Execute();
+            var createdTag = await interactorFactory.CreateTag(currentQuery, textFieldInfo.WorkspaceId).Execute();
             var tagSuggestion = new TagSuggestion(createdTag);
             await SelectSuggestion.Execute(tagSuggestion);
             hasAnyTags = true;
             toggleTagSuggestions();
-        }
-
-        private void OnDurationChanged()
-        {
-            if (Duration == null)
-                return;
-
-            DisplayedTime = Duration.Value;
         }
 
         private void durationTapped()
@@ -567,14 +528,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             analyticsService.StartViewTapped.Track(StartViewTapSource.StartTime);
 
-            var currentDuration = DurationParameter.WithStartAndDuration(StartTime, Duration);
+            var currentDuration = DurationParameter.WithStartAndDuration(startTime, duration);
 
             var selectedDuration = await navigationService
                 .Navigate<EditDurationViewModel, EditDurationParameters, DurationParameter>(new EditDurationParameters(currentDuration, isStartingNewEntry: true))
                 .ConfigureAwait(false);
 
-            StartTime = selectedDuration.Start;
-            Duration = selectedDuration.Duration ?? Duration;
+            startTime = selectedDuration.Start;
+            duration = selectedDuration.Duration ?? duration;
         }
 
         private async Task setStartDate()
@@ -582,24 +543,25 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.StartViewTapped.Track(StartViewTapSource.StartDate);
 
             var parameters = isRunning
-                ? DateTimePickerParameters.ForStartDateOfRunningTimeEntry(StartTime, timeService.CurrentDateTime)
-                : DateTimePickerParameters.ForStartDateOfStoppedTimeEntry(StartTime);
+                ? DateTimePickerParameters.ForStartDateOfRunningTimeEntry(startTime, timeService.CurrentDateTime)
+                : DateTimePickerParameters.ForStartDateOfStoppedTimeEntry(startTime);
 
-            var duration = Duration;
+            var duration = this.duration;
 
-            StartTime = await navigationService
+            startTime = await navigationService
                 .Navigate<SelectDateTimeViewModel, DateTimePickerParameters, DateTimeOffset>(parameters)
                 .ConfigureAwait(false);
 
             if (isRunning == false)
             {
-                Duration = duration;
+                this.duration = duration;
             }
         }
 
         private IObservable<Unit> done()
         {
-            return interactorFactory.CreateTimeEntry(this).Execute()
+            var timeEntry = textFieldInfo.AsTimeEntryPrototype(startTime, duration ?? TimeSpan.Zero, IsBillable);
+            return interactorFactory.CreateTimeEntry(timeEntry).Execute()
                 .Do(_ => navigationService.Close(this))
                 .SelectUnit();
         }
@@ -607,11 +569,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private void onParsedQuery(QueryInfo parsedQuery)
         {
             var newQuery = parsedQuery.Text?.Trim() ?? "";
-            if (CurrentQuery != newQuery)
+            if (currentQuery != newQuery)
             {
-                CurrentQuery = newQuery;
-                suggestionsLoadingStopwatches[CurrentQuery] = stopwatchProvider.Create(MeasuredOperation.StartTimeEntrySuggestionsLoadingTime);
-                suggestionsLoadingStopwatches[CurrentQuery].Start();
+                currentQuery = newQuery;
+                suggestionsLoadingStopwatches[currentQuery] = stopwatchProvider.Create(MeasuredOperation.StartTimeEntrySuggestionsLoadingTime);
+                suggestionsLoadingStopwatches[currentQuery].Start();
             }
             bool suggestsTags = parsedQuery.SuggestionType == AutocompleteSuggestionType.Tags;
             bool suggestsProjects = parsedQuery.SuggestionType == AutocompleteSuggestionType.Projects;
@@ -686,17 +648,17 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             bool shouldAddProjectCreationSuggestion()
                 => canCreateProjectsInWorkspace && !textFieldInfo.HasProject &&
-                   CurrentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes &&
-                   !string.IsNullOrEmpty(CurrentQuery) &&
+                   currentQuery.LengthInBytes() <= MaxProjectNameLengthInBytes &&
+                   !string.IsNullOrEmpty(currentQuery) &&
                    suggestions.None(item =>
                        item is ProjectSuggestion projectSuggestion &&
-                       projectSuggestion.ProjectName.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery));
+                       projectSuggestion.ProjectName.IsSameCaseInsensitiveTrimedTextAs(currentQuery));
 
             bool shouldAddTagCreationSuggestion()
-                => !string.IsNullOrEmpty(CurrentQuery) && CurrentQuery.IsAllowedTagByteSize() &&
+                => !string.IsNullOrEmpty(currentQuery) && currentQuery.IsAllowedTagByteSize() &&
                    suggestions.None(item =>
                        item is TagSuggestion tagSuggestion &&
-                       tagSuggestion.Name.IsSameCaseInsensitiveTrimedTextAs(CurrentQuery));
+                       tagSuggestion.Name.IsSameCaseInsensitiveTrimedTextAs(currentQuery));
         }
 
         private IEnumerable<IGrouping<long, AutocompleteSuggestion>> group(IEnumerable<AutocompleteSuggestion> suggestions)
@@ -731,9 +693,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 )
             );
 
-            if (suggestionsLoadingStopwatches.ContainsKey(CurrentQuery))
+            if (suggestionsLoadingStopwatches.ContainsKey(currentQuery))
             {
-                suggestionsLoadingStopwatches[CurrentQuery]?.Stop();
+                suggestionsLoadingStopwatches[currentQuery]?.Stop();
                 suggestionsLoadingStopwatches = new Dictionary<string, IStopwatch>();
             }
 
@@ -768,7 +730,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             else
             {
                 IsBillable = false;
-                IsBillableAvailable = await interactorFactory.IsBillableAvailableForWorkspace(WorkspaceId).Execute();
+                IsBillableAvailable = await interactorFactory.IsBillableAvailableForWorkspace(textFieldInfo.WorkspaceId).Execute();
             }
         }
 

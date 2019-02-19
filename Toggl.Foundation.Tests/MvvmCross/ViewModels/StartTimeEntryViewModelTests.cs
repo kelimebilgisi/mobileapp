@@ -148,9 +148,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.Prepare(parameter);
 
-                ViewModel.StartTime.Should().BeSameDateAs(date);
+                ViewModel.startTime.Should().BeSameDateAs(date);
                 ViewModel.PlaceholderText.Should().Be(placeholder);
-                ViewModel.Duration.Should().Be(duration);
+                ViewModel.duration.Should().Be(duration);
             }
 
             [Fact, LogIfTooSlow]
@@ -1032,7 +1032,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.ChangeTimeCommand.ExecuteAsync();
 
-                ViewModel.StartTime.Should().Be(parameterToReturn.Start);
+                ViewModel.startTime.Should().Be(parameterToReturn.Start);
             }
 
             [Fact, LogIfTooSlow]
@@ -1184,7 +1184,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(prepareParameters);
                 await ViewModel.SetStartDateCommand.ExecuteAsync();
 
-                ViewModel.StartTime.Date.Should().Be(parameterToReturn.Date);
+                ViewModel.startTime.Date.Should().Be(parameterToReturn.Date);
             }
 
             [Fact, LogIfTooSlow]
@@ -1200,7 +1200,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Prepare(prepareParameters);
                 await ViewModel.SetStartDateCommand.ExecuteAsync();
 
-                ViewModel.StartTime.LocalDateTime.Date.Should().Be(selectedDate.LocalDateTime.Date);
+                ViewModel.startTime.LocalDateTime.Date.Should().Be(selectedDate.LocalDateTime.Date);
             }
 
             [Fact, LogIfTooSlow]
