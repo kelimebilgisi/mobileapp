@@ -5,11 +5,10 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Android.Support.Constraints;
 using static Toggl.Giskard.Resource.Id;
 using Android.Support.V7.Widget;
-using Toggl.Giskard.Views;
 
 namespace Toggl.Giskard.Activities
 {
-    public sealed partial class EditTimeEntryActivity : MvxAppCompatActivity<EditTimeEntryViewModel>
+    public sealed partial class EditTimeEntryActivity : ReactiveActivity<EditTimeEntryViewModel>
     {
         private View closeButton;
         private View confirmButton;
@@ -17,6 +16,7 @@ namespace Toggl.Giskard.Activities
 
         private Group singleTimeEntryModeViews;
         private Group timeEntriesGroupModeViews;
+        private Group stoppedTimeEntryStopTimeElements;
 
         private CardView errorContainer;
         private TextView errorText;
@@ -29,7 +29,7 @@ namespace Toggl.Giskard.Activities
         private TextView projectTaskClientTextView;
 
         private View tagsButton;
-        private TagsListRecyclerView tagsRecycler;
+        private RecyclerView tagsRecycler;
 
         private View billableButton;
         private Switch billableSwitch;
@@ -50,7 +50,7 @@ namespace Toggl.Giskard.Activities
         private TextView deleteLabel;
         private View deleteButton;
 
-        private void initializeViews()
+        protected override void InitializeViews()
         {
             closeButton = FindViewById(CloseButton);
             confirmButton = FindViewById(ConfirmButton);
@@ -58,6 +58,7 @@ namespace Toggl.Giskard.Activities
 
             singleTimeEntryModeViews = FindViewById<Group>(SingleTimeEntryModeViews);
             timeEntriesGroupModeViews = FindViewById<Group>(TimeEntriesGroupModeViews);
+            stoppedTimeEntryStopTimeElements = FindViewById<Group>(StoppedTimeEntryStopTimeElements);
 
             errorContainer = FindViewById<CardView>(ErrorContainer);
             errorText = FindViewById<TextView>(ErrorText);
@@ -70,7 +71,7 @@ namespace Toggl.Giskard.Activities
             projectTaskClientTextView = FindViewById<TextView>(ProjectTaskClient);
 
             tagsButton = FindViewById(SelectTagsButton);
-            tagsRecycler = FindViewById<TagsListRecyclerView>(TagsRecyclerView);
+            tagsRecycler = FindViewById<RecyclerView>(TagsRecyclerView);
 
             billableButton = FindViewById(ToggleBillableButton);
             billableSwitch = FindViewById<Switch>(BillableSwitch);
@@ -83,7 +84,7 @@ namespace Toggl.Giskard.Activities
             stopDateTextView = FindViewById<TextView>(StopDate);
             changeStopTimeButton = FindViewById(StopTimeButton);
 
-            stopTimeEntryButton = FindViewById(StopTimeEntryButton);
+            stopTimeEntryButton = FindViewById(StopTimeEntryButtonLabel);
 
             durationTextView = FindViewById<TextView>(Duration);
             changeDurationButton = FindViewById(DurationButton);

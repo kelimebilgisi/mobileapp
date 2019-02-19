@@ -286,7 +286,6 @@
                 android:id="@+id/TagsRecyclerView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:clickable="false"
                 local:layout_constraintLeft_toRightOf="@id/TagsIcon"
                 local:layout_constraintRight_toRightOf="parent"
                 local:layout_constraintTop_toTopOf="@+id/TagsIcon"
@@ -448,7 +447,7 @@
                 tools:text="06.05." />
 
             <TextView
-                android:id="@+id/StopTimeEntryButton"
+                android:id="@+id/StopTimeEntryButtonLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/Stop"
