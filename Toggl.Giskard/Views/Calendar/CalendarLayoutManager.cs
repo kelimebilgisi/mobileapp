@@ -154,7 +154,7 @@ namespace Toggl.Giskard.Views.Calendar
                 anchorBottom = layoutState.Offset + layoutChunkResult.Consumed;
             }
 
-            LayoutDecoratedWithMargins(view, anchorLeft, anchorRight, anchorTop, anchorBottom);
+            LayoutDecoratedWithMargins(view, anchorLeft, anchorTop, anchorRight, anchorBottom);
 
             if (layoutParams.IsItemRemoved || layoutParams.IsItemChanged)
             {
