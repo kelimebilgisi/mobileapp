@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using CoreGraphics;
 using Foundation;
 using MvvmCross.Commands;
@@ -10,6 +12,7 @@ using Toggl.Daneel.Views.StartTimeEntry;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Multivac.Extensions;
+using Toggl.Multivac.Extensions.Reactive;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
@@ -19,9 +22,10 @@ namespace Toggl.Daneel.ViewSources
         private const int defaultRowHeight = 48;
         private const int headerHeight = 40;
         private const int noEntityCellHeight = 108;
+        private BehaviorRelay<ProjectSuggestion> toggleTasks = new BehaviorRelay<ProjectSuggestion>(null);
 
         public Action TableRenderCallback { get; set; }
-        public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
+        public IObservable<ProjectSuggestion> ToggleTasks { get; }
 
         public StartTimeEntryTableViewSource(UITableView tableView)
         {
@@ -37,6 +41,8 @@ namespace Toggl.Daneel.ViewSources
             tableView.RegisterNibForCellReuse(StartTimeEntryEmptyViewCell.Nib, StartTimeEntryEmptyViewCell.Identifier);
             tableView.RegisterNibForCellReuse(CreateEntityViewCell.Nib, CreateEntityViewCell.Identifier);
             tableView.RegisterNibForHeaderFooterViewReuse(WorkspaceHeaderViewCell.Nib, WorkspaceHeaderViewCell.Identifier);
+
+            ToggleTasks = toggleTasks.Where(p => p != null).AsObservable();
         }
 
         public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
@@ -74,7 +80,7 @@ namespace Toggl.Daneel.ViewSources
                     cell.Item = project;
 
                     cell.ToggleTasks
-                        .Subscribe(ToggleTasksCommand.Execute)
+                        .Subscribe(toggleTasks.Accept)
                         .DisposedBy(cell.DisposeBag);
 
                     cell.TopSeparatorHidden = true;

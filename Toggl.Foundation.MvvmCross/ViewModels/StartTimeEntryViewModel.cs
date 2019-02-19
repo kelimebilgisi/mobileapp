@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using MvvmCross.Commands;
 using MvvmCross.Navigation;
@@ -21,7 +19,6 @@ using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
-using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
@@ -102,20 +99,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public ITogglDataSource DataSource => dataSource;
 
-        public IMvxAsyncCommand SetStartDateCommand { get; }
-
-        public IMvxAsyncCommand ChangeTimeCommand { get; }
-
-        public IMvxCommand ToggleBillableCommand { get; }
-
-        public IMvxCommand DurationTapped { get; }
-
-        public IMvxCommand ToggleTagSuggestionsCommand { get; }
-
-        public IMvxCommand ToggleProjectSuggestionsCommand { get; }
-
-        public IMvxCommand<ProjectSuggestion> ToggleTaskSuggestionsCommand { get; }
-
         public IOnboardingStorage OnboardingStorage { get; }
 
 
@@ -126,8 +109,16 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public UIAction Back { get; }
         public UIAction Done { get; }
+        public UIAction DurationTapped { get; }
+        public UIAction ToggleBillable { get; }
+        public UIAction SetStartDate { get; }
+        public UIAction ChangeTime { get; }
+        public UIAction ToggleTagSuggestions { get; }
+        public UIAction ToggleProjectSuggestions { get; }
         public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
         public InputAction<TimeSpan> SetRunningTime { get; }
+        public InputAction<ProjectSuggestion> ToggleTasks { get; }
+
 
         public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
             Suggestions { get; }
@@ -180,24 +171,22 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             DisplayedTime = displayedTime
                 .Select(time => time.ToFormattedString(DurationFormat.Improved))
                 .AsDriver(schedulerProvider);
-            IsSuggestingTags = isBillable.AsDriver(schedulerProvider);
+            IsBillable = isBillable.AsDriver(schedulerProvider);
             IsSuggestingTags = isSuggestingTags.AsDriver(schedulerProvider);
             IsSuggestingProjects = isSuggestingProjects.AsDriver(schedulerProvider);
             IsBillableAvailable = isBillable.AsDriver(schedulerProvider);
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
+            DurationTapped = rxActionFactory.FromAction(durationTapped);
+            ToggleBillable = rxActionFactory.FromAction(toggleBillable);
+            SetStartDate = rxActionFactory.FromAsync(setStartDate);
+            ChangeTime = rxActionFactory.FromAsync(changeTime);
+            ToggleTagSuggestions = rxActionFactory.FromAction(toggleTagSuggestions);
+            ToggleProjectSuggestions = rxActionFactory.FromAction(toggleProjectSuggestions);
             SelectSuggestion = rxActionFactory.FromAsync<AutocompleteSuggestion>(selectSuggestion);
             SetRunningTime = rxActionFactory.FromAction<TimeSpan>(setRunningTime);
-
-            DurationTapped = new MvxCommand(durationTapped);
-            ChangeTimeCommand = new MvxAsyncCommand(changeTime);
-            ToggleBillableCommand = new MvxCommand(toggleBillable);
-            SetStartDateCommand = new MvxAsyncCommand(setStartDate);
-            ToggleTagSuggestionsCommand = new MvxCommand(toggleTagSuggestions);
-            ToggleProjectSuggestionsCommand = new MvxCommand(toggleProjectSuggestions);
-
-            ToggleTaskSuggestionsCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+            ToggleTasks = rxActionFactory.FromAction<ProjectSuggestion>(toggleTasks);
 
             var queryByType = queryByTypeSubject
                 .AsObservable()
@@ -388,7 +377,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         && await workspaceChangeDenied())
                         return;
 
-                    IsSuggestingProjects = false;
+                    isSuggestingProjects.Accept(false);
                     updateUiWith(textFieldInfo.FromProjectSuggestion(projectSuggestion));
                     await setBillableValues(projectSuggestion.ProjectId);
                     queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
@@ -402,7 +391,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         && await workspaceChangeDenied())
                         return;
 
-                    IsSuggestingProjects = false;
+                    isSuggestingProjects.Accept(false);
                     updateUiWith(textFieldInfo.FromTaskSuggestion(taskSuggestion));
                     await setBillableValues(taskSuggestion.ProjectId);
                     queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
@@ -414,7 +403,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     break;
 
                 case CreateEntitySuggestion createEntitySuggestion:
-                    if (IsSuggestingProjects)
+                    if (isSuggestingProjects.Value)
                     {
                         createProject();
                     }
@@ -449,7 +438,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var projectSuggestion = new ProjectSuggestion(project);
 
             updateUiWith(textFieldInfo.FromProjectSuggestion(projectSuggestion));
-            IsSuggestingProjects = false;
+            isSuggestingProjects.Accept(false);
             queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
             hasAnyProjects = true;
         }
@@ -510,7 +499,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             );
         }
 
-        private void toggleTaskSuggestions(ProjectSuggestion projectSuggestion)
+        private void toggleTasks(ProjectSuggestion projectSuggestion)
         {
             var currentExpandedProjects = expandedProjects.Value;
             if (currentExpandedProjects.Contains(projectSuggestion))

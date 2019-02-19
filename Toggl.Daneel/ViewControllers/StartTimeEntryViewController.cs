@@ -95,7 +95,9 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(SuggestionsTableView.Rx().ReloadSections(source))
                 .DisposedBy(disposeBag);
 
-            source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
+            source.ToggleTasks
+                .Subscribe(ViewModel.ToggleTasks.Inputs)
+                .DisposedBy(disposeBag);            
 
             TimeInput.Rx().Duration()
                 .Subscribe(ViewModel.SetRunningTime.Inputs)
@@ -144,16 +146,25 @@ namespace Toggl.Daneel.ViewControllers
                 .BindAction(ViewModel.Done)
                 .DisposedBy(disposeBag);
 
-            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
-            
-            //Commands
-            bindingSet.Bind(BillableButton).To(vm => vm.ToggleBillableCommand);
-            bindingSet.Bind(StartDateButton).To(vm => vm.SetStartDateCommand);
-            bindingSet.Bind(DateTimeButton).To(vm => vm.ChangeTimeCommand);
-            bindingSet.Bind(TagsButton).To(vm => vm.ToggleTagSuggestionsCommand);
-            bindingSet.Bind(ProjectsButton).To(vm => vm.ToggleProjectSuggestionsCommand);
+            BillableButton.Rx()
+                .BindAction(ViewModel.ToggleBillable)
+                .DisposedBy(disposeBag);
 
-            bindingSet.Apply();
+            StartDateButton.Rx()
+                .BindAction(ViewModel.SetStartDate)
+                .DisposedBy(disposeBag);
+
+            DateTimeButton.Rx()
+                .BindAction(ViewModel.ChangeTime)
+                .DisposedBy(disposeBag);
+
+            TagsButton.Rx()
+                .BindAction(ViewModel.ToggleTagSuggestions)
+                .DisposedBy(disposeBag);
+
+            ProjectsButton.Rx()
+                .BindAction(ViewModel.ToggleProjectSuggestions)
+                .DisposedBy(disposeBag);
 
             // Reactive
             ViewModel.TextFieldInfoObservable
@@ -301,7 +312,7 @@ namespace Toggl.Daneel.ViewControllers
             var offset = SuggestionsTableView.ContentOffset;
             var frameHeight = SuggestionsTableView.Frame.Height;
 
-            ViewModel.ToggleTaskSuggestionsCommand.Execute(parameter);
+            ViewModel.ToggleTasks.Execute(parameter);
 
             SuggestionsTableView.CorrectOffset(offset, frameHeight);
         }
