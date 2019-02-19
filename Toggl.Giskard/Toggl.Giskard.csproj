@@ -466,8 +466,6 @@
     <Compile Include="Activities\TokenResetActivity.cs" />
     <Compile Include="Tiles\ReportsTileService.cs" />
     <Compile Include="Tiles\NewTimeEntryTileService.cs" />
-    <Compile Include="Views\TagsListRecyclerView.cs" />
-    <Compile Include="TemplateSelectors\TagsListTemplateSelector.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Bindings\ViewAlphaTargetBinding.cs" />
     <Compile Include="Bindings\ViewUpsideDownTargetBinding.cs" />
