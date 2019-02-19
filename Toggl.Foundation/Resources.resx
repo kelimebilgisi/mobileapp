@@ -330,6 +330,12 @@ Start the timer and your most used time entries will appear here.</value>
     <data name="DeleteMultipleTimeEntries">
         <value>Permanently delete {0} time entries?</value>
     </data>
+    <data name="DeleteThisEntry">
+        <value>Delete this entry</value>
+    </data>
+    <data name="DeleteNTimeEntries">
+        <value>Delete {0} time entries</value>
+    </data>
     <data name="DiscardThisTimeEntry">
         <value>Discard this time entry?</value>
     </data>
@@ -785,5 +791,8 @@ Use them to add keywords to your time entries.</value>
     </data>
     <data name="GroupTimeEntries">
         <value>Group similar time entries</value>
+    </data>
+    <data name="EditingTimeEntryGroup">
+        <value>Editing {0} time entries</value>
     </data>
 </root>
