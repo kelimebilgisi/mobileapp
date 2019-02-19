@@ -97,28 +97,23 @@ namespace Toggl.Daneel.ViewControllers
 
             source.ToggleTasksCommand = new MvxCommand<ProjectSuggestion>(toggleTaskSuggestions);
 
-
-            var invertedVisibilityConverter = new MvxInvertedVisibilityValueConverter();
-            var invertedBoolConverter = new BoolToConstantValueConverter<bool>(false, true);
             var buttonColorConverter = new BoolToConstantValueConverter<UIColor>(
                 Color.StartTimeEntry.ActiveButton.ToNativeColor(),
                 Color.StartTimeEntry.InactiveButton.ToNativeColor()
             );
             var durationCombiner = new DurationValueCombiner();
 
-            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
+            TimeInput.Rx().Duration()
+                .Subscribe(ViewModel.SetRunningTime.Inputs)
+                .DisposedBy(disposeBag);
 
             //Text
-            bindingSet.Bind(TimeInput)
-                      .For(v => v.Duration)
-                      .To(vm => vm.DisplayedTime)
-                      .Mode(MvxBindingMode.OneWayToSource);
 
-            bindingSet.Bind(TimeLabel)
-                      .For(v => v.Text)
-                      .ByCombining(durationCombiner,
-                          vm => vm.DisplayedTime,
-                          vm => vm.DisplayedTimeFormat);
+            ViewModel.DisplayedTime
+                .Subscribe(TimeLabel.Rx().Text())
+                .DisposedBy(disposeBag);
+
+            var bindingSet = this.CreateBindingSet<StartTimeEntryViewController, StartTimeEntryViewModel>();
 
             bindingSet.Bind(Placeholder)
                       .To(vm => vm.PlaceholderText);

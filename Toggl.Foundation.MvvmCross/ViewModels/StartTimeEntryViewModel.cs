@@ -31,6 +31,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
+using Toggl.Multivac.Extensions.Reactive;
 using Toggl.PrimeRadiant.Settings;
 using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.CommonFunctions;
@@ -59,6 +60,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISubject<TextFieldInfo> uiSubject = new ReplaySubject<TextFieldInfo>();
         private readonly ISubject<TextFieldInfo> querySubject = new Subject<TextFieldInfo>();
         private readonly ISubject<AutocompleteSuggestionType> queryByTypeSubject = new Subject<AutocompleteSuggestionType>();
+        private readonly ISubject<TimeSpan> displayedTime = new BehaviorSubject<TimeSpan>(TimeSpan.Zero);
 
         private bool isDirty => !string.IsNullOrEmpty(textFieldInfo.Description)
                                 || textFieldInfo.Spans.Any(s => s is ProjectSpan || s is TagSpan)
@@ -82,7 +84,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private IStopwatch suggestionsRenderingStopwatch;
 
         private bool isRunning => !duration.HasValue;
-        private TimeSpan displayedTime = TimeSpan.Zero;
 
         private string currentQuery;
 
@@ -91,26 +92,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public bool IsBillable { get; private set; } = false;
         public bool IsSuggestingTags { get; private set; }
         public bool IsSuggestingProjects { get; private set; }
-
-        public TimeSpan DisplayedTime
-        {
-            get => displayedTime;
-            set
-            {
-                if (isRunning)
-                {
-                    startTime = timeService.CurrentDateTime - value;
-                }
-                else
-                {
-                    duration = value;
-                }
-
-                displayedTime = value;
-
-                RaisePropertyChanged();
-            }
-        }
 
         public DurationFormat DisplayedTimeFormat { get; } = DurationFormat.Improved;
 
@@ -145,9 +126,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public UIAction Back { get; }
         public UIAction Done { get; }
         public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
+        public InputAction<TimeSpan> SetRunningTime { get; }
 
         public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
             Suggestions { get; }
+        public IObservable<string> DisplayedTime { get; }
 
         public StartTimeEntryViewModel(
             ITimeService timeService,
@@ -192,11 +175,15 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             OnboardingStorage = onboardingStorage;
 
-            TextFieldInfoObservable = uiSubject.AsDriver(this.schedulerProvider);
+            TextFieldInfoObservable = uiSubject.AsDriver(schedulerProvider);
+            DisplayedTime = displayedTime
+                .Select(time => time.ToFormattedString(DurationFormat.Improved))
+                .AsDriver(schedulerProvider);
 
             Back = rxActionFactory.FromAsync(Close);
             Done = rxActionFactory.FromObservable(done);
             SelectSuggestion = rxActionFactory.FromAsync<AutocompleteSuggestion>(selectSuggestion);
+            SetRunningTime = rxActionFactory.FromAction<TimeSpan>(setRunningTime);
 
             DurationTapped = new MvxCommand(durationTapped);
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
@@ -252,7 +239,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             timeService.CurrentDateTimeObservable
                 .Where(_ => isRunning)
-                .Subscribe(currentTime => DisplayedTime = currentTime - startTime)
+                .Subscribe(currentTime => displayedTime.OnNext(currentTime - startTime))
                 .DisposedBy(disposeBag);
         }
 
@@ -347,6 +334,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             await navigationService.Close(this);
             return true;
+        }
+
+        private void setRunningTime(TimeSpan runningTime)
+        {
+            if (isRunning)
+            {
+                startTime = timeService.CurrentDateTime - runningTime;
+            }
+            else
+            {
+                duration = runningTime;
+            }
+
+            displayedTime.OnNext(runningTime);
         }
 
         private async Task selectSuggestion(AutocompleteSuggestion suggestion)
