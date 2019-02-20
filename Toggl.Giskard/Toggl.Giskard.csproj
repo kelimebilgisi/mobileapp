@@ -378,6 +378,7 @@
     <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorInfo.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutSate.cs" />
+    <Compile Include="Views\Calendar\CalendarLayoutManager.ScrollHelper.cs" />
     <Compile Include="Views\EditDuration\Shapes\Arc.cs" />
     <Compile Include="Views\EditDuration\Shapes\Cap.cs" />
     <Compile Include="Views\EditDuration\Shapes\ClockDial.cs" />

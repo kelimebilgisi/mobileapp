@@ -90,8 +90,10 @@ namespace Toggl.Giskard.Views.Calendar
 
         public override int ComputeVerticalScrollOffset(RecyclerView.State state)
         {
-            //todo: calculate vertical scroll offset based on anchors
-            return base.ComputeVerticalScrollOffset(state);
+            return computeScrollOffset(state,
+                findFirstVisibleChildClosestToStart(),
+                findFirstVisibleChildClosestToEnd()
+            );
         }
 
         public override int ComputeVerticalScrollRange(RecyclerView.State state)
@@ -104,6 +106,61 @@ namespace Toggl.Giskard.Views.Calendar
         {
             //todo: calculate the space taken to fill the available space in the screen with anchors
             return base.ComputeVerticalScrollExtent(state);
+        }
+
+        private View findFirstVisibleChildClosestToStart()
+        {
+            return findFirstVisibleChildInRange(0, ChildCount);
+        }
+
+        private View findFirstVisibleChildClosestToEnd()
+        {
+            return findFirstVisibleChildInRange(ChildCount - 1, -1);
+        }
+
+        private View findFirstVisibleChildInRange(int fromIndex, int toIndex)
+        {
+            //preferred -> child start >= parent start && child end <= parent end (completely visible)
+            //acceptable -> child start < parent end && child end > parent start (partially visible)
+            View acceptableMatch = null;
+            var parentStart = PaddingTop;
+            var parentEnd = Height - PaddingBottom;
+
+            var next = toIndex > fromIndex ? 1 : -1;
+
+            for (int i = fromIndex; i != toIndex; i += next)
+            {
+                var child = GetChildAt(i);
+                if (!isAnchor(child)) continue;
+
+                var childStart = getChildStart(child);
+                var childEnd = getChildEnd(child);
+
+                if (childStart >= parentStart && childEnd <= parentEnd)
+                {
+                    //perfect match
+                    return child;
+                }
+
+                if (childStart < parentEnd && childEnd > parentStart)
+                {
+                    acceptableMatch = child;
+                }
+            }
+
+            return acceptableMatch;
+        }
+
+        private int getChildStart(View view)
+        {
+            var layoutParams = (RecyclerView.LayoutParams) view.LayoutParameters;
+            return GetDecoratedTop(view) - layoutParams.TopMargin;
+        }
+
+        private int getChildEnd(View view)
+        {
+            var layoutParams = (RecyclerView.LayoutParams) view.LayoutParameters;
+            return GetDecoratedBottom(view) + layoutParams.BottomMargin;
         }
 
         private int fill(RecyclerView.Recycler recycler, RecyclerView.State state)
