@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
@@ -222,7 +223,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("", 0));
+                ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("", 0));
 
                 TestScheduler.Start();
                 observer.LastValue()
@@ -238,7 +239,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}", 1));
+                ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}", 1));
 
                 TestScheduler.Start();
                 observer.LastValue()
@@ -254,7 +255,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}    ", 1));
+                ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}    ", 1));
 
                 TestScheduler.Start();
                 observer.LastValue()
@@ -270,8 +271,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                await ViewModel.OnTextFieldInfoFromView(
-                    new QueryTextSpan($"{QuerySymbol}{createLongString(MaxLength + 1)}", 1));
+                ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}{createLongString(MaxLength + 1)}", 1));
 
                 TestScheduler.Start();
                 observer.LastValue()
@@ -287,8 +287,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                await ViewModel.OnTextFieldInfoFromView(
-                    new QueryTextSpan($"{QuerySymbol}{QueryWithExactSuggestionMatch}", 1));
+                ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"{QuerySymbol}{QueryWithExactSuggestionMatch}", 1));
 
                 TestScheduler.Start();
 
@@ -358,8 +357,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var projectSpan = new ProjectSpan(ProjectId, ProjectName, ProjectColor, null, null);
                     var querySpan = new QueryTextSpan("abcde @fgh", 10);
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
 
 
                     TestScheduler.Start();
@@ -377,10 +376,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var projectSpan = new ProjectSpan(ProjectId, ProjectName, ProjectColor, null, null);
                     var querySpan = new QueryTextSpan("abcde @fgh", 10);
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan);
                     ViewModel.ToggleProjectSuggestions.Execute();
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -401,7 +400,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     await ViewModel.Initialize();
                     TestScheduler.Start();
 
-                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("@bongo", 6));
+                    ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("@bongo", 6));
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -422,7 +421,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     await ViewModel.Initialize();
                     TestScheduler.Start();
 
-                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"@${ProjectName}", 6));
+                    ViewModel.OnTextFieldInfoFromView(new QueryTextSpan($"@${ProjectName}", 6));
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -437,7 +436,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                     await ViewModel.Initialize();
 
-                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("abcde @fgh", 10));
+                    ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("abcde @fgh", 10));
 
                     TestScheduler.Start();
                     AnalyticsService.StartEntrySelectProject.Received().Track(ProjectTagSuggestionSource.TextField);
@@ -477,9 +476,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TestScheduler.Start();
 
                     await ViewModel.Initialize();
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan);
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -499,10 +498,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.Prepare();
                     TestScheduler.Start();
                     await ViewModel.Initialize();
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan);
                     ViewModel.ToggleTagSuggestions.Execute();
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -521,10 +520,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                     ViewModel.Prepare();
                     await ViewModel.Initialize();
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan);
                     ViewModel.ToggleTagSuggestions.Execute();
 
-                    await ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
                     TestScheduler.Start();
 
                     TestScheduler.Start();
@@ -539,7 +538,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.Prepare();
                     TestScheduler.Start();
 
-                    await ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("abcde #fgh", 10));
+                    ViewModel.OnTextFieldInfoFromView(new QueryTextSpan("abcde #fgh", 10));
 
                     AnalyticsService.StartEntrySelectTag.Received().Track(ProjectTagSuggestionSource.TextField);
                 }
@@ -559,7 +558,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     InteractorFactory.GetProjectById(Arg.Any<long>()).Execute().Returns(Observable.Return(project));
                     ViewModel.OnTextFieldInfoFromView(
                         new QueryTextSpan($"@{currentQuery}", 15)
-                    ).GetAwaiter().GetResult();
+                    );
 
                     ViewModel.Prepare();
                     ViewModel.Prepare(DefaultParameter);
@@ -2198,8 +2197,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
     public static class TestExtensions
     {
-        public static Task OnTextFieldInfoFromView(this StartTimeEntryViewModel viewModel, params ISpan[] spans)
-            => viewModel.OnTextFieldInfoFromView(spans.ToImmutableList());
+        public static IObservable<Unit> OnTextFieldInfoFromView(this StartTimeEntryViewModel viewModel, params ISpan[] spans)
+            => viewModel.SetTextSpans.Execute(spans.ToImmutableList());
 
         public static TextFieldInfo GetLatestInfo(this ITestableObserver<TextFieldInfo> observer, TestScheduler testScheduler)
         {
