@@ -180,7 +180,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Done.Execute();
 
                 TestScheduler.Start();
-                await NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
+                await NavigationService.Received().Navigate<MainTabBarViewModel>();
             }
 
             [Fact, LogIfTooSlow]

@@ -38,7 +38,7 @@ namespace Toggl.Giskard
         private const int maxNumberOfSuggestions = 5;
 
         private IAnalyticsService analyticsService;
-        private IForkingNavigationService navigationService;
+        private IMvxNavigationService navigationService;
 
 #if USE_PRODUCTION_API
         private const ApiEnvironment environment = ApiEnvironment.Production;
@@ -57,7 +57,6 @@ namespace Toggl.Giskard
 
             navigationService = new NavigationService(null, loader, analyticsService, Platform.Giskard);
 
-            Mvx.RegisterSingleton<IForkingNavigationService>(navigationService);
             Mvx.RegisterSingleton<IMvxNavigationService>(navigationService);
             return navigationService;
         }

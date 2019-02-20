@@ -18,7 +18,8 @@ namespace Toggl.Daneel.ViewControllers
         {
             { typeof(MainViewModel), "icTime" },
             { typeof(ReportsViewModel), "icReports" },
-            { typeof(CalendarViewModel), "icCalendar" }
+            { typeof(CalendarViewModel), "icCalendar" },
+            { typeof(SettingsViewModel), "icSettings" }
         };
 
         public MainTabBarController()

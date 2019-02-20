@@ -2,6 +2,7 @@
 using System.Reactive.Concurrency;
 using FluentAssertions;
 using NSubstitute;
+using MvvmCross.Navigation;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Login;
 using Toggl.Foundation.MvvmCross;
@@ -50,7 +51,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
         private readonly IUserPreferences userPreferences = Substitute.For<IUserPreferences>();
         private readonly IOnboardingStorage onboardingStorage = Substitute.For<IOnboardingStorage>();
         private readonly INotificationService notificationService = Substitute.For<INotificationService>();
-        private readonly IForkingNavigationService navigationService = Substitute.For<IForkingNavigationService>();
+        private readonly IMvxNavigationService navigationService = Substitute.For<IMvxNavigationService>();
         private readonly IErrorHandlingService errorHandlingService = Substitute.For<IErrorHandlingService>();
         private readonly IAccessRestrictionStorage accessRestrictionStorage = Substitute.For<IAccessRestrictionStorage>();
         private readonly ILastTimeUsageStorage lastTimeUsageStorage = Substitute.For<ILastTimeUsageStorage>();
@@ -99,7 +100,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
             var actualKeyValueStorage = useKeyValueStorage ? Substitute.For<IKeyValueStorage>() : null;
             var actualUserPreferences = useUserPreferences ? Substitute.For<IUserPreferences>() : null;
             var actualOnboardingStorage = useOnboardingStorage ? Substitute.For<IOnboardingStorage>() : null;
-            var actualNavigationService = useNavigationService ? Substitute.For<IForkingNavigationService>() : null;
+            var actualNavigationService = useNavigationService ? Substitute.For<IMvxNavigationService>() : null;
             var actualLastTimeUsageStorage = useLastTimeUsageStorage ? Substitute.For<ILastTimeUsageStorage>() : null;
             var actualApiErrorHandlingService = useApiErrorHandlingService ? Substitute.For<IErrorHandlingService>() : null;
             var actualAccessRestrictionStorage = useAccessRestrictionStorage ? Substitute.For<IAccessRestrictionStorage>() : null;
@@ -136,7 +137,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
             var actualKeyValueStorage = Substitute.For<IKeyValueStorage>();
             var actualUserPreferences = Substitute.For<IUserPreferences>();
             var actualOnboardingStorage = Substitute.For<IOnboardingStorage>();
-            var actualNavigationService = Substitute.For<IForkingNavigationService>();
+            var actualNavigationService = Substitute.For<IMvxNavigationService>();
             var actualApiErrorHandlingService = Substitute.For<IErrorHandlingService>();
             var actualAccessRestrictionStorage = Substitute.For<IAccessRestrictionStorage>();
             var actualLastTimeUsageStorage = Substitute.For<ILastTimeUsageStorage>();

@@ -147,7 +147,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
+                await NavigationService.Received().Navigate<MainTabBarViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -162,14 +162,14 @@ namespace Toggl.Foundation.Tests.MvvmCross
             }
 
             [Fact, LogIfTooSlow]
-            public async Task CallsForkNavigateToMainTabBarViewModelAndMainViewModelIfTheUserHasLoggedInPreviously()
+            public async Task CallsNavigateToMainTabBarViewModelIfTheUserHasLoggedInPreviously()
             {
                 var dataSource = Substitute.For<ITogglDataSource>();
                 UserAccessManager.GetDataSourceIfLoggedIn().Returns(dataSource);
 
                 await Task.Run(() => AppStart.Start());
 
-                await NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
+                await NavigationService.Received().Navigate<MainTabBarViewModel>();
             }
 
             [Fact, LogIfTooSlow]

@@ -25,7 +25,7 @@ namespace Toggl.Foundation.Tests.MvvmCross
         protected IApplicationShortcutCreator ApplicationShortcutCreator { get; }
             = Substitute.For<IApplicationShortcutCreator>();
 
-        protected IForkingNavigationService NavigationService { get; } = Substitute.For<IForkingNavigationService>();
+        protected IMvxNavigationService NavigationService { get; } = Substitute.For<IMvxNavigationService>();
         protected TestSchedulerProvider SchedulerProvider { get; } = new TestSchedulerProvider();
         protected IIntentDonationService IntentDonationService { get; } = Substitute.For<IIntentDonationService>();
         protected IPrivateSharedStorageService PrivateSharedStorageService { get; } = Substitute.For<IPrivateSharedStorageService>();

@@ -2,6 +2,7 @@
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
+using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace Toggl.Giskard.Fragments
 {
@@ -35,6 +36,7 @@ namespace Toggl.Giskard.Fragments
         private Switch stoppedTimerNotificationsSwitch;
 
         private RecyclerView workspacesRecyclerView;
+        private Toolbar toolbar;
 
         protected override void InitializeViews(View fragmentView)
         {
@@ -65,6 +67,7 @@ namespace Toggl.Giskard.Fragments
             stoppedTimerNotificationsSwitch = fragmentView.FindViewById<Switch>(Resource.Id.SettingsAreStoppedTimerNotificationsEnabledSwitch);
 
             workspacesRecyclerView = fragmentView.FindViewById<RecyclerView>(Resource.Id.SettingsWorkspacesRecyclerView);
+            toolbar = fragmentView.FindViewById<Toolbar>(Resource.Id.Toolbar);
         }
     }
 }

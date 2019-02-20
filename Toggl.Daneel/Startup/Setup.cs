@@ -31,7 +31,7 @@ namespace Toggl.Daneel
         private const int maxNumberOfSuggestions = 3;
 
         private IAnalyticsService analyticsService;
-        private IForkingNavigationService navigationService;
+        private IMvxNavigationService navigationService;
 
 #if USE_PRODUCTION_API
         private const ApiEnvironment environment = ApiEnvironment.Production;
@@ -51,7 +51,6 @@ namespace Toggl.Daneel
 
             navigationService = new NavigationService(null, loader, analyticsService, Platform.Daneel);
 
-            Mvx.RegisterSingleton<IForkingNavigationService>(navigationService);
             Mvx.RegisterSingleton<IMvxNavigationService>(navigationService);
             return navigationService;
         }

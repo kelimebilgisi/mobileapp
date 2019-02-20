@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item 
+        android:id="@+id/MainTabTimerItem"
+        android:title="@string/Timer"
+        android:icon="@drawable/timer_light"/>
+    
+    <item 
+        android:id="@+id/MainTabReportsItem"
+        android:title="@string/Reports"
+        android:icon="@drawable/reports_light"/>
+    
+    <item 
+        android:id="@+id/MainTabCalendarItem"
+        android:title="@string/Calendar"
+        android:icon="@drawable/calendar_light"/>
+    
+    <item 
+        android:id="@+id/MainTabSettinsItem"
+        android:title="@string/Settings"
+        android:icon="@drawable/settings_light"/>
+
+</menu>

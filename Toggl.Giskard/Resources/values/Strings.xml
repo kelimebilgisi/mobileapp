@@ -135,6 +135,9 @@ understand and agree to Toggl\'s</string>
     <string name="PlusThirtyMinutes">30m</string>
     <string name="PlusThirtyMinutes">30m</string>
     <string name="LoginBackRequest">Enter your password to log back in to your account:</string>
+    <string name="Timer">Timer</string>
+    <string name="Calendar">Calendar</string>
+    <string name="Settings">Settings</string>
     <string name="CalendarOnboardingTitle">Get started with Calendar</string>
     <string name="CalendarOnboardingMessage">View your calendar events in Toggl and turn them into time entries with a tap</string>
     <string name="LinkYourCalendars">Link your calendars</string>

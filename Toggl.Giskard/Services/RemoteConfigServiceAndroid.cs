@@ -52,9 +52,6 @@ namespace Toggl.Giskard.Services
 
                 return Disposable.Empty;
             });
-
-        public IObservable<bool> IsCalendarFeatureEnabled
-            => Observable.Return(false);
     }
 
     public class RatingViewCompletionHandler : Java.Lang.Object, IOnCompleteListener

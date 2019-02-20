@@ -13,6 +13,13 @@ namespace Toggl.Giskard.Fragments
 
         protected abstract void InitializeViews(View view);
 
+        public override void OnDestroyView()
+        {
+            base.OnDestroyView();
+            DisposeBag.Dispose();
+            DisposeBag = new CompositeDisposable();
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

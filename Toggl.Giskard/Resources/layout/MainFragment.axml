@@ -55,27 +55,5 @@
             android:layout_height="24dp"
             android:layout_gravity="start"
             android:layout_width="wrap_content" />
-        <ImageView
-            android:id="@+id/ToolbarSettingsImageView"
-            android:clickable="true"
-            android:paddingTop="16dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="16dp"
-            android:src="@drawable/settings_dark"
-            android:layout_width="48dp"
-            android:layout_height="56dp"
-            android:layout_gravity="end" />
-        <ImageView
-            android:id="@+id/ToolbarReportsImageView"
-            android:clickable="true"
-            android:paddingTop="16dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="8dp"
-            android:paddingBottom="16dp"
-            android:src="@drawable/reports_dark"
-            android:layout_width="48dp"
-            android:layout_height="56dp"
-            android:layout_gravity="end" />
     </android.support.v7.widget.Toolbar>
 </android.support.design.widget.CoordinatorLayout>

@@ -4,9 +4,7 @@ using Android.OS;
 using Android.Support.V7.App;
 using Android.Support.V7.Widget;
 using Android.Views;
-using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.Extensions;
-using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Giskard.Adapters;
 using Toggl.Giskard.Extensions.Reactive;
@@ -16,9 +14,6 @@ using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace Toggl.Giskard.Fragments
 {
-    [MvxFragmentPresentation(
-        ActivityHostViewModelType = typeof(ReportsHostViewModel),
-        FragmentContentId = Resource.Id.ReportsFragmentContainer)]
     public sealed partial class ReportsFragment : ReactiveFragment<ReportsViewModel>
     {
         private static readonly TimeSpan toggleCalendarThrottleDuration = TimeSpan.FromMilliseconds(300);
@@ -95,17 +90,6 @@ namespace Toggl.Giskard.Fragments
             var activity = Activity as AppCompatActivity;
             toolbar.Title = "";
             activity.SetSupportActionBar(toolbar);
-
-            activity.SupportActionBar.SetDisplayHomeAsUpEnabled(true);
-            activity.SupportActionBar.SetDisplayShowHomeEnabled(true);
-
-            toolbar.NavigationClick += onNavigateBack;
-        }
-
-        private void onNavigateBack(object sender, Toolbar.NavigationClickEventArgs e)
-        {
-            var activity = Activity as AppCompatActivity;
-            activity.Finish();
         }
     }
 }

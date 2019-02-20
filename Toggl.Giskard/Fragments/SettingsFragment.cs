@@ -5,10 +5,10 @@ using System.Reactive.Linq;
 using Android.Content;
 using Android.Graphics;
 using Android.OS;
+using Android.Support.V7.App;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Android.Widget;
-using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Giskard.Adapters;
@@ -16,15 +16,10 @@ using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.ViewHolders;
 using Toggl.Multivac.Extensions;
+using FoundationResources = Toggl.Foundation.Resources;
 
 namespace Toggl.Giskard.Fragments
 {
-    [MvxFragmentPresentation(
-        AddToBackStack = true,
-        EnterAnimation = Resource.Animation.abc_slide_in_right,
-        ExitAnimation = Resource.Animation.abc_slide_out_right,
-        PopEnterAnimation = Resource.Animation.abc_fade_in,
-        PopExitAnimation = Resource.Animation.abc_slide_out_right)]
     public sealed partial class SettingsFragment : ReactiveFragment<SettingsViewModel>
     {
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -32,6 +27,7 @@ namespace Toggl.Giskard.Fragments
             var view = inflater.Inflate(Resource.Layout.SettingsFragment, container, false);
 
             InitializeViews(view);
+            setupToolbar();
 
             var adapter = new SimpleAdapter<SelectableWorkspaceViewModel>(
                 Resource.Layout.SettingsFragmentWorkspaceCell,
@@ -161,5 +157,12 @@ namespace Toggl.Giskard.Fragments
 
         private Bitmap userImageFromBytes(byte[] imageBytes)
             => BitmapFactory.DecodeByteArray(imageBytes, 0, imageBytes.Length);
+
+        private void setupToolbar()
+        {
+            var activity = Activity as AppCompatActivity;
+            toolbar.Title = FoundationResources.Settings;
+            activity.SetSupportActionBar(toolbar);
+        }
     }
 }

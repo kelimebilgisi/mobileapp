@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Android.App;
-using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Support.Design.Widget;
@@ -13,8 +11,6 @@ using Android.Support.V7.Widget;
 using Android.Support.V7.Widget.Helper;
 using Android.Text;
 using Android.Views;
-using MvvmCross.Platforms.Android.Core;
-using MvvmCross.Platforms.Android.Presenters.Attributes;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Models.Interfaces;
@@ -32,13 +28,9 @@ using static Android.Content.Context;
 using static Toggl.Foundation.Sync.SyncProgress;
 using static Toggl.Giskard.Extensions.CircularRevealAnimation.AnimationType;
 using FoundationResources = Toggl.Foundation.Resources;
-using Toolbar = Android.Support.V7.Widget.Toolbar;
 
 namespace Toggl.Giskard.Fragments
 {
-    [MvxFragmentPresentation(
-        ActivityHostViewModelType = typeof(MainHostViewModel),
-        FragmentContentId = Resource.Id.MainFragmentContainer)]
     public sealed partial class MainFragment : ReactiveFragment<MainViewModel>
     {
         private const int snackbarDuration = 5000;
@@ -47,6 +39,7 @@ namespace Toggl.Giskard.Fragments
         private LinearLayoutManager layoutManager;
         private FirebaseStopwatchProviderAndroid localStopwatchProvider = new FirebaseStopwatchProviderAndroid();
         private CancellationTokenSource cardAnimationCancellation;
+        private bool shouldShowRatingViewOnResume;
 
         public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
         {
@@ -60,8 +53,6 @@ namespace Toggl.Giskard.Fragments
 
             runningEntryCardFrame.Visibility = ViewStates.Invisible;
 
-            reportsView.Rx().BindAction(ViewModel.OpenReports).DisposedBy(DisposeBag);
-            settingsView.Rx().BindAction(ViewModel.OpenSettings).DisposedBy(DisposeBag);
             stopButton.Rx().BindAction(ViewModel.StopTimeEntry, _ => TimeEntryStopOrigin.Manual).DisposedBy(DisposeBag);
 
             playButton.Rx().BindAction(ViewModel.StartTimeEntry, _ => true).DisposedBy(DisposeBag);
@@ -138,6 +129,7 @@ namespace Toggl.Giskard.Fragments
                 RatingViewModel = ViewModel.RatingViewModel,
                 StopwatchProvider = localStopwatchProvider
             };
+            mainRecyclerAdapter.SetupRatingViewVisibility(shouldShowRatingViewOnResume);
 
             mainRecyclerAdapter.TimeEntryTaps
                 .Select(te => te.Id)
@@ -217,6 +209,7 @@ namespace Toggl.Giskard.Fragments
         public void SetupRatingViewVisibility(bool isVisible)
         {
             mainRecyclerAdapter.SetupRatingViewVisibility(isVisible);
+            shouldShowRatingViewOnResume = isVisible;
         }
 
         private void reload()
@@ -372,9 +365,8 @@ namespace Toggl.Giskard.Fragments
         private void setupToolbar()
         {
             var activity = Activity as AppCompatActivity;
+            toolbar.Title = "";
             activity.SetSupportActionBar(toolbar);
-            activity.SupportActionBar.SetDisplayShowHomeEnabled(false);
-            activity.SupportActionBar.SetDisplayShowTitleEnabled(false);
         }
     }
 }

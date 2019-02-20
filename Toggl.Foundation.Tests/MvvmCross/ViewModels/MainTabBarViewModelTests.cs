@@ -34,7 +34,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     IntentDonationService,
                     AccessRestrictionStorage,
                     StopwatchProvider,
-                    RxActionFactory
+                    RxActionFactory,
+                    UserAccessManager,
+                    PrivateSharedStorageService,
+                    PlatformInfo
                 );
 
             protected override void AdditionalViewModelSetup()
@@ -68,7 +71,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     bool useAccessRestrictionStorage,
                     bool useSuggestionProviderContainer,
                     bool useStopwatchProvider,
-                    bool useRxActionFactory)
+                    bool useRxActionFactory,
+                    bool useUserAccessManager,
+                    bool usePrivateSharedStorageService,
+                    bool usePlatformInfo)
 
             {
                 var timeService = useTimeService ? TimeService : null;
@@ -89,6 +95,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var intentDonationService = useIntentDonationService ? IntentDonationService : null;
                 var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
                 var rxActionFactory = useRxActionFactory ? RxActionFactory : null;
+                var userAccessManager = useUserAccessManager ? UserAccessManager : null;
+                var privateSharedStorageService = usePrivateSharedStorageService ? PrivateSharedStorageService : null;
+                var platformInfo = usePlatformInfo ? PlatformInfo : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new MainTabBarViewModel(
@@ -109,7 +118,10 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         intentDonationService,
                         accessRestrictionStorage,
                         stopwatchProvider,
-                        rxActionFactory
+                        rxActionFactory,
+                        userAccessManager,
+                        privateSharedStorageService,
+                        platformInfo
                     );
 
                 tryingToConstructWithEmptyParameters
@@ -120,14 +132,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public sealed class TheTabsProperty : MainTabViewModelTest
         {
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task ShouldConditionallyIncludeTheCalendarViewModelBasedOntheRemoteConfigService(bool enabled)
+            [InlineData(Platform.Daneel, false)]
+            [InlineData(Platform.Giskard, true)]
+            public async Task ShouldContainTheSettingsViewModelBasedOntheRemoteConfigService(Platform platform, bool includesSettings)
             {
-                var expectedTabCount = 2 + (enabled ? 1 : 0);
-                RemoteConfigService
-                    .IsCalendarFeatureEnabled
-                    .Returns(Observable.Return(enabled));
+                var expectedTabCount = 3 + (includesSettings ? 1 : 0);
+                PlatformInfo.Platform.Returns(platform);
 
                 await ViewModel.Initialize();
 

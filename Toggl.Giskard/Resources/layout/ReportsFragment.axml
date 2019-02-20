@@ -53,9 +53,7 @@
     </android.support.v7.widget.Toolbar>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/SelectWorkspaceFAB"
-        local:fabSize="mini"
         local:elevation="4dp"
-        android:scaleType="center"
         android:src="@drawable/workspace_white"
         local:backgroundTint="@color/playButtonGreen"
         android:layout_width="56dp"

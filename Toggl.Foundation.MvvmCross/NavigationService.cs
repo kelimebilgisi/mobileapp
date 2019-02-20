@@ -8,7 +8,7 @@ using Toggl.Foundation.MvvmCross.Services;
 
 namespace Toggl.Foundation.MvvmCross
 {
-    public sealed class NavigationService : MvxNavigationService, IForkingNavigationService
+    public sealed class NavigationService : MvxNavigationService
     {
         private readonly IAnalyticsService analyticsService;
         private readonly Platform platform;
@@ -69,18 +69,6 @@ namespace Toggl.Foundation.MvvmCross
         {
             analyticsService.CurrentPage.Track(viewModelType);
             return base.Navigate<TParameter, TResult>(viewModelType, param, presentationBundle, cancellationToken);
-        }
-
-        public Task ForkNavigate<TDaneelViewModel, TGiskardViewModel>()
-            where TDaneelViewModel : IMvxViewModel
-            where TGiskardViewModel : IMvxViewModel
-        {
-            if (platform == Platform.Daneel)
-            {
-                return Navigate<TDaneelViewModel>();
-            }
-
-            return Navigate<TGiskardViewModel>();
         }
     }
 }

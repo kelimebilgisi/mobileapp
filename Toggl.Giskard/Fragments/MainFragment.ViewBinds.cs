@@ -13,8 +13,6 @@ namespace Toggl.Giskard.Fragments
         private FloatingActionButton playButton;
         private FloatingActionButton stopButton;
         private CoordinatorLayout coordinatorLayout;
-        private ImageView reportsView;
-        private ImageView settingsView;
         private View timeEntryCard;
         private TextView timeEntryCardTimerLabel;
         private TextView timeEntryCardDescriptionLabel;
@@ -37,8 +35,6 @@ namespace Toggl.Giskard.Fragments
             playButton = fragmentView.FindViewById<FloatingActionButton>(Resource.Id.MainPlayButton);
             stopButton = fragmentView.FindViewById<FloatingActionButton>(Resource.Id.MainStopButton);
             coordinatorLayout = fragmentView.FindViewById<CoordinatorLayout>(Resource.Id.MainCoordinatorLayout);
-            reportsView = fragmentView.FindViewById<ImageView>(Resource.Id.ToolbarReportsImageView);
-            settingsView = fragmentView.FindViewById<ImageView>(Resource.Id.ToolbarSettingsImageView);
             timeEntryCard = fragmentView.FindViewById(Resource.Id.MainContentArea);
             timeEntryCardTimerLabel = fragmentView.FindViewById<TextView>(Resource.Id.MainRunningTimeEntryTimerLabel);
             timeEntryCardDescriptionLabel = fragmentView.FindViewById<TextView>(Resource.Id.MainRunningTimeEntryDescription);

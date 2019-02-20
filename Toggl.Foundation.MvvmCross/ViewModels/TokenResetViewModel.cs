@@ -1,9 +1,10 @@
-﻿using MvvmCross.ViewModels;
-using System;
+﻿using System;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using MvvmCross.Navigation;
+using MvvmCross.ViewModels;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Interactors;
@@ -25,7 +26,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly IUserAccessManager userAccessManager;
         private readonly ITogglDataSource dataSource;
         private readonly IDialogService dialogService;
-        private readonly IForkingNavigationService navigationService;
+        private readonly IMvxNavigationService navigationService;
         private readonly IUserPreferences userPreferences;
         private readonly IAnalyticsService analyticsService;
         private readonly ISchedulerProvider schedulerProvider;
@@ -54,7 +55,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             IUserAccessManager userAccessManager,
             ITogglDataSource dataSource,
             IDialogService dialogService,
-            IForkingNavigationService navigationService,
+            IMvxNavigationService navigationService,
             IUserPreferences userPreferences,
             IAnalyticsService analyticsService,
             ISchedulerProvider schedulerProvider,
@@ -151,7 +152,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             newDataSource.SyncManager.ForceFullSync().Subscribe();
 
-            navigationService.ForkNavigate<MainTabBarViewModel, MainViewModel>();
+            navigationService.Navigate<MainTabBarViewModel>();
         }
 
         private string transformException(Exception ex)

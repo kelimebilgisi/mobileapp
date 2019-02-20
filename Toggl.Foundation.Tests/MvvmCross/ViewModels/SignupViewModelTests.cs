@@ -922,7 +922,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ExecuteCommand();
 
                 TestScheduler.Start();
-                NavigationService.Received().ForkNavigate<MainTabBarViewModel, MainViewModel>();
+                NavigationService.Received().Navigate<MainTabBarViewModel>();
             }
         }
 
