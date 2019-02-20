@@ -67,24 +67,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             isEditingDescriptionSubject = new BehaviorSubject<bool>(false);
             Description = new BehaviorRelay<string>(string.Empty, CommonFunctions.Trim);
 
-            projectClientTaskSubject = new BehaviorSubject<(string, string, string, string)>(
-                (null, null, null, null));
-            HasProject = projectClientTaskSubject
-                .Select(data => !string.IsNullOrEmpty(data.Project))
-                .DistinctUntilChanged()
-                .AsDriver(false, schedulerProvider);
-            Project = projectClientTaskSubject
-                .Select(data => (data.Project, data.ProjectColor))
-                .DistinctUntilChanged()
-                .AsDriver((null, null), schedulerProvider);
-            Client = projectClientTaskSubject
-               .Select(data => data.Client)
-               .DistinctUntilChanged()
-               .AsDriver(null, schedulerProvider);
-            Task = projectClientTaskSubject
-                .Select(data => data.Task)
-                .DistinctUntilChanged()
-                .AsDriver(null, schedulerProvider);
+            projectClientTaskSubject = new BehaviorSubject<ProjectClientTaskInfo>(ProjectClientTaskInfo.Empty);
+            ProjectClientTask = projectClientTaskSubject
+                .AsDriver(ProjectClientTaskInfo.Empty, schedulerProvider);
 
             IsBillableAvailable = workspaceIdSubject
                 .SelectMany(workspaceId => interactorFactory.IsBillableAvailableForWorkspace(workspaceId).Execute())
@@ -174,9 +159,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Description.Accept(timeEntry.Description);
              
-            projectClientTaskSubject.OnNext(
-                (timeEntry.Project?.Name,
-                timeEntry.Project?.Color,
+            projectClientTaskSubject.OnNext(new ProjectClientTaskInfo(
+                timeEntry.Project?.DisplayName(),
+                timeEntry.Project?.DisplayColor(),
                 timeEntry.Project?.Client?.Name,
                 timeEntry.Task?.Name));
 
@@ -287,8 +272,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             if (projectId == null)
             {
-                projectClientTaskSubject.OnNext(
-                    (string.Empty, string.Empty, string.Empty, string.Empty));
+                projectClientTaskSubject.OnNext(ProjectClientTaskInfo.Empty);
 
                 clearTagsIfNeeded(workspaceId, chosenProject.WorkspaceId);
 
@@ -301,10 +285,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             clearTagsIfNeeded(workspaceId, project.WorkspaceId);
 
             var taskName = chosenProject.TaskId.HasValue
-                ? (await interactorFactory.GetTaskById(taskId.Value).Execute()).Name
+                ? (await interactorFactory.GetTaskById(taskId.Value).Execute())?.Name
                 : string.Empty;
 
-            projectClientTaskSubject.OnNext((
+            projectClientTaskSubject.OnNext(new ProjectClientTaskInfo(
                 project.DisplayName(),
                 project.DisplayColor(),
                 project.Client?.Name,

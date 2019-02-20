@@ -60,12 +60,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public BehaviorRelay<string> Description { get; private set; }
 
         // Project, task, client
-        private BehaviorSubject<(string Project, string ProjectColor, string Client, string Task)> projectClientTaskSubject;
+        private BehaviorSubject<ProjectClientTaskInfo> projectClientTaskSubject;
+        public IObservable<ProjectClientTaskInfo> ProjectClientTask { get; private set; }
 
-        public IObservable<bool> HasProject { get; private set; }
-        public IObservable<(string Name, string Color)> Project { get; private set; }
-        public IObservable<string> Client { get; private set; }
-        public IObservable<string> Task { get; private set; }
 
         // Billable
         public IObservable<bool> IsBillableAvailable { get; private set; }
@@ -119,5 +116,26 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public UIAction DismissSyncErrorMessage { get; private set; }
         public UIAction Save { get; private set; }
         public UIAction Delete { get; private set; }
+
+        public struct ProjectClientTaskInfo
+        {
+            public ProjectClientTaskInfo(string project, string projectColor, string client, string task)
+            {
+                Project = project;
+                ProjectColor = projectColor;
+                Client = client;
+                Task = task;
+            }
+
+            public string Project { get; private set; }
+            public string ProjectColor { get; private set; }
+            public string Client { get; private set; }
+            public string Task { get; private set; }
+
+            public bool HasProject => !string.IsNullOrEmpty(Project);
+
+            public static ProjectClientTaskInfo Empty
+                => new ProjectClientTaskInfo(null, null, null, null);
+        }
     }
 }

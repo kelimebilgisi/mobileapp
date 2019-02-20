@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Linq;
 using Android.Widget;
 using Toggl.Foundation.MvvmCross.Onboarding.EditView;
 using Toggl.Giskard.Extensions;
@@ -33,7 +34,9 @@ namespace Toggl.Giskard.Activities
         {
             var storage = ViewModel.OnboardingStorage;
 
-            new CategorizeTimeUsingProjectsOnboardingStep(storage, ViewModel.HasProject)
+            var hasProject = ViewModel.ProjectClientTask.Select(projectClientTask => projectClientTask.HasProject);
+
+            new CategorizeTimeUsingProjectsOnboardingStep(storage, hasProject)
                 .ManageDismissableTooltip(
                     projectTooltip,
                     projectButton,

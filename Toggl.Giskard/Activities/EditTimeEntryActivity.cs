@@ -123,9 +123,8 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             // Project, task, client
-            Observable.CombineLatest(
-                    ViewModel.HasProject, ViewModel.Project, ViewModel.Task, ViewModel.Client,
-                    generateProjectTaskClientFormattedString)
+            ViewModel.ProjectClientTask
+                .Select(generateProjectTaskClientFormattedString)
                 .Subscribe(projectTaskClientTextView.Rx().TextFormattedObserver())
                 .DisposedBy(DisposeBag);
 
@@ -237,7 +236,12 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
         }
 
-        private ISpannable generateProjectTaskClientFormattedString(bool hasProject, (string Name, string Color) project, string task, string client)
-            => TimeEntryExtensions.ToProjectTaskClient(hasProject, project.Name, project.Color, task, client);
+        private ISpannable generateProjectTaskClientFormattedString(EditTimeEntryViewModel.ProjectClientTaskInfo projectClientTask)
+            => TimeEntryExtensions.ToProjectTaskClient(
+                    projectClientTask.HasProject,
+                    projectClientTask.Project,
+                    projectClientTask.ProjectColor,
+                    projectClientTask.Task,
+                    projectClientTask.Client);
     }
 }
