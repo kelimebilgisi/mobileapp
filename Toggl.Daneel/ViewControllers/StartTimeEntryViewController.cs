@@ -188,7 +188,7 @@ namespace Toggl.Daneel.ViewControllers
                 .Do(updatePlaceholder)
                 .Select(text => text.AsImmutableSpans((int)DescriptionTextView.SelectedRange.Location))
                 .ObserveOn(SynchronizationContext.Current)
-                .Subscribe(async info => await ViewModel.OnTextFieldInfoFromView(info))
+                .Subscribe(ViewModel.SetTextSpans.Inputs)
                 .DisposedBy(DisposeBag);
 
             source.TableRenderCallback = () =>

@@ -116,6 +116,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public InputAction<AutocompleteSuggestion> SelectSuggestion { get; }
         public InputAction<TimeSpan> SetRunningTime { get; }
         public InputAction<ProjectSuggestion> ToggleTasks { get; }
+        public InputAction<IImmutableList<ISpan>> SetTextSpans { get; }
 
         public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
             Suggestions { get; }
@@ -184,12 +185,14 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             SelectSuggestion = rxActionFactory.FromAsync<AutocompleteSuggestion>(selectSuggestion);
             SetRunningTime = rxActionFactory.FromAction<TimeSpan>(setRunningTime);
             ToggleTasks = rxActionFactory.FromAction<ProjectSuggestion>(toggleTasks);
+            SetTextSpans = rxActionFactory.FromAction<IImmutableList<ISpan>>(setTextSpans);
 
             var queryByType = queryByTypeSubject
                 .AsObservable()
                 .SelectMany(type => autocompleteProvider.Query(new QueryInfo("", type)));
 
             var queryByText = textFieldInfo
+                .SelectMany(setBillableValues)
                 .Select(QueryInfo.ParseFieldInfo)
                 .Do(onParsedQuery)
                 .ObserveOn(schedulerProvider.BackgroundScheduler)
@@ -282,8 +285,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 textFieldInfo.Accept(textFieldInfo.Value.ReplaceSpans(spans.ToImmutableList()));
             }
 
-            await setBillableValues(textFieldInfo.Value.ProjectId);
-
             hasAnyTags = (await dataSource.Tags.GetAll()).Any();
             hasAnyProjects = (await dataSource.Projects.GetAll()).Any();
         }
@@ -307,12 +308,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             suggestionsRenderingStopwatch = null;
         }
 
-        public async Task OnTextFieldInfoFromView(IImmutableList<ISpan> spans)
-        {
-            queryWith(textFieldInfo.Value.ReplaceSpans(spans));
-            await setBillableValues(textFieldInfo.Value.ProjectId);
-        }
-
         public async Task<bool> Close()
         {
             if (isDirty)
@@ -324,6 +319,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             await navigationService.Close(this);
             return true;
+        }
+
+        private void setTextSpans(IImmutableList<ISpan> spans)
+        {
+            textFieldInfo.Accept(textFieldInfo.Value.ReplaceSpans(spans));
         }
 
         private void setRunningTime(TimeSpan runningTime)
@@ -357,13 +357,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         analyticsService.StartEntrySelectTag.Track(ProjectTagSuggestionSource.TableCellButton);
                     }
 
-                    queryAndUpdateUiWith(textFieldInfo.Value.FromQuerySymbolSuggestion(querySymbolSuggestion));
+                    textFieldInfo.Accept(textFieldInfo.Value.FromQuerySymbolSuggestion(querySymbolSuggestion));
                     break;
 
                 case TimeEntrySuggestion timeEntrySuggestion:
                     analyticsService.StartViewTapped.Track(StartViewTapSource.PickTimeEntrySuggestion);
-                    updateUiWith(textFieldInfo.Value.FromTimeEntrySuggestion(timeEntrySuggestion));
-                    await setBillableValues(timeEntrySuggestion.ProjectId);
+                    textFieldInfo.Accept(textFieldInfo.Value.FromTimeEntrySuggestion(timeEntrySuggestion));
                     break;
 
                 case ProjectSuggestion projectSuggestion:
@@ -374,8 +373,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         return;
 
                     isSuggestingProjects.Accept(false);
-                    updateUiWith(textFieldInfo.Value.FromProjectSuggestion(projectSuggestion));
-                    await setBillableValues(projectSuggestion.ProjectId);
+                    textFieldInfo.Accept(textFieldInfo.Value.FromProjectSuggestion(projectSuggestion));
                     queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
 
                     break;
@@ -388,14 +386,13 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                         return;
 
                     isSuggestingProjects.Accept(false);
-                    updateUiWith(textFieldInfo.Value.FromTaskSuggestion(taskSuggestion));
-                    await setBillableValues(taskSuggestion.ProjectId);
+                    textFieldInfo.Accept(textFieldInfo.Value.FromTaskSuggestion(taskSuggestion));
                     queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
                     break;
 
                 case TagSuggestion tagSuggestion:
                     analyticsService.StartViewTapped.Track(StartViewTapSource.PickTagSuggestion);
-                    updateUiWith(textFieldInfo.Value.FromTagSuggestion(tagSuggestion));
+                    textFieldInfo.Accept(textFieldInfo.Value.FromTagSuggestion(tagSuggestion));
                     break;
 
                 case CreateEntitySuggestion createEntitySuggestion:
@@ -433,7 +430,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var project = await interactorFactory.GetProjectById(projectId.Value).Execute();
             var projectSuggestion = new ProjectSuggestion(project);
 
-            updateUiWith(textFieldInfo.Value.FromProjectSuggestion(projectSuggestion));
+            textFieldInfo.Accept(textFieldInfo.Value.FromProjectSuggestion(projectSuggestion));
             isSuggestingProjects.Accept(false);
             queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
             hasAnyProjects = true;
@@ -458,7 +455,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (isSuggestingTags.Value)
             {
                 isSuggestingTags.Accept(false);
-                updateUiWith(textFieldInfo.Value.RemoveTagQueryIfNeeded());
+                textFieldInfo.Accept(textFieldInfo.Value.RemoveTagQueryIfNeeded());
                 queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
                 return;
             }
@@ -467,7 +464,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             analyticsService.StartEntrySelectTag.Track(ProjectTagSuggestionSource.ButtonOverKeyboard);
             OnboardingStorage.ProjectOrTagWasAdded();
 
-            queryAndUpdateUiWith(textFieldInfo.Value.AddQuerySymbol(QuerySymbols.TagsString));
+            textFieldInfo.Accept(textFieldInfo.Value.AddQuerySymbol(QuerySymbols.TagsString));
         }
 
         private void toggleProjectSuggestions()
@@ -475,7 +472,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             if (isSuggestingProjects.Value)
             {
                 isSuggestingProjects.Accept(false);
-                updateUiWith(textFieldInfo.Value.RemoveProjectQueryIfNeeded());
+                textFieldInfo.Accept(textFieldInfo.Value.RemoveProjectQueryIfNeeded());
                 queryByTypeSubject.OnNext(AutocompleteSuggestionType.None);
                 return;
             }
@@ -491,9 +488,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 return;
             }
 
-            queryAndUpdateUiWith(
-                textFieldInfo.Value.AddQuerySymbol(QuerySymbols.ProjectsString)
-            );
+            textFieldInfo.Accept(textFieldInfo.Value.AddQuerySymbol(QuerySymbols.ProjectsString));
         }
 
         private void toggleTasks(ProjectSuggestion projectSuggestion)
@@ -641,6 +636,20 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             return sections;
         }
 
+        private IEnumerable<AutocompleteSuggestion> includeTasksIfExpanded(AutocompleteSuggestion suggestion)
+        {
+            yield return suggestion;
+
+            if (suggestion is ProjectSuggestion projectSuggestion && expandedProjects.Value.Contains(projectSuggestion))
+            {
+                var orderedTasks = projectSuggestion.Tasks
+                    .OrderBy(t => t.Name);
+
+                foreach (var taskSuggestion in orderedTasks)
+                    yield return taskSuggestion;
+            }
+        }
+
         private IEnumerable<CollectionSection<string, AutocompleteSuggestion>> addStaticElements(IEnumerable<CollectionSection<string, AutocompleteSuggestion>> sections)
         {
             var suggestions = sections.SelectMany(section => section.Items);
@@ -703,52 +712,25 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                        tagSuggestion.Name.IsSameCaseInsensitiveTrimedTextAs(currentQuery));
         }
 
-        private IEnumerable<AutocompleteSuggestion> includeTasksIfExpanded(AutocompleteSuggestion suggestion)
+        private IObservable<TextFieldInfo> setBillableValues(TextFieldInfo textFieldInfo)
         {
-            yield return suggestion;
-
-            if (suggestion is ProjectSuggestion projectSuggestion && expandedProjects.Value.Contains(projectSuggestion))
-            {
-                var orderedTasks = projectSuggestion.Tasks
-                    .OrderBy(t => t.Name);
-
-                foreach (var taskSuggestion in orderedTasks)
-                    yield return taskSuggestion;
-            }
-        }
-
-        private async Task setBillableValues(long? currentProjectId)
-        {
-            var hasProject = currentProjectId.HasValue && currentProjectId.Value != ProjectSuggestion.NoProjectId;
-            bool billableAvailable;
+            long? projectId = textFieldInfo.ProjectId;
+            var hasProject = projectId.HasValue && projectId.Value != ProjectSuggestion.NoProjectId;
             if (hasProject)
             {
-                var projectId = currentProjectId.Value;
-                billableAvailable = await interactorFactory.IsBillableAvailableForProject(projectId).Execute();
-                isBillable.Accept(billableAvailable && await interactorFactory.ProjectDefaultsToBillable(projectId).Execute());
+                return Observable.CombineLatest(
+                        interactorFactory.IsBillableAvailableForProject(projectId.Value).Execute(),
+                        interactorFactory.ProjectDefaultsToBillable(projectId.Value).Execute(),
+                        (billableAvailable, defaultsToBillable) => billableAvailable && defaultsToBillable)
+                    .Do(isBillable.Accept)
+                    .Do(isBillableAvailable.Accept)
+                    .SelectValue(textFieldInfo);
             }
-            else
-            {
-                isBillable.Accept(false);
-                billableAvailable = await interactorFactory.IsBillableAvailableForWorkspace(textFieldInfo.Value.WorkspaceId).Execute();
-            }
 
-            isBillableAvailable.Accept(billableAvailable);
-        }
-
-        private void queryWith(TextFieldInfo newTextFieldinfo)
-        {
-            textFieldInfo.Accept(newTextFieldinfo);
-        }
-
-        private void updateUiWith(TextFieldInfo newTextFieldinfo)
-        {
-            textFieldInfo.Accept(newTextFieldinfo);
-        }
-
-        private void queryAndUpdateUiWith(TextFieldInfo newTextFieldinfo)
-        {
-            textFieldInfo.Accept(newTextFieldinfo);
+            isBillable.Accept(false);
+            return interactorFactory.IsBillableAvailableForWorkspace(textFieldInfo.WorkspaceId).Execute()
+                .Do(isBillableAvailable.Accept)
+                .SelectValue(textFieldInfo);
         }
     }
 }
