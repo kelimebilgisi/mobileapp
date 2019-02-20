@@ -13,5 +13,13 @@ namespace Toggl.Foundation.MvvmCross.Collections
             Header = header;
             Items = items.ToImmutableList();
         }
+
+        public static CollectionSection<THeader, TItem> SingleElement(TItem item, THeader header = default(THeader))
+        {
+            return new CollectionSection<THeader, TItem>(
+                header,
+                new[] { item }
+            );
+        }
     }
 }

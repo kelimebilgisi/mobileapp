@@ -119,7 +119,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public InputAction<TimeSpan> SetRunningTime { get; }
         public InputAction<ProjectSuggestion> ToggleTasks { get; }
 
-
         public IObservable<IEnumerable<CollectionSection<string, AutocompleteSuggestion>>>
             Suggestions { get; }
         public IObservable<string> DisplayedTime { get; }
