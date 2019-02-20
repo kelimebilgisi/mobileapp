@@ -349,6 +349,9 @@
     <Compile Include="Activities\SendFeedbackActivity.ViewBinds.cs">
       <DependentUpon>SendFeedbackActivity.cs</DependentUpon>
     </Compile>
+    <Compile Include="Adapters\Calendar\Anchor.cs" />
+    <Compile Include="Adapters\Calendar\AnchorData.cs" />
+    <Compile Include="Adapters\Calendar\CalendarAdapter.cs" />
     <Compile Include="Adapters\ReportsCalendarShortcutAdapter.cs" />
     <Compile Include="Adapters\SelectCreatableEntityRecyclerAdapter.cs" />
     <Compile Include="Adapters\SelectDurationFormatRecyclerAdapter.cs" />
@@ -409,6 +412,7 @@
     <Compile Include="ViewHelpers\ReportsSummaryData.cs" />
     <Compile Include="ViewHelpers\SimpleRecyclerViewScrollChangeListener.cs" />
     <Compile Include="ViewHelpers\SuggestionsRecyclerViewSnapHelper.cs" />
+    <Compile Include="ViewHolders\AnchorViewHolder.cs" />
     <Compile Include="ViewHolders\CalendarDayCellViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientCreationSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientSelectionViewHolder.cs" />
