@@ -199,6 +199,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Return(billableValue));
                 var observer = TestScheduler.CreateObserver<bool>();
                 ViewModel.IsBillableAvailable.Subscribe(observer);
+                ViewModel.Suggestions.Subscribe();
 
                 var parameter = new StartTimeEntryParameters(DateTimeOffset.UtcNow, "", null, null);
                 ViewModel.Prepare(parameter);
@@ -345,7 +346,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         .Returns(Observable.Return(new ProjectSuggestion[] { projectSuggestion }));
 
                     ViewModel.Prepare(DefaultParameter);
-                    TestScheduler.Start();
+                    ViewModel.Suggestions.Subscribe(); // Otherwise the observable chaing won't trigger
                 }
 
                 [Fact, LogIfTooSlow]
@@ -359,7 +360,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                     ViewModel.OnTextFieldInfoFromView(projectSpan);
                     ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
-
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -461,6 +461,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         .Returns(Observable.Return(new TagSuggestion[] { tagSuggestion }));
 
                     ViewModel.Prepare(DefaultParameter);
+                    ViewModel.Suggestions.Subscribe(); // Otherwise the observable chaing won't trigger
+
                 }
 
                 [Fact, LogIfTooSlow]
@@ -476,9 +478,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TestScheduler.Start();
 
                     await ViewModel.Initialize();
-                    ViewModel.OnTextFieldInfoFromView(projectSpan);
 
-                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    Observable.Concat(
+                            Observable.Defer(() => ViewModel.OnTextFieldInfoFromView(projectSpan)),
+                            Observable.Defer(() => ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan))
+                        )
+                        .Subscribe();
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -498,10 +503,13 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.Prepare();
                     TestScheduler.Start();
                     await ViewModel.Initialize();
-                    ViewModel.OnTextFieldInfoFromView(projectSpan);
-                    ViewModel.ToggleTagSuggestions.Execute();
 
-                    ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan);
+                    Observable.Concat(
+                            Observable.Defer(() => ViewModel.OnTextFieldInfoFromView(projectSpan)),
+                            Observable.Defer(() => ViewModel.ToggleTagSuggestions.Execute()),
+                            Observable.Defer(() => ViewModel.OnTextFieldInfoFromView(projectSpan, querySpan))
+                        )
+                        .Subscribe();
 
                     TestScheduler.Start();
                     observer.LastValue()
@@ -569,6 +577,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task CallsTheCreateProjectViewModel()
                 {
+                    ViewModel.Suggestions.Subscribe();
+
                     ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateProject, ""));
 
                     TestScheduler.Start();
@@ -579,6 +589,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task UsesTheCurrentQueryAsTheParameterForTheCreateProjectViewModel()
                 {
+                    ViewModel.Suggestions.Subscribe();
+
                     ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateProject, ""));
 
                     TestScheduler.Start();
@@ -597,6 +609,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     project.Id.Returns(projectId);
                     project.Name.Returns(currentQuery);
                     InteractorFactory.GetProjectById(Arg.Is(projectId)).Execute().Returns(Observable.Return(project));
+                    ViewModel.Suggestions.Subscribe();
 
                     ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateProject, ""));
 
@@ -605,7 +618,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     projectSpan.ProjectName.Should().Be(currentQuery);
                 }
             }
-        /*
+        }
 
         public sealed class WhenSuggestingTags : StartTimeEntryViewModelTest
             {
@@ -626,7 +639,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public async Task CreatesTagWithCurrentQueryAsName()
                 {
-                    ViewModel.Create.Execute();
+                    ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateTag, ""));
 
                     TestScheduler.Start();
                     await InteractorFactory
@@ -646,12 +659,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         WorkspaceId = workspaceId
                     };
                     InteractorFactory.GetProjectById(Arg.Is(projectId)).Execute().Returns(Observable.Return(project));
-                    await ViewModel.SelectSuggestionCommand.ExecuteAsync(new ProjectSuggestion(project));
-                    await ViewModel.OnTextFieldInfoFromView(
+                    ViewModel.SelectSuggestion.Execute(new ProjectSuggestion(project));
+                    ViewModel.OnTextFieldInfoFromView(
                         querySpan, new ProjectSpan(projectId, "Project", "0000AF", null, null)
                     );
 
-                    ViewModel.Create.Execute();
+                    ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateTag, ""));
 
                     TestScheduler.Start();
                     await InteractorFactory
@@ -671,7 +684,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     DataSource.User.Get().Returns(Observable.Return(user));
                     await ViewModel.Initialize();
 
-                    ViewModel.Create.Execute();
+                    ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateTag, ""));
 
                     TestScheduler.Start();
                     await InteractorFactory
@@ -695,15 +708,15 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                             return interactor;
                         });
 
-                    ViewModel.Create.Execute();
-
+                    ViewModel.SelectSuggestion.Execute(new CreateEntitySuggestion(Resources.CreateTag, ""));
+                    ViewModel.Suggestions.Subscribe();
                     TestScheduler.Start();
                     var tags = Observer.GetLatestInfo(TestScheduler).Spans.OfType<TagSpan>();
                     tags.Should().Contain(tag => tag.TagName == currentQuery);
                 }
             }
         }
-
+/*
         public sealed class TheBackCommand : StartTimeEntryViewModelTest
         {
             public TheBackCommand()
@@ -2192,8 +2205,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.ShouldShowNoTagsInfoMessage.Should().BeFalse();
             }
             */
-        }
-    }
 
     public static class TestExtensions
     {

@@ -251,8 +251,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 await interactorFactory.GetAllWorkspaces().Execute().Select(allWorkspaces =>
                     allWorkspaces.Any(ws => ws.IsEligibleForProjectCreation()));
 
-            textFieldInfo.Accept(Autocomplete.TextFieldInfo.Empty(parameter?.WorkspaceId ?? defaultWorkspace.Id));
-
             if (initialParameters != null)
             {
                 var spans = new List<ISpan>();
@@ -283,6 +281,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 }
 
                 textFieldInfo.Accept(textFieldInfo.Value.ReplaceSpans(spans.ToImmutableList()));
+            }
+            else
+            {
+                textFieldInfo.Accept(Autocomplete.TextFieldInfo.Empty(parameter?.WorkspaceId ?? defaultWorkspace.Id));
             }
 
             hasAnyTags = (await dataSource.Tags.GetAll()).Any();
