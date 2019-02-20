@@ -2,6 +2,7 @@ using System;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Foundation.Helper;
+using Toggl.Giskard.Adapters.Calendar;
 
 namespace Toggl.Giskard.Views.Calendar
 {
@@ -233,9 +234,10 @@ namespace Toggl.Giskard.Views.Calendar
             else
                 AddView(view, 0);
 
+            if (!(view.Tag is Anchor anchor)) return;
 
-            MeasureChildWithMargins(view, 0, 0);
-            layoutChunkResult.Consumed = orientationHelper.GetDecoratedMeasurement(view);
+            MeasureChildWithMargins(view, 0, anchor.Height);
+            layoutChunkResult.Consumed = anchor.Height;
 
             var anchorLeft = PaddingLeft;
             var anchorRight = anchorLeft + view.MeasuredWidth;
@@ -486,8 +488,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         private bool isAnchor(View view)
         {
-            //todo: check for tag or class, let's see
-            return true;
+            return view?.Tag is Anchor;
         }
 
         private int getExtraLayoutSpace(RecyclerView.State state)
