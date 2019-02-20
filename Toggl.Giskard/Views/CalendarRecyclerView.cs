@@ -30,6 +30,7 @@ namespace Toggl.Giskard.Views
         private float timeSlicesTopPadding;
         private float verticalLineLeftMargin;
         private float middleLineX;
+        private ImmutableArray<string> hours = ImmutableArray<string>.Empty;
         private ImmutableArray<float> timeLinesYs = ImmutableArray<float>.Empty;
         private ImmutableArray<float> hoursYs = ImmutableArray<float>.Empty;
 
@@ -95,6 +96,8 @@ namespace Toggl.Giskard.Views
         {
             base.OnDraw(canvas);
 
+            var offset = ComputeVerticalScrollOffset();
+
             canvas.DrawLine(verticalLineLeftMargin, 0f, verticalLineLeftMargin, Height, linesPaint);
             if (hasTwoColumns)
             {
@@ -103,8 +106,8 @@ namespace Toggl.Giskard.Views
 
             for (var hour = 0; hour < timeLinesYs.Length; hour++)
             {
-                canvas.DrawLine(timeSliceStartX, timeLinesYs[hour], Width, timeLinesYs[hour], linesPaint);
-                canvas.DrawText(formatHour(hour % hoursPerDay), hoursX, hoursYs[hour], hoursLabelPaint);
+                canvas.DrawLine(timeSliceStartX, timeLinesYs[hour] - offset, Width, timeLinesYs[hour] - offset, linesPaint);
+                canvas.DrawText(hours[hour], hoursX, hoursYs[hour] - offset, hoursLabelPaint);
             }
         }
 
