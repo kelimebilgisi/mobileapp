@@ -42,7 +42,7 @@ namespace Toggl.Giskard.Activities
 
             initializeViews();
 
-            ViewModel.TextFieldInfoObservable
+            ViewModel.TextFieldInfo
                 .Subscribe(onTextFieldInfo)
                 .DisposedBy(DisposeBag);
 

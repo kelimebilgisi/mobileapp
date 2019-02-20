@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -21,6 +22,7 @@ using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.ViewSources;
 using Toggl.Foundation;
 using Toggl.Foundation.Autocomplete;
+using Toggl.Foundation.Autocomplete.Span;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.MvvmCross.Combiners;
 using Toggl.Foundation.MvvmCross.Converters;
@@ -97,7 +99,7 @@ namespace Toggl.Daneel.ViewControllers
 
             source.ToggleTasks
                 .Subscribe(ViewModel.ToggleTasks.Inputs)
-                .DisposedBy(disposeBag);            
+                .DisposedBy(disposeBag);
 
             TimeInput.Rx().Duration()
                 .Subscribe(ViewModel.SetRunningTime.Inputs)
@@ -167,7 +169,8 @@ namespace Toggl.Daneel.ViewControllers
                 .DisposedBy(disposeBag);
 
             // Reactive
-            ViewModel.TextFieldInfoObservable
+            ViewModel.TextFieldInfo
+                .DistinctUntilChanged()
                 .Subscribe(onTextFieldInfo)
                 .DisposedBy(DisposeBag);
 
@@ -176,9 +179,11 @@ namespace Toggl.Daneel.ViewControllers
                 .Subscribe(isDescriptionEmptySubject)
                 .DisposedBy(DisposeBag);
 
-            DescriptionTextView.Rx().AttributedText()
-                .CombineLatest(DescriptionTextView.Rx().CursorPosition(), (text, _) => text)
-                .Where(_ => !isUpdatingDescriptionField)
+            Observable.CombineLatest(
+                    DescriptionTextView.Rx().AttributedText().SelectUnit(),
+                    DescriptionTextView.Rx().CursorPosition().SelectUnit()
+                )
+                .Select(_ => DescriptionTextView.AttributedText) // Programatically changing the text doesn't send an event, that's why we do this, to get the last version of the text
                 .SubscribeOn(ThreadPoolScheduler.Instance)
                 .Do(updatePlaceholder)
                 .Select(text => text.AsImmutableSpans((int)DescriptionTextView.SelectedRange.Location))
@@ -199,16 +204,17 @@ namespace Toggl.Daneel.ViewControllers
 
         private void onTextFieldInfo(TextFieldInfo textFieldInfo)
         {
-            isUpdatingDescriptionField = true;
             var (attributedText, cursorPosition) = textFieldInfo.AsAttributedTextAndCursorPosition();
+            if (DescriptionTextView.AttributedText.GetHashCode() == attributedText.GetHashCode())
+                return;
 
             DescriptionTextView.InputDelegate = emptyInputDelegate; //This line is needed for when the user selects from suggestion and the iOS autocorrect is ready to add text at the same time. Without this line both will happen.
             DescriptionTextView.AttributedText = attributedText;
-
-            var positionToSet = DescriptionTextView.GetPosition(DescriptionTextView.BeginningOfDocument, cursorPosition);
+            var positionToSet =
+                DescriptionTextView.GetPosition(DescriptionTextView.BeginningOfDocument, cursorPosition);
             DescriptionTextView.SelectedTextRange = DescriptionTextView.GetTextRange(positionToSet, positionToSet);
+
             updatePlaceholder();
-            isUpdatingDescriptionField = false;
         }
 
         private void switchTimeLabelAndInput()
@@ -220,7 +226,7 @@ namespace Toggl.Daneel.ViewControllers
             TimeInputTrailingConstraint.Active = !TimeInput.Hidden;
         }
 
-        private void updatePlaceholder()
+        private void updatePlaceholder(NSAttributedString text = null)
         {
             Placeholder.UpdateVisibility(DescriptionTextView);
         }

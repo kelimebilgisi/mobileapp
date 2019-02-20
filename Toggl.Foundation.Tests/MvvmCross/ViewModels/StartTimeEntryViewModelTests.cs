@@ -71,7 +71,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             protected override void AdditionalViewModelSetup()
             {
                 Observer = TestScheduler.CreateObserver<TextFieldInfo>();
-                ViewModel.TextFieldInfoObservable.Subscribe(Observer);
+                ViewModel.TextFieldInfo.Subscribe(Observer);
             }
 
             protected override StartTimeEntryViewModel CreateViewModel()
