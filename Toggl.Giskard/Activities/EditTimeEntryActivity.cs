@@ -142,7 +142,8 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(ViewModel.SelectTags.Inputs)
                 .DisposedBy(DisposeBag);
 
-            tagsRecycler.Rx().Tap()
+            tagsAdapter.ItemTapObservable
+                .SelectUnit()
                 .Subscribe(ViewModel.SelectTags.Inputs)
                 .DisposedBy(DisposeBag);
 
