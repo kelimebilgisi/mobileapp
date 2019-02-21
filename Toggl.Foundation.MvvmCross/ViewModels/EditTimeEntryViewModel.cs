@@ -181,11 +181,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             Preferences = interactorFactory.GetPreferences().Execute()
                 .AsDriver(null, schedulerProvider);
-
-            interactorFactory.GetCurrentUser().Execute()
-                .Select(user => user.BeginningOfWeek)
-                .Subscribe(beginningOfWeekSubject)
-                .DisposedBy(disposeBag);
         }
 
         private void setupSyncError(IEnumerable<IThreadSafeTimeEntry> timeEntries)

@@ -103,7 +103,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IObservable<bool> IsSyncErrorMessageVisible { get; private set; }
 
         // Preferences
-        private BehaviorSubject<BeginningOfWeek> beginningOfWeekSubject;
         public IObservable<IThreadSafePreferences> Preferences { get; private set; }
 
         // Actions
