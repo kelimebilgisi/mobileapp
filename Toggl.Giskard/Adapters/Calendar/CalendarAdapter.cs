@@ -29,11 +29,16 @@ namespace Toggl.Giskard.Adapters.Calendar
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            switch (holder.ItemViewType)
+            if (holder is AnchorViewHolder)
             {
-                case AnchorViewType:
-                    holder.ItemView.Tag = anchors[position];
-                    break;
+                holder.ItemView.Tag = anchors[position];
+                return;
+            }
+
+            if (holder is CalendarEntryViewHolder calendarEntryViewHolder)
+            {
+                calendarEntryViewHolder.ItemView.Background.SetTint(items[position - anchorCount].Item2);
+                calendarEntryViewHolder.label.Text = items[position - anchorCount].Item1;
             }
         }
 
@@ -44,7 +49,7 @@ namespace Toggl.Giskard.Adapters.Calendar
                 case AnchorViewType:
                     return new AnchorViewHolder(new View(parent.Context));
                 case AnchoredViewType:
-                    return null;
+                    return new CalendarEntryViewHolder(LayoutInflater.From(parent.Context).Inflate(Resource.Layout.CalendarEntryCell, parent, false));
                 default:
                     throw new InvalidOperationException($"Invalid view type {viewType}");
             }
