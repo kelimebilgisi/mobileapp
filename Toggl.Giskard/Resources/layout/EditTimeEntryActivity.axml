@@ -182,7 +182,6 @@
                 android:layout_marginRight="16dp"
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center_vertical"
-                android:textAllCaps="true"
                 android:textColor="#757575"
                 android:textSize="12sp"
                 local:layout_constraintRight_toRightOf="parent"
