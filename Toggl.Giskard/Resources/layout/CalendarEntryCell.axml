@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools" android:layout_width="wrap_content"
+             android:background="@drawable/CalendarEntryBackground"
+             android:padding="8dp"
+             android:layout_height="wrap_content">
+    <TextView
+            android:textColor="#ffffff"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            tools:text="Nice Entry"
+            android:id="@+id/EntryLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+</FrameLayout>

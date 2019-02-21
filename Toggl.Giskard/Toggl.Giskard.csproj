@@ -414,6 +414,7 @@
     <Compile Include="ViewHelpers\SuggestionsRecyclerViewSnapHelper.cs" />
     <Compile Include="ViewHolders\AnchorViewHolder.cs" />
     <Compile Include="ViewHolders\CalendarDayCellViewHolder.cs" />
+    <Compile Include="ViewHolders\CalendarEntryViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientCreationSelectionViewHolder.cs" />
     <Compile Include="ViewHolders\Client\ClientSelectionViewHolder.cs" />
     <Compile Include="ViewHelpers\TimeEntryCollectionViewModel.cs" />
@@ -1110,6 +1111,10 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\CalendarFragment.axml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\CalendarEntryBackground.xml" />
+    <AndroidResource Include="Resources\layout\CalendarEntryCell.axml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" />
