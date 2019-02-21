@@ -432,23 +432,25 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 ? interactorFactory.DeleteMultipleTimeEntries(TimeEntryIds)
                 : interactorFactory.DeleteTimeEntry(TimeEntryId);
 
-            await delete(actionType, TimeEntryIds.Length, interactor);
+            var isDeletionConfirmed = await delete(actionType, TimeEntryIds.Length, interactor);
 
-            analyticsService.DeleteTimeEntry.Track();
-
+            if (isDeletionConfirmed)
             await close();
         }
 
-        private async Task delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> interactor)
+        private async Task<bool> delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> deletionInteractor)
         {
-            var shouldDelete = await dialogService.ConfirmDestructiveAction(actionType, entriesCount);
+            var isDeletionConfirmed = await dialogService.ConfirmDestructiveAction(actionType, entriesCount);
 
-            if (!shouldDelete)
-                return;
+            if (!isDeletionConfirmed)
+                return false;
 
-            await interactor.Execute();
+            await deletionInteractor.Execute();
 
             dataSource.SyncManager.InitiatePushSync();
+            analyticsService.DeleteTimeEntry.Track();
+
+            return true;
         }
 
         private Task close()
