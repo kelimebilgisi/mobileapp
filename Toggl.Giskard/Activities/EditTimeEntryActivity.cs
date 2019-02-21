@@ -215,7 +215,7 @@ namespace Toggl.Giskard.Activities
                 .DisposedBy(DisposeBag);
 
             ViewModel.IsTimeEntryRunning
-                .Invert()
+                .Select(isRunning => !isRunning && !ViewModel.IsEditingGroup )
                 .Subscribe(stoppedTimeEntryStopTimeElements.Rx().IsVisible())
                 .DisposedBy(DisposeBag);
 
