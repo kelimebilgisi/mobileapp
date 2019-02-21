@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Toggl.Foundation.Helper;
@@ -12,7 +13,7 @@ namespace Toggl.Giskard.Views.Calendar
         private OrientationHelper orientationHelper;
         private AnchorInfo anchorInfo;
         private LayoutState layoutState;
-        private LayoutChunkResult layoutChunkResult = new LayoutChunkResult();
+        private LayoutChunkResult layoutChunkResult;
 
         public CalendarLayoutManager()
         {
@@ -263,7 +264,28 @@ namespace Toggl.Giskard.Views.Calendar
                 layoutChunkResult.IgnoreConsumed = true;
             }
 
-            //todo: or maybe layout anchored views here?
+            foreach (var anchorData in anchor.AnchoredData)
+            {
+                var anchoredView = recycler.GetViewForPosition(anchorData.adapterPosition);
+                var anchoredViewLeft = anchorLeft + anchorData.leftOffset;
+                var anchoredViewTop = anchorTop + anchorData.topOffset;
+
+                if (layoutState.LayoutDirection == TOWARDS_THE_END)
+                {
+                    AddView(anchoredView);
+                }
+                else
+                {
+                    AddView(anchoredView, 0);
+                }
+
+                MeasureChildWithMargins(anchoredView, anchorData.width, anchorData.height);
+                LayoutDecoratedWithMargins(anchoredView,
+                    anchoredViewLeft,
+                    anchoredViewTop,
+                    anchoredViewLeft + anchorData.width,
+                    anchoredViewTop + anchorData.height);
+            }
         }
 
         private void updateAnchorInfoForLayout()
