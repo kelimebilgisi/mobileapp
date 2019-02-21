@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -26,8 +27,84 @@ using Toggl.PrimeRadiant.Settings;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed partial class EditTimeEntryViewModel : MvxViewModel<long[]>
+    public sealed class EditTimeEntryViewModel : MvxViewModel<long[]>
     {
+        private const int maxTagLength = 30;
+
+        private readonly ITimeService timeService;
+        private readonly ITogglDataSource dataSource;
+        private readonly IDialogService dialogService;
+        private readonly IInteractorFactory interactorFactory;
+        private readonly IMvxNavigationService navigationService;
+        private readonly IAnalyticsService analyticsService;
+        private readonly IStopwatchProvider stopwatchProvider;
+        private readonly ISchedulerProvider schedulerProvider;
+        private readonly IRxActionFactory actionFactory;
+        public IOnboardingStorage OnboardingStorage { get; private set; }
+
+        private IStopwatch stopwatchFromCalendar;
+        private IStopwatch stopwatchFromMainLog;
+
+        private long? projectId;
+        private long? taskId;
+        private BehaviorSubject<long> workspaceIdSubject;
+        private IThreadSafeTimeEntry originalTimeEntry;
+
+        public long[] TimeEntryIds { get; set; }
+        public long TimeEntryId => TimeEntryIds.First();
+
+        public bool IsEditingGroup => TimeEntryIds.Length > 1;
+        public int GroupCount => TimeEntryIds.Length;
+
+        private CompositeDisposable disposeBag = new CompositeDisposable();
+
+        private BehaviorSubject<bool> isEditingDescriptionSubject;
+        public BehaviorRelay<string> Description { get; private set; }
+
+        private BehaviorSubject<ProjectClientTaskInfo> projectClientTaskSubject;
+        public IObservable<ProjectClientTaskInfo> ProjectClientTask { get; private set; }
+
+        public IObservable<bool> IsBillableAvailable { get; private set; }
+
+        private BehaviorSubject<bool> isBillableSubject;
+        public IObservable<bool> IsBillable { get; private set; }
+
+        private BehaviorSubject<DateTimeOffset> startTimeSubject;
+        public IObservable<DateTimeOffset> StartTime { get; private set; }
+
+        private BehaviorSubject<TimeSpan?> durationSubject;
+        public IObservable<TimeSpan> Duration { get; private set; }
+
+        public IObservable<DateTimeOffset?> StopTime { get; private set; }
+
+        public IObservable<bool> IsTimeEntryRunning { get; private set; }
+
+        public TimeSpan GroupDuration { get; private set; }
+
+        private BehaviorSubject<IEnumerable<IThreadSafeTag>> tagsSubject;
+        public IObservable<IEnumerable<string>> Tags { get; set; }
+        private IEnumerable<long> tagIds
+            => tagsSubject.Value.Select(tag => tag.Id);
+
+        private BehaviorSubject<bool> isInaccessibleSubject;
+        public IObservable<bool> IsInaccessible { get; private set; }
+
+        private BehaviorSubject<string> syncErrorMessageSubject;
+        public IObservable<string> SyncErrorMessage { get; private set; }
+        public IObservable<bool> IsSyncErrorMessageVisible { get; private set; }
+
+        public IObservable<IThreadSafePreferences> Preferences { get; private set; }
+
+        public UIAction Close { get; private set; }
+        public UIAction SelectProject { get; private set; }
+        public UIAction SelectTags { get; private set; }
+        public UIAction ToggleBillable { get; private set; }
+        public InputAction<EditViewTapSource> EditTimes { get; private set; }
+        public UIAction StopTimeEntry { get; private set; }
+        public UIAction DismissSyncErrorMessage { get; private set; }
+        public UIAction Save { get; private set; }
+        public UIAction Delete { get; private set; }
+
         public EditTimeEntryViewModel(
             ITimeService timeService,
             ITogglDataSource dataSource,
@@ -158,7 +235,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceIdSubject.OnNext(timeEntry.WorkspaceId);
 
             Description.Accept(timeEntry.Description);
-             
+
             projectClientTaskSubject.OnNext(new ProjectClientTaskInfo(
                 timeEntry.Project?.DisplayName(),
                 timeEntry.Project?.DisplayColor(),
@@ -435,7 +512,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             var isDeletionConfirmed = await delete(actionType, TimeEntryIds.Length, interactor);
 
             if (isDeletionConfirmed)
-            await close();
+                await close();
         }
 
         private async Task<bool> delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> deletionInteractor)
@@ -455,5 +532,26 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         private Task close()
             => navigationService.Close(this);
+
+        public struct ProjectClientTaskInfo
+        {
+            public ProjectClientTaskInfo(string project, string projectColor, string client, string task)
+            {
+                Project = project;
+                ProjectColor = projectColor;
+                Client = client;
+                Task = task;
+            }
+
+            public string Project { get; private set; }
+            public string ProjectColor { get; private set; }
+            public string Client { get; private set; }
+            public string Task { get; private set; }
+
+            public bool HasProject => !string.IsNullOrEmpty(Project);
+
+            public static ProjectClientTaskInfo Empty
+                => new ProjectClientTaskInfo(null, null, null, null);
+        }
     }
 }
