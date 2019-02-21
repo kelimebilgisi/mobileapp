@@ -1,4 +1,5 @@
 using Android.OS;
+using Android.Util;
 using Android.Views;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Giskard.Adapters.Calendar;
@@ -17,7 +18,9 @@ namespace Toggl.Giskard.Fragments
 
             calendarLayoutManager = new CalendarLayoutManager();
             calendarRecyclerView.SetLayoutManager(calendarLayoutManager);
-            calendarRecyclerView.SetAdapter(new CalendarAdapter(view.Context));
+            var displayMetrics = new DisplayMetrics();
+            Activity.WindowManager.DefaultDisplay.GetMetrics(displayMetrics);
+            calendarRecyclerView.SetAdapter(new CalendarAdapter(view.Context, displayMetrics.WidthPixels));
 
             return view;
         }
