@@ -46,8 +46,6 @@ namespace Toggl.Giskard.Views
             Color = Color.ParseColor("#19000000")
         };
 
-
-
         #region Constructors
         protected CalendarRecyclerView(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
         {
@@ -74,7 +72,7 @@ namespace Toggl.Giskard.Views
             linesPaint.StrokeWidth = 1.DpToPixels(Context);
             timeSliceHeight = 56.DpToPixels(Context);
             timeSliceStartX = 60.DpToPixels(Context);
-            timeSlicesTopPadding = 16.DpToPixels(Context);
+            timeSlicesTopPadding = 0;
             verticalLineLeftMargin = 68.DpToPixels(Context);
             hoursDistanceFromTimeLine = 12.DpToPixels(Context);
             hoursX = timeSliceStartX - hoursDistanceFromTimeLine;
