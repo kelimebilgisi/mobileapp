@@ -6,7 +6,7 @@ using Toggl.Multivac;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableColorViewModel : IDiffable<SelectableColorViewModel>
+    public sealed class SelectableColorViewModel : IDiffableByIdentifier<SelectableColorViewModel>
     {
         public MvxColor Color { get; }
 

@@ -1,7 +1,5 @@
 ﻿using System;
 using FluentAssertions;
-using FsCheck.Xunit;
-using Toggl.Multivac;
 using Xunit;
 
 namespace Toggl.Multivac.Tests
@@ -18,7 +16,6 @@ namespace Toggl.Multivac.Tests
             [InlineData("FFFFFF", 255, 255, 255)]
             [InlineData("5FE5FF", 95, 229, 255)]
             [InlineData("C3783C", 195, 120, 60)]
-            [InlineData("C3783C", 195, 120, 60)]
             [InlineData("625876", 98, 88, 118)]
             public void WorksCorrectlyWhenThereIsNoAlphaAnNoNumberSign(string hex, byte expectedRed, byte expectedGreen, byte expectedBlue)
             {
@@ -34,7 +31,6 @@ namespace Toggl.Multivac.Tests
             [InlineData("#FF0000", 255, 0, 0)]
             [InlineData("#FFFFFF", 255, 255, 255)]
             [InlineData("#5FE5FF", 95, 229, 255)]
-            [InlineData("#C3783C", 195, 120, 60)]
             [InlineData("#C3783C", 195, 120, 60)]
             [InlineData("#625876", 98, 88, 118)]
             public void WorksCorrectlyWhenThereIsNoAlphaButThereIsANumberSign(string hex, byte expectedRed, byte expectedGreen, byte expectedBlue)

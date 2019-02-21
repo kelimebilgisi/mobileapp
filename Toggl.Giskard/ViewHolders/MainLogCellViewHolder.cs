@@ -8,6 +8,7 @@ using Android.Text;
 using Android.Views;
 using Android.Widget;
 using Toggl.Foundation.MvvmCross.ViewModels;
+using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
 using Toggl.Giskard.Extensions;
 using Toggl.Giskard.ViewHelpers;
 using static Toggl.Giskard.Resource.Id;
@@ -52,10 +53,10 @@ namespace Toggl.Giskard.ViewHolders
 
         public bool IsAnimating => animator?.IsRunning ?? false;
 
-        public bool CanSync => Item.TimeEntryViewModel.CanSync;
+        public bool CanSync => Item.ViewModel.CanContinue;
 
         public View MainLogContentView { get; private set; }
-        public Subject<TimeEntryViewModel> ContinueButtonTappedSubject { get; set; }
+        public Subject<LogItemViewModel> ContinueButtonTappedSubject { get; set; }
 
         protected override void InitializeViews()
         {
@@ -108,15 +109,15 @@ namespace Toggl.Giskard.ViewHolders
 
         private void onContinueClick(object sender, EventArgs e)
         {
-            ContinueButtonTappedSubject?.OnNext(Item.TimeEntryViewModel);
+            ContinueButtonTappedSubject?.OnNext(Item.ViewModel);
         }
 
         private ConstraintLayout.LayoutParams getWhitePaddingWidthDependentOnIcons()
         {
             var whitePaddingWidth =
                 72
-                + (Item.TimeEntryViewModel.IsBillable ? 22 : 0)
-                + (Item.TimeEntryViewModel.HasTags ? 22 : 0);
+                + (Item.ViewModel.IsBillable ? 22 : 0)
+                + (Item.ViewModel.HasTags ? 22 : 0);
 
             var layoutParameters = (ConstraintLayout.LayoutParams) whitePadding.LayoutParameters;
             layoutParameters.Width = whitePaddingWidth.DpToPixels(ItemView.Context);
@@ -127,14 +128,14 @@ namespace Toggl.Giskard.ViewHolders
         {
             StopAnimating();
 
-            timeEntriesLogCellDescription.Text = Item.TimeEntryViewModel.Description;
+            timeEntriesLogCellDescription.Text = Item.ViewModel.Description;
             timeEntriesLogCellDescription.Visibility = Item.DescriptionVisibility;
             addDescriptionLabel.Visibility = Item.AddDescriptionLabelVisibility;
 
             timeEntriesLogCellProjectLabel.TextFormatted = Item.ProjectTaskClientText;
             timeEntriesLogCellProjectLabel.Visibility = Item.ProjectTaskClientVisibility;
 
-            timeEntriesLogCellDuration.Text = Item.DurationText;
+            timeEntriesLogCellDuration.Text = Item.ViewModel.Duration;
 
             timeEntriesLogCellContinueImage.Visibility = Item.ContinueImageVisibility;
             errorImageView.Visibility = Item.ErrorImageViewVisibility;

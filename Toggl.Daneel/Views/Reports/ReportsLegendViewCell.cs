@@ -43,7 +43,7 @@ namespace Toggl.Daneel.Views.Reports
             //Text
             ProjectLabel.Text = Item.ProjectName;
             ClientLabel.Text = Item.ClientName;
-            PercentageLabel.Text = $"{Item.Percentage:P2}";
+            PercentageLabel.Text = $"{Item.Percentage:F2}%";
             TotalTimeLabel.Text = Item.TrackedTime.ToFormattedString(Item.DurationFormat);
 
             ClientLabel.Hidden = !Item.HasClient;

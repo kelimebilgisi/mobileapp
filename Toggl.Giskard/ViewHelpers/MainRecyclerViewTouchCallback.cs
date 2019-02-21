@@ -28,7 +28,7 @@ namespace Toggl.Giskard.ViewHelpers
         {
             if (viewHolder is MainLogCellViewHolder mainLogCellViewHolder && mainLogCellViewHolder.CanSync)
             {
-                return mainLogCellViewHolder.Item.TimeEntryViewModel.IsInaccessible ? ItemTouchHelper.Left : base.GetSwipeDirs(recyclerView, viewHolder);
+                return !mainLogCellViewHolder.Item.ViewModel.CanContinue ? ItemTouchHelper.Left : base.GetSwipeDirs(recyclerView, viewHolder);
             }
 
             return ItemTouchHelper.ActionStateIdle;

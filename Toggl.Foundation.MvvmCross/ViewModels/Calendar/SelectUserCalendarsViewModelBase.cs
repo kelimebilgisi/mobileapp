@@ -19,8 +19,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
     public abstract class SelectUserCalendarsViewModelBase : MvxViewModel<bool, string[]>
     {
         private readonly IUserPreferences userPreferences;
+        private readonly IInteractorFactory interactorFactory;
 
-        public IObservable<IImmutableList<CollectionSection<string, SelectableUserCalendarViewModel>>> Calendars { get; }
+        public IObservable<IImmutableList<CollectionSection<string, SelectableUserCalendarViewModel>>> Calendars { get; private set; }
 
         public InputAction<SelectableUserCalendarViewModel> SelectCalendar { get; }
 
@@ -38,14 +39,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
 
             this.userPreferences = userPreferences;
+            this.interactorFactory = interactorFactory;
 
             SelectCalendar = rxActionFactory.FromAction<SelectableUserCalendarViewModel>(toggleCalendarSelection);
-
-            Calendars = interactorFactory
-                .GetUserCalendars()
-                .Execute()
-                .Catch((NotAuthorizedException _) => Observable.Return(new List<UserCalendar>()))
-                .Select(group);
         }
 
         public sealed override void Prepare(bool parameter)
@@ -56,6 +52,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         public override async Task Initialize()
         {
             await base.Initialize();
+
+            Calendars = interactorFactory
+                .GetUserCalendars()
+                .Execute()
+                .Catch((NotAuthorizedException _) => Observable.Return(new List<UserCalendar>()))
+                .Select(group);
 
             SelectedCalendarIds.AddRange(userPreferences.EnabledCalendarIds());
         }
@@ -81,6 +83,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
                 SelectedCalendarIds.Remove(calendar.Id);
             else
                 SelectedCalendarIds.Add(calendar.Id);
+            calendar.Selected = !calendar.Selected;
         }
     }
 }

@@ -1,24 +1,18 @@
 using System;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CoreGraphics;
 using Foundation;
-using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
-using Toggl.Daneel.Views.EditDuration;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac.Extensions;
 using UIKit;
-using static Toggl.Daneel.Extensions.FontExtensions;
-using System.Runtime.Remoting.Messaging;
 using Toggl.Foundation;
 
 namespace Toggl.Daneel.ViewControllers

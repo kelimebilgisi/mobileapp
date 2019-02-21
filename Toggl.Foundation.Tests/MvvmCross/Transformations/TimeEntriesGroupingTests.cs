@@ -6,17 +6,19 @@ using FluentAssertions;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Transformations;
-using Toggl.Foundation.MvvmCross.ViewModels;
-using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
 using Toggl.Foundation.Tests.Mocks;
 using Toggl.Multivac;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.Transformations
 {
-    public sealed class TimeEntriesLogTrasnformationTests
+    public sealed class TimeEntriesGroupingTests
     {
         private static readonly DateTimeOffset now = new DateTimeOffset(2019, 02, 07, 16, 25, 38, TimeSpan.FromHours(-1));
+
+        private static readonly DateTimeOffset today = now;
+        private static readonly DateTimeOffset yesterday = now - TimeSpan.FromDays(1);
+
         private static readonly IThreadSafeWorkspace workspaceA = new MockWorkspace { Id = 1, IsInaccessible = false };
         private static readonly IThreadSafeWorkspace workspaceB = new MockWorkspace { Id = 2, IsInaccessible = false };
         private static readonly IThreadSafeProject projectA = new MockProject { Id = 1, Name = "ProjectA", Color = "blue", Active = true };
@@ -92,42 +94,24 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
 
         public sealed class WhenGroupingIsEnabled
         {
-            private static readonly IThreadSafePreferences preferences = new MockPreferences
-            {
-                CollapseTimeEntries = true,
-                DateFormat = DateFormat.FromLocalizedDateFormat("YYYY-MM-DD")
-            };
-
             [Theory]
             [MemberData(nameof(TestData))]
             public void TransformsTimeEntriesIntoACorrectTree(
                 IEnumerable<IThreadSafeTimeEntry> timeEntries,
-                params CollectionSection<DaySummaryViewModel,
-                    CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>>[] expectedTree)
+                params CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]>[] expectedTree)
             {
-                var transformedTree = TimeEntriesLogTransformation.Group(timeEntries, preferences, now);
+                var transformedTree = TimeEntriesGrouping.GroupSimilar(timeEntries);
 
-                transformedTree.Should().BeEquivalentTo(expectedTree.ToImmutableList());
+                transformedTree.Should().BeEquivalentTo(expectedTree);
             }
 
-            private static CollectionSection<DaySummaryViewModel,
-                CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>> dayOf(
-                string title,
-                string totalTrackedTime,
-                params CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>[] groups)
-                => new CollectionSection<DaySummaryViewModel,
-                    CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>>(
-                    new DaySummaryViewModel(title, totalTrackedTime),
-                    groups);
+            private static CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]> dayOf(
+                DateTimeOffset date,
+                params IThreadSafeTimeEntry[][] groups)
+                => new CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]>(
+                    date.LocalDateTime.Date, groups);
 
-            private static CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel> groupOf(
-                params IThreadSafeTimeEntry[] timeEntries)
-                => new CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>(
-                    new TimeEntriesGroupViewModel(toViewModels(timeEntries)),
-                    toViewModels(timeEntries));
-
-            private static TimeEntryViewModel[] toViewModels(IThreadSafeTimeEntry[] timeEntries)
-                => timeEntries.Select(te => new TimeEntryViewModel(te, preferences.DurationFormat)).ToArray();
+            private static IThreadSafeTimeEntry[] groupOf(params IThreadSafeTimeEntry[] timeEntries) => timeEntries;
 
             public static IEnumerable<object[]> TestData
                 => new[]
@@ -135,94 +119,74 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
                     new object[]
                     {
                         singleDay,
-                        dayOf("Today", "07 sec", groupOf(singleDay))
+                        dayOf(today, groupOf(singleDay))
                     },
                     new object[]
                     {
                         twoWorkspaces,
-                        dayOf("Today", "03 sec", groupOf(twoWorkspaces[0]), groupOf(twoWorkspaces[1]))
+                        dayOf(today, groupOf(twoWorkspaces[0]), groupOf(twoWorkspaces[1]))
                     },
                     new object[]
                     {
                         differentDescriptions,
-                        dayOf("Today", "07 sec", groupOf(differentDescriptions[0], differentDescriptions[1]), groupOf(differentDescriptions[2]))
+                        dayOf(today, groupOf(differentDescriptions[0], differentDescriptions[1]), groupOf(differentDescriptions[2]))
                     },
                     new object[]
                     {
                         multipleDays,
-                        dayOf("Today", "05 sec", groupOf(multipleDays[0]), groupOf(multipleDays[2])),
-                        dayOf("Yesterday", "02 sec", groupOf(multipleDays[1]))
+                        dayOf(today, groupOf(multipleDays[0]), groupOf(multipleDays[2])),
+                        dayOf(yesterday, groupOf(multipleDays[1]))
                     },
                     new object[]
                     {
                         multipleDaysWithTags,
 
-                        dayOf("Today", "29 sec", groupOf(multipleDaysWithTags[0]), groupOf(multipleDaysWithTags[2]), groupOf(multipleDaysWithTags[3], multipleDaysWithTags[4])),
-                        dayOf("Yesterday", "02 sec", groupOf(multipleDaysWithTags[1]))
+                        dayOf(today, groupOf(multipleDaysWithTags[0]), groupOf(multipleDaysWithTags[2]), groupOf(multipleDaysWithTags[3], multipleDaysWithTags[4])),
+                        dayOf(yesterday, groupOf(multipleDaysWithTags[1]))
                     },
                     new object[]
                     {
                         multipleDaysWithProject,
-                        dayOf("Today", "29 sec", groupOf(multipleDaysWithProject[0]), groupOf(multipleDaysWithProject[2], multipleDaysWithProject[4]), groupOf(multipleDaysWithProject[3])),
-                        dayOf("Yesterday", "02 sec", groupOf(multipleDaysWithProject[1]))
+                        dayOf(today, groupOf(multipleDaysWithProject[0]), groupOf(multipleDaysWithProject[2], multipleDaysWithProject[4]), groupOf(multipleDaysWithProject[3])),
+                        dayOf(yesterday, groupOf(multipleDaysWithProject[1]))
                     },
                     new object[]
                     {
                         differentProjects,
-                        dayOf("Today", "03 sec", groupOf(differentProjects[0]), groupOf(differentProjects[1]))
+                        dayOf(today, groupOf(differentProjects[0]), groupOf(differentProjects[1]))
                     },
                     new object[]
                     {
                         differentTasks,
-                        dayOf("Today", "03 sec", groupOf(differentTasks[0]), groupOf(differentTasks[1]))
+                        dayOf(today, groupOf(differentTasks[0]), groupOf(differentTasks[1]))
                     },
                     new object[]
                     {
                         sameTasks,
-                        dayOf("Today", "03 sec", groupOf(sameTasks[0], sameTasks[1]))
+                        dayOf(today, groupOf(sameTasks[0], sameTasks[1]))
                     }
                 };
         }
 
         public sealed class WhenGroupingIsDisabled
         {
-            private static readonly IThreadSafePreferences preferences = new MockPreferences
-            {
-                CollapseTimeEntries = false,
-                DateFormat = DateFormat.FromLocalizedDateFormat("YYYY-MM-DD")
-            };
-
             [Theory]
             [MemberData(nameof(TestData))]
             public void TransformsTimeEntriesIntoACorrectTree(
                 IEnumerable<IThreadSafeTimeEntry> timeEntries,
-                params CollectionSection<DaySummaryViewModel,
-                    CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>>[] expectedTree)
+                params CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]>[] expectedTree)
             {
-                var transformedTree = TimeEntriesLogTransformation.Group(timeEntries, preferences, now);
+                var transformedTree = TimeEntriesGrouping.WithoutGroupingSimilar(timeEntries);
 
-                transformedTree.Should().BeEquivalentTo(expectedTree.ToImmutableList());
+                transformedTree.Should().BeEquivalentTo(expectedTree);
             }
 
-            private static CollectionSection<DaySummaryViewModel,
-                CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>> dayOf(
-                string title,
-                string totalTrackedTime,
-                params CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>[] groups)
-                => new CollectionSection<DaySummaryViewModel,
-                    CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>>(
-                    new DaySummaryViewModel(title, totalTrackedTime),
-                    groups);
-
-            private static CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>[] groupsOf(
+            private static CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]> dayOf(
+                DateTimeOffset date,
                 params IThreadSafeTimeEntry[] timeEntries)
-                => timeEntries.Select(timeEntry =>
-                    new CollectionSection<TimeEntriesGroupViewModel, TimeEntryViewModel>(
-                        new TimeEntriesGroupViewModel(toViewModel(timeEntry)),
-                        toViewModel(timeEntry))).ToArray();
-
-            private static TimeEntryViewModel[] toViewModel(IThreadSafeTimeEntry timeEntry)
-                => new[] { new TimeEntryViewModel(timeEntry, preferences.DurationFormat) };
+                => new CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]>(
+                    date.LocalDateTime.Date,
+                    timeEntries.Select(te => new[] { te }));
 
             public static IEnumerable<object[]> TestData
                 => new[]
@@ -230,51 +194,51 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
                     new object[]
                     {
                         singleDay,
-                        dayOf("Today", "07 sec", groupsOf(singleDay))
+                        dayOf(today, singleDay)
                     },
                     new object[]
                     {
                         twoWorkspaces,
-                        dayOf("Today", "03 sec", groupsOf(twoWorkspaces))
+                        dayOf(today, twoWorkspaces)
                     },
                     new object[]
                     {
                         differentDescriptions,
-                        dayOf("Today", "07 sec", groupsOf(differentDescriptions))
+                        dayOf(today, differentDescriptions)
                     },
                     new object[]
                     {
                         multipleDays,
-                        dayOf("Today", "05 sec", groupsOf(multipleDays[0], multipleDays[2])),
-                        dayOf("Yesterday", "02 sec", groupsOf(multipleDays[1]))
+                        dayOf(today, multipleDays[0], multipleDays[2]),
+                        dayOf(yesterday, multipleDays[1])
                     },
                     new object[]
                     {
                         multipleDaysWithTags,
 
-                        dayOf("Today", "29 sec", groupsOf(multipleDaysWithTags[0], multipleDaysWithTags[2], multipleDaysWithTags[3], multipleDaysWithTags[4])),
-                        dayOf("Yesterday", "02 sec", groupsOf(multipleDaysWithTags[1]))
+                        dayOf(today, multipleDaysWithTags[0], multipleDaysWithTags[2], multipleDaysWithTags[3], multipleDaysWithTags[4]),
+                        dayOf(yesterday, multipleDaysWithTags[1])
                     },
                     new object[]
                     {
                         multipleDaysWithProject,
-                        dayOf("Today", "29 sec", groupsOf(multipleDaysWithProject[0], multipleDaysWithProject[2], multipleDaysWithProject[3], multipleDaysWithProject[4])),
-                        dayOf("Yesterday", "02 sec", groupsOf(multipleDaysWithProject[1]))
+                        dayOf(today, multipleDaysWithProject[0], multipleDaysWithProject[2], multipleDaysWithProject[3], multipleDaysWithProject[4]),
+                        dayOf(yesterday, multipleDaysWithProject[1])
                     },
                     new object[]
                     {
                         differentProjects,
-                        dayOf("Today", "03 sec", groupsOf(differentProjects))
+                        dayOf(today, differentProjects)
                     },
                     new object[]
                     {
                         differentTasks,
-                        dayOf("Today", "03 sec", groupsOf(differentTasks))
+                        dayOf(today, differentTasks)
                     },
                     new object[]
                     {
                         sameTasks,
-                        dayOf("Today", "03 sec", groupsOf(sameTasks))
+                        dayOf(today, sameTasks)
                     }
                 };
         }
@@ -300,7 +264,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Transformations
                 Task = task,
                 TaskId = task?.Id,
                 Billable = billable,
-                Tags = tags,
+                Tags = tags ?? Array.Empty<IThreadSafeTag>(),
                 TagIds = tags?.Select(tag => tag.Id) ?? new long[0]
             };
     }

@@ -48,7 +48,8 @@ namespace Toggl.Foundation.MvvmCross
                     foundation.TimeService,
                     foundation.AnalyticsService,
                     foundation.LastTimeUsageStorage,
-                    foundation.Scheduler);
+                    foundation.Scheduler,
+                    foundation.StopwatchProvider);
 
             ITogglDataSource createDataSource(ITogglApi api)
             {

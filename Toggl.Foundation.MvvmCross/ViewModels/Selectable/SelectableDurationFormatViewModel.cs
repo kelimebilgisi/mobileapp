@@ -7,7 +7,7 @@ using Toggl.Multivac;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableDurationFormatViewModel : IDiffable<SelectableDurationFormatViewModel>
+    public sealed class SelectableDurationFormatViewModel : IDiffableByIdentifier<SelectableDurationFormatViewModel>
     {
         public long Identifier => DurationFormat.GetHashCode();
 

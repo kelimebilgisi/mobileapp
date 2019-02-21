@@ -210,6 +210,17 @@ namespace Toggl.Daneel.Presentation
             return base.CreateNavigationController(viewController);
         }
 
+        protected override bool CloseModalViewController(IMvxViewModel toClose, MvxModalPresentationAttribute attribute)
+        {
+            var closeDidWork = base.CloseModalViewController(toClose, attribute);
+            if (closeDidWork)
+            {
+                toClose?.ViewDestroy(true);
+            }
+
+            return closeDidWork;
+        }
+
         public override void ChangePresentation(MvxPresentationHint hint)
         {
             switch (hint)

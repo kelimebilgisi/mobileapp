@@ -26,6 +26,7 @@
             <subviews>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Xqq-Su-CQu">
                     <rect key="frame" x="0.0" y="0.0" width="44" height="44"/>
+                    <accessibility key="accessibilityConfiguration" identifier="Close"/>
                     <constraints>
                         <constraint firstAttribute="width" constant="44" id="0ZU-Gi-Aaf"/>
                         <constraint firstAttribute="height" constant="44" id="Q7J-ge-HRq"/>
@@ -49,6 +50,7 @@
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Search" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="3Mb-dF-ikC">
                     <rect key="frame" x="38" y="53" width="321" height="48"/>
                     <color key="tintColor" red="0.29803921570000003" green="0.85098039219999999" blue="0.3921568627" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <accessibility key="accessibilityConfiguration" identifier="SelectCountrySearchField"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="48" id="JOJ-9v-ODt"/>
                     </constraints>

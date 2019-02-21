@@ -3,9 +3,8 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels;
-using Toggl.Foundation.Tests.Extensions;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Foundation.Tests.Generators;
-using Toggl.Multivac.Extensions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
@@ -61,7 +60,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.ChangePage(int.MaxValue);
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(OnboardingViewModel.ReportsPage);
+                observer.LastEmittedValue().Should().Be(OnboardingViewModel.ReportsPage);
             }
 
             [Fact, LogIfTooSlow]
@@ -74,7 +73,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 await ViewModel.ChangePage(-1);
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(OnboardingViewModel.TrackPage);
+                observer.LastEmittedValue().Should().Be(OnboardingViewModel.TrackPage);
             }
         }
 
@@ -94,7 +93,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
 
                 var expected = page == 0;
-                observer.LastValue().Should().Be(expected);
+                observer.LastEmittedValue().Should().Be(expected);
             }
         }
 
@@ -114,7 +113,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.Start();
 
                 var expected = page == ViewModel.NumberOfPages - 1;
-                observer.LastValue().Should().Be(expected);
+                observer.LastEmittedValue().Should().Be(expected);
             }
         }
 
@@ -160,7 +159,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.GoToNextPage.Execute();
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(to);
+                observer.LastEmittedValue().Should().Be(to);
             }
 
             [Fact, LogIfTooSlow]
@@ -210,7 +209,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.GoToPreviousPage.Execute();
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(to);
+                observer.LastEmittedValue().Should().Be(to);
             }
 
             [Theory, LogIfTooSlow]
@@ -226,7 +225,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(shouldBeEnabled);
+                observer.LastEmittedValue().Should().Be(shouldBeEnabled);
             }
         }
 
@@ -241,7 +240,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().Should().Be(OnboardingViewModel.TrackPage);
+                observer.LastEmittedValue().Should().Be(OnboardingViewModel.TrackPage);
             }
 
             [Fact, LogIfTooSlow]

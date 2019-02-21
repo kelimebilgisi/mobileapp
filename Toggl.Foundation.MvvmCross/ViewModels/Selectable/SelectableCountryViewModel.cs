@@ -6,7 +6,7 @@ using Toggl.Multivac.Models;
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
-    public sealed class SelectableCountryViewModel : IDiffable<SelectableCountryViewModel>
+    public sealed class SelectableCountryViewModel : IDiffableByIdentifier<SelectableCountryViewModel>
     {
         public ICountry Country { get; }
 

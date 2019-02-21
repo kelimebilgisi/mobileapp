@@ -81,9 +81,9 @@ namespace Toggl.Giskard.Activities
 
         private void setupMainLogObservables()
         {
-            //var collectionChanges = ViewModel.TimeEntries.CollectionChange.SelectUnit();
-            //mainRecyclerViewChangesObservable = mainRecyclerViewScrollChanges
-                //.Merge(collectionChanges);
+            var collectionChanges = ViewModel.TimeEntries.SelectUnit();
+            mainRecyclerViewChangesObservable = mainRecyclerViewScrollChanges
+                .Merge(collectionChanges);
         }
 
         private void setupStartTimeEntryOnboardingStep()

@@ -7,7 +7,7 @@ using FsCheck.Xunit;
 using NSubstitute;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Tests.Generators;
-using Toggl.Foundation.Tests.Extensions;
+using Toggl.Foundation.Tests.TestExtensions;
 using Xunit;
 using static Toggl.Foundation.Sync.SyncState;
 

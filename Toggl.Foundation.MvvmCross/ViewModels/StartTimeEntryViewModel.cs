@@ -32,7 +32,6 @@ using static Toggl.Foundation.Helper.Constants;
 using static Toggl.Multivac.Extensions.CommonFunctions;
 using IStopwatch = Toggl.Foundation.Diagnostics.IStopwatch;
 using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
-using SelectTimeOrigin = Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 
 [assembly: MvxNavigation(typeof(StartTimeEntryViewModel), ApplicationUrls.StartTimeEntry)]
 namespace Toggl.Foundation.MvvmCross.ViewModels
@@ -176,8 +175,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
         public IMvxAsyncCommand DoneCommand { get; }
 
-        public IMvxAsyncCommand<SelectTimeOrigin> SelectTimeCommand { get; }
-
         public IMvxAsyncCommand SetStartDateCommand { get; }
 
         public IMvxAsyncCommand ChangeTimeCommand { get; }
@@ -249,7 +246,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ChangeTimeCommand = new MvxAsyncCommand(changeTime);
             ToggleBillableCommand = new MvxCommand(toggleBillable);
             SetStartDateCommand = new MvxAsyncCommand(setStartDate);
-            SelectTimeCommand = new MvxAsyncCommand<SelectTimeOrigin>(selectTime);
             ToggleTagSuggestionsCommand = new MvxCommand(toggleTagSuggestions);
             ToggleProjectSuggestionsCommand = new MvxCommand(toggleProjectSuggestions);
             SelectSuggestionCommand = new MvxAsyncCommand<AutocompleteSuggestion>(selectSuggestion);
@@ -581,48 +577,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         {
             analyticsService.StartViewTapped.Track(StartViewTapSource.Billable);
             IsBillable = !IsBillable;
-        }
-
-        private StartViewTapSource? getTapSourceFromBindingParameter(SelectTimeOrigin origin)
-        {
-            switch (origin)
-            {
-                case SelectTimeOrigin.StartTime:
-                    return StartViewTapSource.StartTime;
-                case SelectTimeOrigin.StartDate:
-                    return StartViewTapSource.StartDate;
-                case SelectTimeOrigin.Duration:
-                    return StartViewTapSource.Duration;
-                default:
-                    return null;
-            }
-        }
-
-        private async Task selectTime(SelectTimeOrigin origin)
-        {
-            if (getTapSourceFromBindingParameter(origin) is StartViewTapSource tapSource)
-                analyticsService.StartViewTapped.Track(tapSource);
-
-            var stopTime = Duration.HasValue ? (DateTimeOffset?)StartTime + Duration.Value : null;
-
-            var preferences = await dataSource.Preferences.Current.FirstAsync();
-
-            var parameters = SelectTimeParameters.CreateFromOrigin(origin, BeginningOfWeek, StartTime, stopTime)
-                .WithFormats(preferences.DateFormat, preferences.TimeOfDayFormat);
-
-            var result = await navigationService
-                .Navigate<SelectTimeViewModel, SelectTimeParameters, SelectTimeResultsParameters>(parameters)
-                .ConfigureAwait(false);
-
-            if (result == null)
-                return;
-
-            StartTime = result.Start;
-
-            if (result.Stop.HasValue)
-            {
-                Duration = result.Stop - result.Start;
-            }
         }
 
         private async Task changeTime()

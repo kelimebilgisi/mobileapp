@@ -16,7 +16,6 @@ using Toggl.Giskard.Extensions;
 using Toggl.Giskard.Extensions.Reactive;
 using Toggl.Giskard.Helper;
 using Toggl.Multivac.Extensions;
-using static Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 
 namespace Toggl.Giskard.Activities
 {

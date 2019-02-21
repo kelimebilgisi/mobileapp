@@ -21,12 +21,12 @@ using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Exceptions;
 using Toggl.PrimeRadiant.Models;
 using Xunit;
 using static Toggl.Foundation.Helper.Constants;
-using static Toggl.Foundation.MvvmCross.Parameters.SelectTimeParameters.Origin;
 using static Toggl.Multivac.Extensions.FunctionalExtensions;
 using static Toggl.Multivac.Extensions.StringExtensions;
 using ITimeEntryPrototype = Toggl.Foundation.Models.ITimeEntryPrototype;
@@ -1779,105 +1779,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             }
         }
 
-        public sealed class TheSelectTimeCommand : StartTimeEntryViewModelTest
-        {
-            private const SelectTimeParameters.Origin origin = Duration;
-            private readonly TaskCompletionSource<SelectTimeResultsParameters> tcs = new TaskCompletionSource<SelectTimeResultsParameters>();
-
-            public TheSelectTimeCommand()
-            {
-                NavigationService
-                    .Navigate<SelectTimeViewModel, SelectTimeParameters, SelectTimeResultsParameters>(Arg.Any<SelectTimeParameters>())
-                    .Returns(tcs.Task);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task CallsTheSelectViewModelWithACalculatedStopDateIfTheDurationIsNotNull()
-            {
-                ViewModel.Prepare(StartTimeEntryParameters.ForManualMode(DateTimeOffset.Now));
-
-                await callCommandCorrectly();
-
-                await NavigationService
-                    .Received()
-                    .Navigate<SelectTimeViewModel, SelectTimeParameters, SelectTimeResultsParameters>(Arg.Is<SelectTimeParameters>(
-                        parameters => parameters.Stop != null
-                    ));
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task CallsTheSelectViewModelWithNoStopDateIfTheDurationIsNull()
-            {
-                ViewModel.Prepare(StartTimeEntryParameters.ForTimerMode(DateTimeOffset.Now));
-
-                await callCommandCorrectly();
-
-                await NavigationService
-                    .Received()
-                    .Navigate<SelectTimeViewModel, SelectTimeParameters, SelectTimeResultsParameters>(Arg.Is<SelectTimeParameters>(
-                        parameters => parameters.Stop == null
-                    ));
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task SetsTheDurationIfTheStopResultHasAValue()
-            {
-                const int totalDurationInHours = 2;
-                ViewModel.Prepare(StartTimeEntryParameters.ForTimerMode(DateTimeOffset.Now));
-
-                await callCommandCorrectly(totalDurationInHours);
-
-                ViewModel.Duration.Value.TotalHours.Should().Be(totalDurationInHours);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task DoesNotSetTheDurationIfTheStopResultHasNoValue()
-            {
-                ViewModel.Prepare(StartTimeEntryParameters.ForTimerMode(DateTimeOffset.Now));
-
-                await callCommandCorrectly();
-
-                ViewModel.Duration.Should().BeNull();
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task SetsTheStartDateToTheValueReturned()
-            {
-                const int totalDurationInHours = 2;
-                ViewModel.Prepare(StartTimeEntryParameters.ForTimerMode(DateTimeOffset.Now));
-
-                await callCommandCorrectly(totalDurationInHours);
-                var expected = (await tcs.Task).Start;
-
-                ViewModel.StartTime.Should().Be(expected);
-            }
-
-            [Fact, LogIfTooSlow]
-            public async Task TracksDurationTap()
-            {
-                var now = DateTimeOffset.UtcNow;
-                var parameters = StartTimeEntryParameters.ForTimerMode(now);
-                var returnParameters = new SelectTimeResultsParameters(now, null);
-                NavigationService
-                    .Navigate<SelectTimeViewModel, SelectTimeParameters, SelectTimeResultsParameters>(Arg.Any<SelectTimeParameters>())
-                    .Returns(Task.FromResult(returnParameters));
-                ViewModel.Prepare(parameters);
-
-                await ViewModel.SelectTimeCommand.ExecuteAsync(SelectTimeParameters.Origin.Duration);
-
-                AnalyticsService.StartViewTapped.Received().Track(StartViewTapSource.Duration);
-            }
-
-            private Task callCommandCorrectly(int? hoursToAddToStopTime = null)
-            {
-                var commandTask = ViewModel.SelectTimeCommand.ExecuteAsync(origin);
-                var now = DateTimeOffset.Now;
-                var stopTime = hoursToAddToStopTime.HasValue ? now.AddHours(hoursToAddToStopTime.Value) : (DateTimeOffset?)null;
-                tcs.SetResult(new SelectTimeResultsParameters(now, stopTime));
-                return commandTask;
-            }
-        }
-
         public sealed class TheDurationTappedCommand : StartTimeEntryViewModelTest
         {
             [Fact, LogIfTooSlow]
@@ -2191,7 +2092,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public static TextFieldInfo GetLatestInfo(this ITestableObserver<TextFieldInfo> observer, TestScheduler testScheduler)
         {
             testScheduler.Start();
-            return observer.Messages.Last().Value.Value;
+            return observer.LastEmittedValue();
         }
 
         public static QueryTextSpan GetQuerySpan(this TextFieldInfo textFieldInfo)

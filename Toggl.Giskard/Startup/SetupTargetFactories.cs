@@ -30,11 +30,6 @@ namespace Toggl.Giskard
                 view => new ViewMarginTargetBinding(view, ViewMarginTargetBinding.BoundMargin.Bottom)
             );
 
-            registry.RegisterCustomBindingFactory<TogglDroidDatePicker>(
-                DatePickerBoundariesTargetBinding.BindingName,
-                view => new DatePickerBoundariesTargetBinding(view)
-            );
-
             registry.RegisterCustomBindingFactory<View>(
                 DrawableColorTargetBinding.BindingName,
                 view => new DrawableColorTargetBinding(view)

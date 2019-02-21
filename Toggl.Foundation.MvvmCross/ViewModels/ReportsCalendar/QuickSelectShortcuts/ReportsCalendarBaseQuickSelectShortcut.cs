@@ -7,7 +7,7 @@ using Toggl.Foundation.Services;
 namespace Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar.QuickSelectShortcuts
 {
     [Preserve(AllMembers = true)]
-    public abstract class ReportsCalendarBaseQuickSelectShortcut : IDiffable<ReportsCalendarBaseQuickSelectShortcut>
+    public abstract class ReportsCalendarBaseQuickSelectShortcut : IDiffableByIdentifier<ReportsCalendarBaseQuickSelectShortcut>
     {
         protected ITimeService TimeService { get; private set; }
 

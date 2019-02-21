@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Multivac
 {
@@ -67,6 +68,14 @@ namespace Toggl.Multivac
                 if (value.CompareTo(lowerBound) >= 0 && value.CompareTo(upperBound) <= 0) return;
 
                 throw new ArgumentException("Value is in out of bounds.", argumentName);
+            }
+
+            public static void TypeImplementsOrInheritsFromType(Type derivedType, Type baseType)
+            {
+                if (derivedType.ImplementsOrDerivesFrom(baseType))
+                    return;
+
+                throw new ArgumentException($"Type {derivedType.Name} is not of type {baseType.Name}");
             }
         }
     }
