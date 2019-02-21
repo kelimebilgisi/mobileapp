@@ -119,7 +119,7 @@ namespace Toggl.Giskard.Activities
             ViewModel.Preferences
                 .Select(preferences => preferences.DurationFormat)
                 .Select(format => ViewModel.GroupDuration.ToFormattedString(format))
-                .Subscribe(durationTextView.Rx().TextObserver())
+                .Subscribe(groupDurationTextView.Rx().TextObserver())
                 .DisposedBy(DisposeBag);
 
             // Project, task, client
