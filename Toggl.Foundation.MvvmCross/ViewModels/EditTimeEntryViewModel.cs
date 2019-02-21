@@ -28,7 +28,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
     [Preserve(AllMembers = true)]
     public sealed partial class EditTimeEntryViewModel : MvxViewModel<long[]>
     {
-
         public EditTimeEntryViewModel(
             ITimeService timeService,
             ITogglDataSource dataSource,
@@ -68,24 +67,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             isEditingDescriptionSubject = new BehaviorSubject<bool>(false);
             Description = new BehaviorRelay<string>(string.Empty, CommonFunctions.Trim);
 
-            projectClientTaskSubject = new BehaviorSubject<(string, string, string, string)>(
-                (null, null, null, null));
-            HasProject = projectClientTaskSubject
-                .Select(data => !string.IsNullOrEmpty(data.Project))
-                .DistinctUntilChanged()
-                .AsDriver(false, schedulerProvider);
-            Project = projectClientTaskSubject
-                .Select(data => (data.Project, data.ProjectColor))
-                .DistinctUntilChanged()
-                .AsDriver((null, null), schedulerProvider);
-            Client = projectClientTaskSubject
-               .Select(data => data.Client)
-               .DistinctUntilChanged()
-               .AsDriver(null, schedulerProvider);
-            Task = projectClientTaskSubject
-                .Select(data => data.Task)
-                .DistinctUntilChanged()
-                .AsDriver(null, schedulerProvider);
+            projectClientTaskSubject = new BehaviorSubject<ProjectClientTaskInfo>(ProjectClientTaskInfo.Empty);
+            ProjectClientTask = projectClientTaskSubject
+                .AsDriver(ProjectClientTaskInfo.Empty, schedulerProvider);
 
             IsBillableAvailable = workspaceIdSubject
                 .SelectMany(workspaceId => interactorFactory.IsBillableAvailableForWorkspace(workspaceId).Execute())
@@ -97,6 +81,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DistinctUntilChanged()
                 .AsDriver(false, schedulerProvider);
 
+            startTimeSubject = new BehaviorSubject<DateTimeOffset>(DateTimeOffset.UtcNow);
             StartTime = startTimeSubject
                 .DistinctUntilChanged()
                 .AsDriver(default(DateTimeOffset), schedulerProvider);
@@ -140,8 +125,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 .DistinctUntilChanged()
                 .AsDriver(false, schedulerProvider);
 
-            preferencesSubject = new BehaviorSubject<IThreadSafePreferences>(null);
-
             // Actions
             Close = actionFactory.FromAsync(closeWithConfirmation);
             SelectProject = actionFactory.FromAsync(selectProject);
@@ -175,10 +158,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             workspaceIdSubject.OnNext(timeEntry.WorkspaceId);
 
             Description.Accept(timeEntry.Description);
-
-            projectClientTaskSubject.OnNext(
-                (timeEntry.Project?.Name,
-                timeEntry.Project?.Color,
+             
+            projectClientTaskSubject.OnNext(new ProjectClientTaskInfo(
+                timeEntry.Project?.DisplayName(),
+                timeEntry.Project?.DisplayColor(),
                 timeEntry.Project?.Client?.Name,
                 timeEntry.Task?.Name));
 
@@ -196,14 +179,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             setupSyncError(timeEntries);
 
-            interactorFactory.GetPreferences().Execute()
-                .Subscribe(preferencesSubject)
-                .DisposedBy(disposeBag);
-
-            interactorFactory.GetCurrentUser().Execute()
-                .Select(user => user.BeginningOfWeek)
-                .Subscribe(beginningOfWeekSubject)
-                .DisposedBy(disposeBag);
+            Preferences = interactorFactory.GetPreferences().Execute()
+                .AsDriver(null, schedulerProvider);
         }
 
         private void setupSyncError(IEnumerable<IThreadSafeTimeEntry> timeEntries)
@@ -290,8 +267,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
 
             if (projectId == null)
             {
-                projectClientTaskSubject.OnNext(
-                    (string.Empty, string.Empty, string.Empty, string.Empty));
+                projectClientTaskSubject.OnNext(ProjectClientTaskInfo.Empty);
 
                 clearTagsIfNeeded(workspaceId, chosenProject.WorkspaceId);
 
@@ -304,10 +280,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             clearTagsIfNeeded(workspaceId, project.WorkspaceId);
 
             var taskName = chosenProject.TaskId.HasValue
-                ? (await interactorFactory.GetTaskById(taskId.Value).Execute()).Name
+                ? (await interactorFactory.GetTaskById(taskId.Value).Execute())?.Name
                 : string.Empty;
 
-            projectClientTaskSubject.OnNext((
+            projectClientTaskSubject.OnNext(new ProjectClientTaskInfo(
                 project.DisplayName(),
                 project.DisplayColor(),
                 project.Client?.Name,
@@ -456,23 +432,25 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                 ? interactorFactory.DeleteMultipleTimeEntries(TimeEntryIds)
                 : interactorFactory.DeleteTimeEntry(TimeEntryId);
 
-            await delete(actionType, TimeEntryIds.Length, interactor);
+            var isDeletionConfirmed = await delete(actionType, TimeEntryIds.Length, interactor);
 
-            analyticsService.DeleteTimeEntry.Track();
-
+            if (isDeletionConfirmed)
             await close();
         }
 
-        private async Task delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> interactor)
+        private async Task<bool> delete(ActionType actionType, int entriesCount, IInteractor<IObservable<Unit>> deletionInteractor)
         {
-            var shouldDelete = await dialogService.ConfirmDestructiveAction(actionType, entriesCount);
+            var isDeletionConfirmed = await dialogService.ConfirmDestructiveAction(actionType, entriesCount);
 
-            if (!shouldDelete)
-                return;
+            if (!isDeletionConfirmed)
+                return false;
 
-            await interactor.Execute();
+            await deletionInteractor.Execute();
 
             dataSource.SyncManager.InitiatePushSync();
+            analyticsService.DeleteTimeEntry.Track();
+
+            return true;
         }
 
         private Task close()
