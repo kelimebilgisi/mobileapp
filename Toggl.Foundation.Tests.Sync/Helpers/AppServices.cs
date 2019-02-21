@@ -4,6 +4,7 @@ using MvvmCross.Navigation;
 using NSubstitute;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Shortcuts;
@@ -35,6 +36,8 @@ namespace Toggl.Foundation.Tests.Sync.Helpers
 
         public ILastTimeUsageStorage LastTimeUsageStorageSubstitute { get; } = Substitute.For<ILastTimeUsageStorage>();
 
+        public IStopwatchProvider StopwatchProvider { get; } = Substitute.For<IStopwatchProvider>();
+
         public ISyncManager SyncManager { get; }
 
         public AppServices(ITogglApi api, ITogglDatabase database)
@@ -54,7 +57,8 @@ namespace Toggl.Foundation.Tests.Sync.Helpers
                     TimeService,
                     AnalyticsServiceSubstitute,
                     LastTimeUsageStorageSubstitute,
-                    Scheduler);
+                    Scheduler,
+                    StopwatchProvider);
 
                 syncErrorHandlingService.HandleErrorsOf(syncManager);
 

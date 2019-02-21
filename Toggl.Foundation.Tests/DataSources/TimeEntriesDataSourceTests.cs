@@ -14,6 +14,7 @@ using Toggl.Foundation.Models;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Extensions;
 using Toggl.Multivac.Models;
 using Toggl.PrimeRadiant;
@@ -174,8 +175,8 @@ namespace Toggl.Foundation.Tests.DataSources
                 timeEntriesSource.Created.Subscribe(createdObserver);
                 await timeEntriesSource.Create(newTimeEntry);
 
-                createdObserver.Messages.Single().Value.Value.Id.Should().Be(newTimeEntry.Id);
-                createdObserver.Messages.Single().Value.Value.Duration.Should().BeNull();
+                createdObserver.SingleEmittedValue().Id.Should().Be(newTimeEntry.Id);
+                createdObserver.SingleEmittedValue().Duration.Should().BeNull();
             }
 
             [Fact]
@@ -203,9 +204,9 @@ namespace Toggl.Foundation.Tests.DataSources
                 timeEntriesSource.Created.Subscribe(createdObserver);
                 await timeEntriesSource.Create(newTimeEntry);
 
-                updatedObserver.Messages.Single().Value.Value.Entity.Duration.Should().Be(durationAfterStopping);
-                createdObserver.Messages.Single().Value.Value.Id.Should().Be(newTimeEntry.Id);
-                createdObserver.Messages.Single().Value.Value.Duration.Should().BeNull();
+                updatedObserver.SingleEmittedValue().Entity.Duration.Should().Be(durationAfterStopping);
+                createdObserver.SingleEmittedValue().Id.Should().Be(newTimeEntry.Id);
+                createdObserver.SingleEmittedValue().Duration.Should().BeNull();
             }
         }
 

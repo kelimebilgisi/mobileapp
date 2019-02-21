@@ -18,6 +18,7 @@ using static Toggl.Foundation.Sync.SyncState;
 using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Network;
 using Toggl.Foundation.Exceptions;
+using Toggl.Foundation.Diagnostics;
 
 namespace Toggl.Foundation.Tests.Sync
 {
@@ -32,13 +33,14 @@ namespace Toggl.Foundation.Tests.Sync
             protected IAnalyticsService AnalyticsService { get; } = Substitute.For<IAnalyticsService>();
             protected ILastTimeUsageStorage LastTimeUsageStorage { get; } = Substitute.For<ILastTimeUsageStorage>();
             protected ITimeService TimeService { get; } = Substitute.For<ITimeService>();
+            protected IStopwatchProvider StopwatchProvider = Substitute.For<IStopwatchProvider>();
             protected ISyncManager SyncManager { get; }
 
             protected SyncManagerTestBase()
             {
                 Orchestrator.SyncCompleteObservable.Returns(OrchestratorSyncComplete.AsObservable());
                 Orchestrator.StateObservable.Returns(OrchestratorStates.AsObservable());
-                SyncManager = new SyncManager(Queue, Orchestrator, AnalyticsService, LastTimeUsageStorage, TimeService);
+                SyncManager = new SyncManager(Queue, Orchestrator, AnalyticsService, LastTimeUsageStorage, TimeService, StopwatchProvider);
             }
         }
 
@@ -46,16 +48,23 @@ namespace Toggl.Foundation.Tests.Sync
         {
             [Theory, LogIfTooSlow]
             [ConstructorData]
-            public void ThrowsIfAnyArgumentIsNull(bool useQueue, bool useOrchestrator, bool useAnalyticsService, bool useLastTimeUsageStorage, bool useTimeService)
+            public void ThrowsIfAnyArgumentIsNull(
+                bool useQueue, 
+                bool useOrchestrator, 
+                bool useAnalyticsService, 
+                bool useLastTimeUsageStorage, 
+                bool useTimeService,
+                bool useStopwatchProvider)
             {
                 var queue = useQueue ? Queue : null;
                 var orchestrator = useOrchestrator ? Orchestrator : null;
                 var analyticsService = useAnalyticsService ? AnalyticsService : null;
                 var lastTimeUsageStorage = useLastTimeUsageStorage ? LastTimeUsageStorage : null;
                 var timeService = useTimeService ? TimeService : null;
+                var stopwatchProvider = useStopwatchProvider ? StopwatchProvider : null;
 
                 // ReSharper disable once ObjectCreationAsStatement
-                Action constructor = () => new SyncManager(queue, orchestrator, analyticsService, lastTimeUsageStorage, timeService);
+                Action constructor = () => new SyncManager(queue, orchestrator, analyticsService, lastTimeUsageStorage, timeService, stopwatchProvider);
 
                 constructor.Should().Throw<ArgumentNullException>();
             }

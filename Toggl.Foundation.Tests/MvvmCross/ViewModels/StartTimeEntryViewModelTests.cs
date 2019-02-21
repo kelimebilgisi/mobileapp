@@ -21,6 +21,7 @@ using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Exceptions;
 using Toggl.PrimeRadiant.Models;
@@ -2091,7 +2092,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
         public static TextFieldInfo GetLatestInfo(this ITestableObserver<TextFieldInfo> observer, TestScheduler testScheduler)
         {
             testScheduler.Start();
-            return observer.Messages.Last().Value.Value;
+            return observer.LastEmittedValue();
         }
 
         public static QueryTextSpan GetQuerySpan(this TextFieldInfo textFieldInfo)

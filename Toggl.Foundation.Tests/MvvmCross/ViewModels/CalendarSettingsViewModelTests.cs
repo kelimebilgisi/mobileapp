@@ -104,7 +104,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     foreach (var calendar in calendarGroup.Items)
                     {
                         if (enabledCalendarIds.Contains(calendar.Id))
-                            calendar.InitiallySelected.Should().BeTrue();
+                            calendar.Selected.Should().BeTrue();
                     }
                 }
             }

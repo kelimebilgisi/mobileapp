@@ -9,6 +9,7 @@ using FsCheck.Xunit;
 using Microsoft.Reactive.Testing;
 using NSubstitute;
 using Toggl.Foundation.Analytics;
+using IStopwatchProvider = Toggl.Foundation.Diagnostics.IStopwatchProvider;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Tests.Sync.States;
 using Toggl.Multivac.Extensions;
@@ -41,13 +42,14 @@ namespace Toggl.Foundation.Tests.Sync
                 var analyticsService = Substitute.For<IAnalyticsService>();
                 var lastTimeUsageStorage = Substitute.For<ILastTimeUsageStorage>();
                 var timeService = Substitute.For<ITimeService>();
+                var stopwatchProvider = Substitute.For<IStopwatchProvider>();
                 Queue = new SyncStateQueue();
                 Transitions = new TransitionHandlerProvider(analyticsService);
                 Scheduler = new TestScheduler();
                 StateMachine = new StateMachine(Transitions, Scheduler);
                 EntryPoints = new StateMachineEntryPoints();
                 Orchestrator = new StateMachineOrchestrator(StateMachine, EntryPoints);
-                SyncManager = new SyncManager(Queue, Orchestrator, analyticsService, lastTimeUsageStorage, timeService);
+                SyncManager = new SyncManager(Queue, Orchestrator, analyticsService, lastTimeUsageStorage, timeService, stopwatchProvider);
             }
 
             protected StateResult PreparePullTransitions(int n)

@@ -15,7 +15,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar;
 using Toggl.Foundation.MvvmCross.ViewModels.ReportsCalendar.QuickSelectShortcuts;
 using Toggl.Foundation.Services;
-using Toggl.Foundation.Tests.Extensions;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Multivac;
 using Xunit;
@@ -273,7 +273,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.SelectDay.Inputs.OnNext(secondTappedCellViewModel);
                 TestScheduler.Start();
 
-                var lastDateRange = dateRangeObserver.LastValue();
+                var lastDateRange = dateRangeObserver.LastEmittedValue();
 
                 Assert.True(ensureDateRangeIsCorrect(lastDateRange,
                         firstTappedCellViewModel,

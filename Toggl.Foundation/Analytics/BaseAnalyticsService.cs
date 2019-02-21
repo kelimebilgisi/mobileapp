@@ -224,6 +224,9 @@ namespace Toggl.Foundation.Analytics
         [AnalyticsEvent]
         public IAnalyticsEvent SyncCompleted { get; protected set; }
 
+        [AnalyticsEvent]
+        public IAnalyticsEvent LeakyBucketOverflow { get; protected set; }
+
         [AnalyticsEvent("Type", "Message", "StackTrace")]
         public IAnalyticsEvent<string, string, string> SyncFailed { get; protected set; }
 

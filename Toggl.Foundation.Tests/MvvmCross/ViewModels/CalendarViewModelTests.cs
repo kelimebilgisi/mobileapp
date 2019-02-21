@@ -22,6 +22,7 @@ using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Calendar;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
 using Xunit;
@@ -217,7 +218,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.ShouldShowOnboarding.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.Single().Value.Value.Should().BeTrue();
+                observer.SingleEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -230,7 +231,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.ShouldShowOnboarding.Subscribe(observer);
                 TestScheduler.Start();
 
-                observer.Messages.Single().Value.Value.Should().BeFalse();
+                observer.SingleEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]

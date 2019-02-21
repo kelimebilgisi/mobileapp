@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Toggl.Foundation.Analytics;
 using Toggl.Multivac;
 
 namespace Toggl.Foundation.Sync
@@ -15,13 +16,16 @@ namespace Toggl.Foundation.Sync
         private readonly Queue<DateTimeOffset> historyWindow = new Queue<DateTimeOffset>();
 
         private readonly ITimeService timeService;
+        private readonly IAnalyticsService analyticsService;
 
         public LeakyBucket(
             ITimeService timeService,
+            IAnalyticsService analyticsService,
             int slotsPerWindow = standardSlotsLimit,
             TimeSpan? movingWindowSize = null)
         {
             Ensure.Argument.IsNotNull(timeService, nameof(timeService));
+            Ensure.Argument.IsNotNull(analyticsService, nameof(analyticsService));
 
             if (slotsPerWindow <= 0)
             {
@@ -30,6 +34,7 @@ namespace Toggl.Foundation.Sync
             }
 
             this.timeService = timeService;
+            this.analyticsService = analyticsService;
             this.slotsPerWindow = slotsPerWindow;
             this.movingWindowSize = movingWindowSize ?? standardMovingWindowWidth;
         }
@@ -73,6 +78,11 @@ namespace Toggl.Foundation.Sync
                 var delayTime = timeToNextFreeSlot(now + totalDelay, window);
                 totalDelay += delayTime;
                 useSlot(now + totalDelay, window);
+            }
+
+            if (totalDelay > TimeSpan.Zero)
+            {
+                analyticsService.LeakyBucketOverflow.Track();
             }
 
             return totalDelay;

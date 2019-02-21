@@ -55,13 +55,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact, LogIfTooSlow]
             public async Task AddsAllCountriesToTheListOfSuggestions()
             {
-                var countries = GenerateCountriesList();
-
                 ViewModel.Prepare(10);
 
                 await ViewModel.Initialize();
 
-                ViewModel.Countries.First().Count().Should().Equals(250);
+                var countries = await ViewModel.Countries.FirstAsync();
+                countries.Count().Should().Equals(250);
             }
 
             [Theory, LogIfTooSlow]
@@ -74,7 +73,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                ViewModel.Countries.First().Single(c => c.Selected).Country.Id.Should().Be(id);
+                var countries = await ViewModel.Countries.FirstAsync();
+                countries.Single(c => c.Selected).Country.Id.Should().Be(id);
             }
 
             [Fact, LogIfTooSlow]
@@ -84,7 +84,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 await ViewModel.Initialize();
 
-                ViewModel.Countries.First().All(suggestion => !suggestion.Selected);
+                var countries = await ViewModel.Countries.FirstAsync();
+                countries.All(suggestion => !suggestion.Selected);
             }
         }
 
@@ -125,7 +126,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 ViewModel.FilterText.OnNext("Greece");
 
-                ViewModel.Countries.First().Count().Should().Equals(1);
+                var countries = await ViewModel.Countries.FirstAsync();
+                countries.Count().Should().Equals(1);
             }
         }
     }

@@ -21,6 +21,7 @@
         BindMainLogSuggestionsVH,
         CreateMainLogSuggestionsViewHolder,
         MainActivityOnCreate,
-        BackgroundSync
+        BackgroundSync,
+        Sync
     }
 }

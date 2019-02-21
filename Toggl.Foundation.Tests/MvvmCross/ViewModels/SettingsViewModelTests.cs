@@ -18,6 +18,7 @@ using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Foundation.Tests.Mocks;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Xunit;
 
@@ -146,8 +147,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TestScheduler.Start();
                     TestScheduler.Stop();
 
-                    var isSynced = syncedObserver.Messages.Single().Value.Value;
-                    var isRunningSync = syncingObserver.Messages.Single().Value.Value;
+                    var isSynced = syncedObserver.SingleEmittedValue();
+                    var isRunningSync = syncingObserver.SingleEmittedValue();
 
                     (isRunningSync && isSynced).Should().BeFalse();
                 }
@@ -170,7 +171,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TestScheduler.Start();
                     TestScheduler.Stop();
 
-                    var isRunningSync = observer.Messages.Single().Value.Value;
+                    var isRunningSync = observer.SingleEmittedValue();
                     isRunningSync.Should().Be(state == SyncProgress.Syncing);
                 }
             }
@@ -194,7 +195,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TestScheduler.Start();
                     TestScheduler.Stop();
 
-                    var isSynced = observer.Messages.Single().Value.Value;
+                    var isSynced = observer.SingleEmittedValue();
                     isSynced.Should().Be(state == SyncProgress.Synced);
                 }
             }
@@ -864,7 +865,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.CloseFeedbackSuccessView();
                 TestScheduler.Start();
 
-                observer.Messages.Last().Value.Value.Should().BeFalse();
+                observer.LastEmittedValue().Should().BeFalse();
             }
         }
 

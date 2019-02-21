@@ -4,7 +4,7 @@ using FluentAssertions;
 using Toggl.Foundation.Sync;
 using Toggl.Multivac;
 
-namespace Toggl.Foundation.Tests.Extensions
+namespace Toggl.Foundation.Tests.TestExtensions
 {
     internal static class ListOfSyncStateExtensions
     {
