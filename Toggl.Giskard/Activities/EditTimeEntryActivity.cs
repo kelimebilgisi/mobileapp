@@ -122,7 +122,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(groupDurationTextView.Rx().TextObserver())
                 .DisposedBy(DisposeBag);
 
-            // Project, task, client
             ViewModel.ProjectClientTask
                 .Select(generateProjectTaskClientFormattedString)
                 .Subscribe(projectTaskClientTextView.Rx().TextFormattedObserver())
@@ -132,7 +131,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(ViewModel.SelectProject.Inputs)
                 .DisposedBy(DisposeBag);
 
-            // tags
             ViewModel.Tags
                 .Select(tags => tags.ToArray())
                 .Subscribe(tagsAdapter.Rx().Items())
@@ -147,7 +145,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(ViewModel.SelectTags.Inputs)
                 .DisposedBy(DisposeBag);
 
-            // billable
             ViewModel.IsBillable
                 .Subscribe(billableSwitch.Rx().CheckedObserver())
                 .DisposedBy(DisposeBag);
@@ -161,7 +158,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(ViewModel.ToggleBillable.Inputs)
                 .DisposedBy(DisposeBag);
 
-            // start time
             ViewModel.StartTime
                 .WithLatestFrom(ViewModel.Preferences,
                     (startTime, preferences) => DateTimeToFormattedString.Convert(startTime, preferences.TimeOfDayFormat.Format))
@@ -179,7 +175,6 @@ namespace Toggl.Giskard.Activities
                .Subscribe(ViewModel.EditTimes.Inputs)
                .DisposedBy(DisposeBag);
 
-            // Stop time
             var stopTimeObservable = ViewModel.StopTime
                 .Where(stopTime => stopTime.HasValue)
                 .Select(stopTime => stopTime.Value);
@@ -219,7 +214,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(stoppedTimeEntryStopTimeElements.Rx().IsVisible())
                 .DisposedBy(DisposeBag);
 
-            // duration
             ViewModel.Duration
                 .WithLatestFrom(ViewModel.Preferences,
                     (duration, preferences) => duration.ToFormattedString(preferences.DurationFormat))
@@ -231,7 +225,6 @@ namespace Toggl.Giskard.Activities
                 .Subscribe(ViewModel.EditTimes.Inputs)
                 .DisposedBy(DisposeBag);
 
-            // delete
             deleteButton.Rx().Tap()
                 .Subscribe(ViewModel.Delete.Inputs)
                 .DisposedBy(DisposeBag);
