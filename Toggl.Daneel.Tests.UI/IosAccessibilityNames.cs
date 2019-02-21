@@ -73,6 +73,7 @@
     {
         public const string ChangeClient = "ChangeClientButton";
         public const string CreateButton = "CreateProjectButton";
+        public const string CloseButton = "CreateProjectCloseButton";
         public const string ChangeWorkspace = "ChangeWorkspaceButton";
         public const string TogglePrivateProject = "PrivateProjectSwitchContainer";
     }
