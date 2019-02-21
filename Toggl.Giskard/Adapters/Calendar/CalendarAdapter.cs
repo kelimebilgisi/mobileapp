@@ -12,6 +12,7 @@ namespace Toggl.Giskard.Adapters.Calendar
 {
     public class CalendarAdapter : RecyclerView.Adapter
     {
+        private readonly int screenWidth;
         private const int AnchorViewType = 1;
         private const int AnchoredViewType = 2;
 
@@ -19,8 +20,10 @@ namespace Toggl.Giskard.Adapters.Calendar
 
         private IReadOnlyList<Anchor> anchors;
 
-        public CalendarAdapter(Context context)
         {
+        public CalendarAdapter(Context context, int screenWidth)
+        {
+            this.screenWidth = screenWidth;
             anchors = Enumerable.Range(0, anchorCount).Select(_ => new Anchor(56.DpToPixels(context))).ToArray();
         }
 
