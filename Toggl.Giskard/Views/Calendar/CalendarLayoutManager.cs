@@ -217,6 +217,10 @@ namespace Toggl.Giskard.Views.Calendar
             }
 
             //todo: maybe layout anchored views here?
+#if DEBUG
+            showLayout();
+#endif
+
             return start - layoutState.Available;
         }
 
