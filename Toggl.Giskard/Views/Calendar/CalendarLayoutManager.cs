@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Android.Support.V7.Widget;
+using Android.Util;
 using Android.Views;
 using Toggl.Foundation.Helper;
 using Toggl.Giskard.Adapters.Calendar;
@@ -14,6 +15,9 @@ namespace Toggl.Giskard.Views.Calendar
         private AnchorInfo anchorInfo;
         private LayoutState layoutState;
         private LayoutChunkResult layoutChunkResult;
+        private List<View> anchors = new List<View>();
+        private List<View> anchoredViews = new List<View>();
+        private SparseArray<View> anchoredViewsPositions = new SparseArray<View>();
 
         public CalendarLayoutManager()
         {
@@ -54,6 +58,8 @@ namespace Toggl.Giskard.Views.Calendar
             var startOffset = 0;
             var endOffset = 0;
 
+            anchors.Clear();
+            anchoredViews.Clear();
             DetachAndScrapAttachedViews(recycler);
 
             layoutState.IsPreLayout = state.IsPreLayout;
@@ -216,7 +222,6 @@ namespace Toggl.Giskard.Views.Calendar
                 //todo: handle focusable view logic (stop fill when you find a focusable view)
             }
 
-            //todo: maybe layout anchored views here?
 #if DEBUG
             showLayout();
 #endif
@@ -233,13 +238,13 @@ namespace Toggl.Giskard.Views.Calendar
                 return;
             }
 
+            if (!(view.Tag is Anchor anchor)) return;
+
             //todo: check for scrap list if we do predictive animations
             if (layoutState.LayoutDirection == TOWARDS_THE_END)
-                AddView(view);
+                addAnchor(view);
             else
-                AddView(view, 0);
-
-            if (!(view.Tag is Anchor anchor)) return;
+                addAnchor(view, 0);
 
             MeasureChildWithMargins(view, 0, anchor.Height);
             layoutChunkResult.Consumed = anchor.Height;
@@ -270,17 +275,19 @@ namespace Toggl.Giskard.Views.Calendar
 
             foreach (var anchorData in anchor.AnchoredData)
             {
+                if (anchoredViewsPositions.Get(anchorData.adapterPosition) != null) continue;
+
                 var anchoredView = recycler.GetViewForPosition(anchorData.adapterPosition);
                 var anchoredViewLeft = anchorLeft + anchorData.leftOffset;
                 var anchoredViewTop = anchorTop + anchorData.topOffset;
 
                 if (layoutState.LayoutDirection == TOWARDS_THE_END)
                 {
-                    AddView(anchoredView);
+                    addAnchoredView(anchoredView, anchorData.adapterPosition);
                 }
                 else
                 {
-                    AddView(anchoredView, 0);
+                    addAnchoredView(anchoredView, anchorData.adapterPosition, 0);
                 }
 
                 MeasureChildWithMargins(anchoredView, anchorData.width, anchorData.height);
@@ -290,6 +297,33 @@ namespace Toggl.Giskard.Views.Calendar
                     anchoredViewLeft + anchorData.width,
                     anchoredViewTop + anchorData.height);
             }
+        }
+
+        private void addAnchor(View child, int index = -1)
+        {
+            if (index < 0)
+            {
+                anchors.Add(child);
+                AddView(child);
+                return;
+            }
+
+            anchors.Insert(index, child);
+            AddView(child, index);
+        }
+
+        private void addAnchoredView(View child, int adapterPosition, int index = -1)
+        {
+            anchoredViewsPositions.Put(adapterPosition, child);
+            if (index < 0)
+            {
+                anchoredViews.Add(child);
+                AddView(child);
+                return;
+            }
+
+            anchoredViews.Insert(index, child);
+            AddView(child, index);
         }
 
         private void updateAnchorInfoForLayout()
@@ -366,66 +400,120 @@ namespace Toggl.Giskard.Views.Calendar
 
         private void recycleByLayoutState(RecyclerView.Recycler recycler)
         {
-            if (layoutState.Recycle)
+            if (!layoutState.Recycle || layoutState.ScrollingOffset < 0) return;
+
+            if (layoutState.LayoutDirection == TOWARDS_THE_START)
             {
-                if (layoutState.LayoutDirection == TOWARDS_THE_START)
-                {
-                    recycleViewsFromEnd(recycler, layoutState.ScrollingOffset);
-                }
-                else
-                {
-                    recycleViewsFromStart(recycler, layoutState.ScrollingOffset);
-                }
+                recycleAnchorsFromEnd(recycler);
+                recycleAnchoredViewsFromEnd(recycler);
+            }
+            else
+            {
+                recycleAnchorsFromStart(recycler);
+                recycleAnchoredViewsFromStart(recycler);
             }
         }
 
-        private void recycleViewsFromStart(RecyclerView.Recycler recycler, int scrollingOffset)
+        private void recycleAnchorsFromEnd(RecyclerView.Recycler recycler)
         {
-            if (scrollingOffset < 0) return;
-
-            var currentChildCount = ChildCount;
-
-            for (var i = 0; i < currentChildCount; i++)
-            {
-                var child = GetChildAt(i);
-                if (orientationHelper.GetDecoratedEnd(child) > scrollingOffset || orientationHelper.GetTransformedEndWithDecoration(child) > scrollingOffset)
-                {
-                    recycleChildren(recycler, 0, i);
-                    return;
-                }
-            }
+            recycleViewsFromEnd(recycler, true);
         }
 
-        private void recycleViewsFromEnd(RecyclerView.Recycler recycler, int scrollingOffset)
+        private void recycleAnchoredViewsFromEnd(RecyclerView.Recycler recycler)
         {
-            if (scrollingOffset < 0) return;
-            var limit = orientationHelper.End - scrollingOffset;
-            var currentChildCount = ChildCount;
-            for (var i = currentChildCount - 1; i >= 0; i--)
+            recycleViewsFromEnd(recycler, false);
+        }
+
+        private void recycleAnchorsFromStart(RecyclerView.Recycler recycler)
+        {
+            recycleViewsFromStart(recycler, true);
+        }
+
+        private void recycleAnchoredViewsFromStart(RecyclerView.Recycler recycler)
+        {
+            recycleViewsFromStart(recycler, false);
+        }
+
+        private void recycleViewsFromEnd(RecyclerView.Recycler recycler, bool isRecyclingAnchors)
+        {
+            var limit = orientationHelper.End - layoutState.ScrollingOffset;
+            var source = isRecyclingAnchors ? anchors : anchoredViews;
+            var laidOutViewsCount = source.Count;
+            for (var i = laidOutViewsCount - 1; i >= 0; i--)
             {
-                var child = GetChildAt(i);
+                var child = source[i];
                 if (orientationHelper.GetDecoratedStart(child) < limit || orientationHelper.GetTransformedStartWithDecoration(child) < limit)
                 {
-                    recycleChildren(recycler, currentChildCount - 1, i);
+                    recycleChildren(recycler, laidOutViewsCount - 1, i, isRecyclingAnchors);
                     return;
                 }
             }
         }
 
-        private void recycleChildren(RecyclerView.Recycler recycler, int startIndex, int endIndex)
+        private void recycleViewsFromStart(RecyclerView.Recycler recycler, bool isRecyclingAnchors)
+        {
+            var limit = layoutState.ScrollingOffset;
+            var source = isRecyclingAnchors ? anchors : anchoredViews;
+            var laidOutViewsCount = source.Count;
+            for (var i = 0; i < laidOutViewsCount; i++)
+            {
+                var child = source[i];
+                if (orientationHelper.GetDecoratedEnd(child) > limit || orientationHelper.GetTransformedEndWithDecoration(child) > limit)
+                {
+                    recycleChildren(recycler, 0, i, isRecyclingAnchors);
+                    return;
+                }
+            }
+        }
+
+        private void recycleChildren(RecyclerView.Recycler recycler, int startIndex, int endIndex, bool isRecyclingAnchors)
         {
             if (startIndex == endIndex) return;
 
+            recycleAndUpdateBookkeeping(recycler, startIndex, endIndex, isRecyclingAnchors);
+        }
+
+        private void recycleAndUpdateBookkeeping(RecyclerView.Recycler recycler, int startIndex, int endIndex, bool isRecyclingAnchors)
+        {
+            var source = isRecyclingAnchors ? anchors : anchoredViews;
+            if (isRecyclingAnchors)
+                recycle(recycler, startIndex, endIndex, removeAndRecycleAnchor);
+            else
+                recycle(recycler, startIndex, endIndex, removeAndRecycleAnchoredView);
+
+            source.RemoveAll(v => v == null);
+        }
+
+        private void recycle(RecyclerView.Recycler recycler, int startIndex, int endIndex, Action<int, RecyclerView.Recycler> recyclingMethod)
+        {
             if (endIndex > startIndex)
             {
                 for (var i = endIndex - 1; i >= startIndex; i--)
-                    RemoveAndRecycleViewAt(i, recycler);
+                {
+                    recyclingMethod(i, recycler);
+                }
             }
             else
             {
                 for (var i = startIndex; i > endIndex; i--)
-                    RemoveAndRecycleViewAt(i, recycler);
+                {
+                    recyclingMethod(i, recycler);
+                }
             }
+        }
+
+        private void removeAndRecycleAnchoredView(int position, RecyclerView.Recycler recycler)
+        {
+            var adapterPosition = ((RecyclerView.LayoutParams) anchoredViews[position].LayoutParameters).ViewAdapterPosition;
+            RemoveAndRecycleView(anchoredViews[position], recycler);
+            anchoredViews[position] = null;
+            anchoredViewsPositions.Remove(adapterPosition);
+        }
+
+        private void removeAndRecycleAnchor(int position, RecyclerView.Recycler recycler)
+        {
+            RemoveAndRecycleView(anchors[position], recycler);
+            anchors[position] = null;
         }
 
         private int scrollBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state)
