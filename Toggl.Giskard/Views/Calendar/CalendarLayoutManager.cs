@@ -12,14 +12,19 @@ namespace Toggl.Giskard.Views.Calendar
     public partial class CalendarLayoutManager : RecyclerView.LayoutManager
     {
         private const int anchorCount = Constants.HoursPerDay;
-        private OrientationHelper orientationHelper;
+
+        private readonly OrientationHelper orientationHelper;
+
         private AnchorInfo anchorInfo;
         private LayoutState layoutState;
         private LayoutChunkResult layoutChunkResult;
         private List<View> anchors = new List<View>();
         private List<View> anchoredViews = new List<View>();
         private SparseArray<View> anchoredViewsPositions = new SparseArray<View>();
+
         private AnchorSavedState pendingAnchorSavedState;
+        private int pendingScrollPosition = RecyclerView.NoPosition;
+        private int pendingScrollPositionOffset = INVALID_OFFSET;
 
         public CalendarLayoutManager()
         {
@@ -39,14 +44,27 @@ namespace Toggl.Giskard.Views.Calendar
 
         public override void OnLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state)
         {
+            if (pendingAnchorSavedState != null || pendingScrollPosition != RecyclerView.NoPosition)
+            {
+                if (state.ItemCount == 0)
+                {
+                    RemoveAndRecycleAllViews(recycler);
+                    return;
+                }
+            }
+
+            if (pendingAnchorSavedState != null && pendingAnchorSavedState.HasValidAnchor())
+            {
+                pendingScrollPosition = pendingAnchorSavedState.TopAnchorPosition;
+            }
+
             layoutState.Recycle = false;
 
-
-            if (!anchorInfo.IsValid)
+            if (!anchorInfo.IsValid || pendingScrollPosition != RecyclerView.NoPosition || pendingAnchorSavedState != null)
             {
                 //todo: try restoring anchor info from saved state;
                 anchorInfo.Reset();
-                updateAnchorInfoForLayout();
+                updateAnchorInfoForLayout(state);
                 anchorInfo.IsValid = true;
             }
 
@@ -364,12 +382,91 @@ namespace Toggl.Giskard.Views.Calendar
             AddView(child, index);
         }
 
-        private void updateAnchorInfoForLayout()
+        private void updateAnchorInfoForLayout(RecyclerView.State state)
         {
+            if (tryUpdateAnchorInfoFromPendingData(state)) return;
+
             if (tryUpdateAnchorInfoFromChildren()) return;
 
             anchorInfo.AssignCoordinateFromPadding();
             anchorInfo.Position = 0;
+        }
+
+        private bool tryUpdateAnchorInfoFromPendingData(RecyclerView.State state)
+        {
+            if (state.IsPreLayout || pendingScrollPosition == RecyclerView.NoPosition)
+            {
+                return false;
+            }
+
+            if (pendingScrollPosition < 0 || pendingScrollPosition >= state.ItemCount)
+            {
+                pendingScrollPosition = RecyclerView.NoPosition;
+                pendingScrollPositionOffset = INVALID_OFFSET;
+                //invalid scroll position
+                return false;
+            }
+
+            anchorInfo.Position = pendingScrollPosition;
+
+            if (pendingAnchorSavedState != null && pendingAnchorSavedState.HasValidAnchor())
+            {
+                anchorInfo.LayoutFromEnd = pendingAnchorSavedState.AnchorShouldLayoutFromEnd;
+                if (anchorInfo.LayoutFromEnd)
+                {
+                    anchorInfo.Coordinate = orientationHelper.EndAfterPadding - pendingAnchorSavedState.AnchorOffset;
+                }
+                else
+                {
+                    anchorInfo.Coordinate = orientationHelper.StartAfterPadding + pendingAnchorSavedState.AnchorOffset;
+                }
+
+                return true;
+            }
+
+            if (pendingScrollPositionOffset == INVALID_OFFSET)
+            {
+                var child = FindViewByPosition(pendingScrollPosition);
+
+                if (child != null)
+                {
+                    var startGap = orientationHelper.GetDecoratedStart(child) - orientationHelper.StartAfterPadding;
+                    if (startGap < 0)
+                    {
+                        anchorInfo.Coordinate = orientationHelper.StartAfterPadding;
+                        anchorInfo.LayoutFromEnd = false;
+                        return true;
+                    }
+
+                    var endGap = orientationHelper.EndAfterPadding - orientationHelper.GetDecoratedEnd(child);
+                    if (endGap < 0)
+                    {
+                        anchorInfo.Coordinate = orientationHelper.EndAfterPadding;
+                        anchorInfo.LayoutFromEnd = true;
+                        return true;
+                    }
+
+                    anchorInfo.Coordinate = anchorInfo.LayoutFromEnd
+                        ? orientationHelper.GetDecoratedEnd(child) + orientationHelper.TotalSpaceChange
+                        : orientationHelper.GetDecoratedStart(child);
+                }
+                else
+                { // anchor is not visible
+                    if (ChildCount > 0)
+                    {
+                        var anchorPosition = GetPosition(GetChildAt(0));
+                        anchorInfo.LayoutFromEnd = pendingScrollPosition >= anchorPosition;
+                    }
+                    anchorInfo.AssignCoordinateFromPadding();
+                }
+
+                return true;
+            }
+
+            anchorInfo.LayoutFromEnd = false;
+            anchorInfo.Coordinate = orientationHelper.StartAfterPadding + pendingScrollPosition;
+
+            return true;
         }
 
         private bool tryUpdateAnchorInfoFromChildren()

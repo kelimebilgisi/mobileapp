@@ -17,6 +17,8 @@ namespace Toggl.Giskard.Views.Calendar
 
             public bool IsValid { get; set; }
 
+            public bool LayoutFromEnd { get; set; }
+
             private int anchorCount;
 
             public AnchorInfo(OrientationHelper orientationHelper, int anchorCount)
@@ -26,6 +28,7 @@ namespace Toggl.Giskard.Views.Calendar
                 Position = RecyclerView.NoPosition;
                 Coordinate = INVALID_OFFSET;
                 IsValid = false;
+                LayoutFromEnd = false;
             }
 
             public void Reset()
@@ -33,6 +36,7 @@ namespace Toggl.Giskard.Views.Calendar
                 Position = RecyclerView.NoPosition;
                 Coordinate = INVALID_OFFSET;
                 IsValid = false;
+                LayoutFromEnd = false;
             }
 
             public bool IsViewValidAsAnchor(View view)
@@ -47,12 +51,21 @@ namespace Toggl.Giskard.Views.Calendar
 
             public void AssignCoordinateFromPadding()
             {
-                Coordinate = OrientationHelper.StartAfterPadding;
+                Coordinate = LayoutFromEnd
+                    ? OrientationHelper.EndAfterPadding
+                    : OrientationHelper.StartAfterPadding;
             }
 
             public void AssignFromView(View referenceChild, int position)
             {
-                Coordinate = OrientationHelper.GetDecoratedStart(referenceChild);
+                if (LayoutFromEnd)
+                {
+                    Coordinate = OrientationHelper.GetDecoratedEnd(referenceChild) + OrientationHelper.TotalSpaceChange;
+                }
+                else
+                {
+                    Coordinate = OrientationHelper.GetDecoratedStart(referenceChild);
+                }
                 Position = position;
             }
         }

@@ -16,6 +16,7 @@ namespace Toggl.Giskard.Views.Calendar
         {
             public int TopAnchorPosition { get; set; }
             public int AnchorOffset { get; set; }
+            public bool AnchorShouldLayoutFromEnd { get; set; }
 
             protected AnchorSavedState(IntPtr javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
             {
@@ -30,12 +31,14 @@ namespace Toggl.Giskard.Views.Calendar
             {
                 TopAnchorPosition = source.ReadInt();
                 AnchorOffset = source.ReadInt();
+                AnchorShouldLayoutFromEnd = source.ReadInt() == 1;
             }
 
             public AnchorSavedState(AnchorSavedState other, IParcelable supersTate) : base(supersTate)
             {
                 TopAnchorPosition = other.TopAnchorPosition;
                 AnchorOffset = other.AnchorOffset;
+                AnchorShouldLayoutFromEnd = other.AnchorShouldLayoutFromEnd;
             }
 
             public override void WriteToParcel(Parcel dest, ParcelableWriteFlags flags)
@@ -43,9 +46,10 @@ namespace Toggl.Giskard.Views.Calendar
                 base.WriteToParcel(dest, flags);
                 dest.WriteInt(TopAnchorPosition);
                 dest.WriteInt(AnchorOffset);
+                dest.WriteInt(AnchorShouldLayoutFromEnd ? 1 : 0);
             }
 
-            public bool HasValidAnchor() => TopAnchorPosition >= 0;
+            public bool HasValidAnchor() => TopAnchorPosition >= 0 && TopAnchorPosition < anchorCount;
 
             public void InvalidateAnchor()
             {
