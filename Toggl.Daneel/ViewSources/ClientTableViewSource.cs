@@ -1,12 +1,15 @@
 ﻿using Foundation;
 using Toggl.Daneel.Cells;
 using Toggl.Daneel.Views.Client;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class ClientTableViewSource : BaseTableViewSource<string, SelectableClientBaseViewModel>
+    using ClientSection = SectionModel<string, SelectableClientBaseViewModel>;
+
+    public sealed class ClientTableViewSource : BaseTableViewSource<ClientSection, string, SelectableClientBaseViewModel>
     {
         private const int rowHeight = 48;
 

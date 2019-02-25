@@ -5,9 +5,9 @@ using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.Views.Settings;
-using Toggl.Daneel.ViewSources;
 using Toggl.Daneel.ViewSources.Generic.TableView;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac.Extensions;
 
@@ -40,7 +40,7 @@ namespace Toggl.Daneel.ViewControllers
             DurationFormatsTableView.RowHeight = rowHeight;
             DurationFormatsTableView.RegisterNibForCellReuse(DurationFormatViewCell.Nib, DurationFormatViewCell.Identifier);
 
-            var source = new CustomTableViewSource<Unit, SelectableDurationFormatViewModel>(
+            var source = new CustomTableViewSource<SectionModel<Unit, SelectableDurationFormatViewModel>, Unit, SelectableDurationFormatViewModel>(
                 DurationFormatViewCell.CellConfiguration(DurationFormatViewCell.Identifier),
                 ViewModel.DurationFormats
             );

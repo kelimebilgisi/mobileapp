@@ -21,7 +21,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
         private readonly IUserPreferences userPreferences;
         private readonly IInteractorFactory interactorFactory;
 
-        public IObservable<IImmutableList<CollectionSection<string, SelectableUserCalendarViewModel>>> Calendars { get; private set; }
+        public IObservable<IImmutableList<SectionModel<string, SelectableUserCalendarViewModel>>> Calendars { get; private set; }
 
         public InputAction<SelectableUserCalendarViewModel> SelectCalendar { get; }
 
@@ -62,12 +62,12 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Calendar
             SelectedCalendarIds.AddRange(userPreferences.EnabledCalendarIds());
         }
 
-        private IImmutableList<CollectionSection<string, SelectableUserCalendarViewModel>> group(IEnumerable<UserCalendar> calendars)
+        private IImmutableList<SectionModel<string, SelectableUserCalendarViewModel>> group(IEnumerable<UserCalendar> calendars)
             => calendars
                 .Select(toSelectable)
                 .GroupBy(calendar => calendar.SourceName)
                 .Select(group =>
-                    new CollectionSection<string, SelectableUserCalendarViewModel>(
+                    new SectionModel<string, SelectableUserCalendarViewModel>(
                         group.First().SourceName,
                         group.OrderBy(calendar => calendar.Name)
                     )

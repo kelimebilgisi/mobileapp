@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive;
-using Toggl.Daneel.ViewSources;
+﻿using System.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
@@ -10,14 +7,14 @@ using System.Threading.Tasks;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Views.CountrySelection;
 using Toggl.Foundation;
-using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Multivac.Extensions;
 using Toggl.Daneel.ViewSources.Generic.TableView;
+using Toggl.Foundation.MvvmCross.Collections;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
-    public sealed partial class SelectCountryViewController : KeyboardAwareViewController<SelectCountryViewModel>, IDismissableViewController
+    public sealed partial class wSelectCountryViewController : KeyboardAwareViewController<SelectCountryViewModel>, IDismissableViewController
     {
         private const int rowHeight = 48;
 
@@ -36,7 +33,7 @@ namespace Toggl.Daneel.ViewControllers
             CountriesTableView.RegisterNibForCellReuse(CountryViewCell.Nib, CountryViewCell.Identifier);
             CountriesTableView.RowHeight = rowHeight;
 
-            var source = new CustomTableViewSource<string, SelectableCountryViewModel>(
+            var source = new CustomTableViewSource<SectionModel<string, SelectableCountryViewModel>, string, SelectableCountryViewModel>(
                 CountryViewCell.CellConfiguration(CountryViewCell.Identifier));
 
             CountriesTableView.Source = source;

@@ -12,7 +12,7 @@ namespace Toggl.Daneel.ViewSources.Generic.TableView
 
     public sealed class CustomTableViewSource<TSection, THeader, TItem>
         : BaseTableViewSource<TSection, THeader, TItem>
-        where TSection : SectionModel<THeader, TItem>, new()
+        where TSection : ISectionModel<THeader, TItem>, new()
     {
         private readonly CellConfiguration<TItem> configureCell;
         private readonly HeaderConfiguration<THeader> configureHeader;

@@ -20,7 +20,6 @@ using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.Onboarding.MainView;
 using Toggl.Foundation.MvvmCross.ViewModels;
-using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
 using Toggl.Multivac.Extensions;
 using Toggl.PrimeRadiant.Extensions;
 using Toggl.PrimeRadiant.Onboarding;
@@ -106,7 +105,7 @@ namespace Toggl.Daneel.ViewControllers
             TimeEntriesLogTableView.Source = tableViewSource;
 
             ViewModel.TimeEntries
-                .Subscribe(TimeEntriesLogTableView.Rx().ReloadSections(tableViewSource))
+                .Subscribe(TimeEntriesLogTableView.Rx().AnimateSections(tableViewSource))
                 .DisposedBy(disposeBag);
 
             tableViewSource.ToggleGroupExpansion
@@ -368,7 +367,8 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLayoutSubviews();
 
-            TimeEntriesLogTableView.ContentInset = new UIEdgeInsets(0, 0, StartTimeEntryButton.Frame.Height - TimeEntriesLogViewSource.SpaceBetweenSections, 0);
+            TimeEntriesLogTableView.ContentInset = new UIEdgeInsets(0, 0,
+                StartTimeEntryButton.Frame.Height - TimeEntriesLogViewSource.SpaceBetweenSections, 0);
 
             if (TimeEntriesLogTableView.TableHeaderView != null)
             {

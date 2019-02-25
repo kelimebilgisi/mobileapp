@@ -1,14 +1,13 @@
-﻿using System.Collections.Immutable;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using MvvmCross.Platforms.Ios.Views;
 using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.Views.Settings;
-using Toggl.Daneel.ViewSources;
 using Toggl.Daneel.ViewSources.Generic.TableView;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.Selectable;
 using Toggl.Multivac.Extensions;
@@ -37,7 +36,7 @@ namespace Toggl.Daneel.ViewControllers
             DateFormatsTableView.RegisterNibForCellReuse(DateFormatViewCell.Nib, DateFormatViewCell.Identifier);
             DateFormatsTableView.RowHeight = rowHeight;
 
-            var source = new CustomTableViewSource<string, SelectableDateFormatViewModel>(
+            var source = new CustomTableViewSource<SectionModel<string, SelectableDateFormatViewModel>, string, SelectableDateFormatViewModel>(
                 DateFormatViewCell.CellConfiguration(DateFormatViewCell.Identifier),
                 ViewModel.DateTimeFormats
             );

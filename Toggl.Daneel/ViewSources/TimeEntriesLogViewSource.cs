@@ -7,6 +7,7 @@ using Foundation;
 using MvvmCross.Plugin.Color.Platforms.Ios;
 using Toggl.Daneel.Views;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Extensions;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
@@ -15,8 +16,10 @@ using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
+    using MainLogSection = AnimatableSectionModel<DaySummaryViewModel, LogItemViewModel>;
+
     public sealed class TimeEntriesLogViewSource
-        : BaseTableViewSource<DaySummaryViewModel, LogItemViewModel>
+        : BaseTableViewSource<MainLogSection, DaySummaryViewModel, LogItemViewModel>
     {
         private const int rowHeight = 64;
         private const int headerHeight = 48;

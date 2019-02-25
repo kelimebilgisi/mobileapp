@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using MvvmCross.Platforms.Ios.Views;
 using Toggl.Daneel.Cells.Settings;
-using Toggl.Daneel.ViewSources;
 using Toggl.Daneel.ViewSources.Generic.TableView;
 using Toggl.Foundation;
 using Toggl.Foundation.MvvmCross.Collections;
@@ -29,9 +27,9 @@ namespace Toggl.Daneel.ViewControllers
                 LicensesHeaderViewCell.Identifier);
 
             var sectionedLicenses = ViewModel.Licenses
-                .Select(license => new CollectionSection<License, License>(license, new [] {license}));
+                .Select(license => new SectionModel<License, License>(license, new [] {license}));
 
-            var source = new CustomTableViewSource<License, License>(
+            var source = new CustomTableViewSource<SectionModel<License, License>, License, License>(
                 LicensesViewCell.CellConfiguration(LicensesViewCell.Identifier),
                 LicensesHeaderViewCell.HeaderConfiguration,
                 sectionedLicenses

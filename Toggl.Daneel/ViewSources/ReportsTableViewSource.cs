@@ -8,6 +8,7 @@ using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Views.Reports;
 using Toggl.Daneel.ViewSources.Generic.TableView;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.Helper;
 using Toggl.Foundation.MvvmCross.ViewModels.Reports;
 using Toggl.Foundation.Reports;
@@ -16,7 +17,8 @@ using UIKit;
 
 namespace Toggl.Daneel.ViewSources
 {
-    public sealed class ReportsTableViewSource : BaseTableViewSource<ReportsViewModel, ChartSegment>
+    using ReportsSection = SectionModel<ReportsViewModel, ChartSegment>;
+    public sealed class ReportsTableViewSource : BaseTableViewSource<ReportsSection, ReportsViewModel, ChartSegment>
     {
         private const int summaryHeight = 469;
 

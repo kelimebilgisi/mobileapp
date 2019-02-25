@@ -4,9 +4,9 @@ using Toggl.Daneel.Extensions;
 using Toggl.Daneel.Extensions.Reactive;
 using Toggl.Daneel.Presentation.Attributes;
 using Toggl.Daneel.Views.Settings;
-using Toggl.Daneel.ViewSources;
 using Toggl.Daneel.ViewSources.Generic.TableView;
 using Toggl.Foundation;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Multivac.Extensions;
 
@@ -34,7 +34,7 @@ namespace Toggl.Daneel.ViewControllers
 
             DaysTableView.RegisterNibForCellReuse(DayOfWeekViewCell.Nib, DayOfWeekViewCell.Identifier);
 
-            var source = new CustomTableViewSource<Unit, SelectableBeginningOfWeekViewModel>(
+            var source = new CustomTableViewSource<SectionModel<Unit, SelectableBeginningOfWeekViewModel>, Unit, SelectableBeginningOfWeekViewModel>(
                 DayOfWeekViewCell.CellConfiguration(DayOfWeekViewCell.Identifier),
                 ViewModel.BeginningOfWeekCollection
             );
