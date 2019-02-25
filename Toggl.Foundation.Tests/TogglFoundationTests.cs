@@ -29,7 +29,6 @@ namespace Toggl.Foundation.Tests
                 bool useScheduler,
                 bool useApiFactory,
                 bool useTimeService,
-                bool useMailService,
                 bool usePlatformInfo,
                 bool useRatingService,
                 bool useGoogleService,

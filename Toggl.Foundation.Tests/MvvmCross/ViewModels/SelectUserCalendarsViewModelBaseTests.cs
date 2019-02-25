@@ -96,8 +96,57 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 foreach (var calendarGroup in calendars)
                 {
-                    calendarGroup.Items.None(calendar => calendar.InitiallySelected).Should().BeTrue();
+                    calendarGroup.Items.None(calendar => calendar.Selected).Should().BeTrue();
                 }
+            }
+        }
+
+        public sealed class TheSelectCalendarAction : SelectUserCalendarsViewModelBaseTest
+        {
+            [Fact, LogIfTooSlow]
+            public async Task MarksTheCalendarAsSelectedIfItIsNotSelected()
+            {
+                var userCalendars = Enumerable
+                    .Range(0, 9)
+                    .Select(id => new UserCalendar(
+                        id.ToString(),
+                        $"Calendar #{id}",
+                        $"Source #{id % 3}",
+                        false));
+                var userCalendarsObservable = Observable.Return(userCalendars);
+                InteractorFactory.GetUserCalendars().Execute().Returns(userCalendarsObservable);
+                await ViewModel.Initialize();
+                var viewModelCalendars = await ViewModel.Calendars.LastAsync();
+                var calendarToBeSelected = viewModelCalendars.First().Items.First();
+
+                ViewModel.SelectCalendar.Execute(calendarToBeSelected);
+                TestScheduler.Start();
+
+                calendarToBeSelected.Selected.Should().BeTrue();
+            }
+
+            [Fact, LogIfTooSlow]
+            public async Task MarksTheCalendarAsNotSelectedIfItIsSelected()
+            {
+                var userCalendars = Enumerable
+                    .Range(0, 9)
+                    .Select(id => new UserCalendar(
+                        id.ToString(),
+                        $"Calendar #{id}",
+                        $"Source #{id % 3}",
+                        true));
+                var userCalendarsObservable = Observable.Return(userCalendars);
+                InteractorFactory.GetUserCalendars().Execute().Returns(userCalendarsObservable);
+                await ViewModel.Initialize();
+                var viewModelCalendars = await ViewModel.Calendars.LastAsync();
+                var calendarToBeSelected = viewModelCalendars.First().Items.First();
+
+                ViewModel.SelectCalendar.Execute(calendarToBeSelected); //Select the calendar
+                TestScheduler.Start();
+                ViewModel.SelectCalendar.Execute(calendarToBeSelected); //Deselect the calendar
+                TestScheduler.Start();
+
+                calendarToBeSelected.Selected.Should().BeFalse();
             }
         }
     }

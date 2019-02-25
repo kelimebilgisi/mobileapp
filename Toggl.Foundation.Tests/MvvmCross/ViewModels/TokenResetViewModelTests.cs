@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.MvvmCross.ViewModels;
-using Toggl.Foundation.Tests.Extensions;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Foundation.Tests.Generators;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
@@ -101,7 +101,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Password.OnNext(InvalidPassword.ToString());
 
                 TestScheduler.Start();
-                nextIsEnabledObserver.LastValue().Should().BeFalse();
+                nextIsEnabledObserver.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -112,7 +112,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Password.OnNext(ValidPassword.ToString());
 
                 TestScheduler.Start();
-                nextIsEnabledObserver.LastValue().Should().BeTrue();
+                nextIsEnabledObserver.LastEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -127,7 +127,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Done.Execute();
 
                 TestScheduler.Start();
-                nextIsEnabledObserver.LastValue().Should().BeFalse();
+                nextIsEnabledObserver.LastEmittedValue().Should().BeFalse();
             }
         }
 
@@ -140,7 +140,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Password.OnNext(ValidPassword.ToString());
 
                 TestScheduler.Start();
-                passwordObserver.LastValue().Should().Be(ValidPassword);
+                passwordObserver.LastEmittedValue().Should().Be(ValidPassword);
             }
         }
 
@@ -196,7 +196,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Done.Execute();
                 TestScheduler.Start();
 
-                isLoadingObserver.LastValue().Should().BeFalse();
+                isLoadingObserver.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -211,7 +211,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
                 var messages = isLoadingObserver.Messages.ToList();
-                isLoadingObserver.LastValue().Should().BeFalse();
+                isLoadingObserver.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]

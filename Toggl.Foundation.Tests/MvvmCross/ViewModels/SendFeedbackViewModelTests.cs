@@ -14,6 +14,7 @@ using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Services;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac.Extensions;
 using Xunit;
 
@@ -94,7 +95,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.SendEnabled.Subscribe(observer);
 
                 TestScheduler.Start();
-                observer.Messages.Single().Value.Value.Should().BeFalse();
+                observer.SingleEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -123,7 +124,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeFalse();
+                observer.LastEmittedValue().Should().BeFalse();
             }
         }
 
@@ -145,7 +146,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeTrue();
+                observer.LastEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -162,7 +163,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeFalse();
+                observer.LastEmittedValue().Should().BeFalse();
             }
 
             [Fact, LogIfTooSlow]
@@ -179,7 +180,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeTrue();
+                observer.LastEmittedValue().Should().BeTrue();
             }
 
             [Fact, LogIfTooSlow]
@@ -192,7 +193,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Close.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeFalse();
+                observer.LastEmittedValue().Should().BeFalse();
             }
         }
 
@@ -208,7 +209,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.DismissError.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeNull();
+                observer.LastEmittedValue().Should().BeNull();
             }
 
             [Fact, LogIfTooSlow]
@@ -226,7 +227,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 viewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().Be(exception);
+                observer.LastEmittedValue().Should().Be(exception);
             }
         }
 
@@ -295,7 +296,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.DismissError.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().BeNull();
+                observer.LastEmittedValue().Should().BeNull();
             }
         }
 
@@ -329,7 +330,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.Send.Execute();
 
                 TestScheduler.Start();
-                observer.Messages.Last().Value.Value.Should().Be(expectedException);
+                observer.LastEmittedValue().Should().Be(expectedException);
             }
         }
     }

@@ -6,6 +6,11 @@ namespace Toggl.Tests.UI.Extensions
 {
     public static class AppQueryExtensions
     {
+        public static void NavigateBack(this IApp app)
+        {
+            app.Back();
+        }
+
         public static void WaitForElementWithText(this IApp app, string element, string text)
         {
             app.WaitFor(() => app.findElementWithText(element, text), $"Could not find element {element} with text {text}");

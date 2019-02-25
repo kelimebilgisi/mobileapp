@@ -30,6 +30,13 @@
         public const string GdprButton = "SignUpGdprButton";
         public const string GdprCancelButton = "SignUpGdprCancelButton";
         public const string ErrorLabel = "SignUpError";
+        public const string PickCountry = "SelectCountry";
+    }
+
+    public static class SelectCountry
+    {
+        public const string SearchCountryField = "SelectCountrySearchField";
+        public const string CountryNameLabel = "CountryLabel";
     }
 
     public static class ForgotPassword
@@ -59,12 +66,13 @@
     public static class EditTimeEntry
     {
         public const string EditTags = "EditTimeEntryTags";
+        public const string DeleteButton = "EditTimeEntryDelete";
     }
 
     public static class NewProject
     {
         public const string ChangeClient = "ChangeClientButton";
-        public const string CreateButton = "CreateProjectButton"; 
+        public const string CreateButton = "CreateProjectButton";
         public const string ChangeWorkspace = "ChangeWorkspaceButton";
         public const string TogglePrivateProject = "PrivateProjectSwitchContainer";
     }

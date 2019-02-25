@@ -1,20 +1,17 @@
-﻿using System;
+﻿using FluentAssertions;
+using FsCheck;
+using Microsoft.Reactive.Testing;
+using NSubstitute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
-using FsCheck;
-using FsCheck.Xunit;
-using Microsoft.Reactive.Testing;
-using NSubstitute;
 using Toggl.Foundation.Models.Interfaces;
 using Toggl.Foundation.MvvmCross.Parameters;
 using Toggl.Foundation.MvvmCross.ViewModels;
-using Toggl.Foundation.Tests.Extensions;
 using Toggl.Foundation.Tests.Generators;
-using Toggl.Multivac.Extensions;
-using Toggl.PrimeRadiant.Models;
+using Toggl.Foundation.Tests.TestExtensions;
 using Xunit;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
@@ -87,7 +84,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().Count().Should().Equals(clients.Count);
+                observer.LastEmittedValue().Count().Should().Equals(clients.Count);
             }
 
             [Fact, LogIfTooSlow]
@@ -103,8 +100,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().First().Name.Should().Be(Resources.NoClient);
-                observer.LastValue().First().Should().BeOfType<SelectableClientViewModel>();
+                observer.LastEmittedValue().First().Name.Should().Be(Resources.NoClient);
+                observer.LastEmittedValue().First().Should().BeOfType<SelectableClientViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -120,7 +117,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().Single(c => c.Selected).Name.Should().Be(Resources.NoClient);
+                observer.LastEmittedValue().Single(c => c.Selected).Name.Should().Be(Resources.NoClient);
             }
 
             [Theory, LogIfTooSlow]
@@ -146,7 +143,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                observer.LastValue().Single(c => c.Selected).Name.Should().Be(id.ToString());
+                observer.LastEmittedValue().Single(c => c.Selected).Name.Should().Be(id.ToString());
             }
 
             [Fact, LogIfTooSlow]
@@ -163,7 +160,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 TestScheduler.Start();
 
-                var resultClientsNames = observer.LastValue().Select(vm => vm.Name);
+                var resultClientsNames = observer.LastEmittedValue().Select(vm => vm.Name);
                 // First item is skipped because when the filter is empty,
                 // the collection contains 'No client' item which is always shown at the beginning
                 resultClientsNames.Skip(1).Should().BeInAscendingOrder();
@@ -288,7 +285,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FilterText.OnNext("0");
                 TestScheduler.Start();
 
-                observer.LastValue().Count().Should().Equals(1);
+                observer.LastEmittedValue().Count().Should().Equals(1);
             }
 
             [Fact, LogIfTooSlow]
@@ -305,8 +302,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FilterText.OnNext(nonExistingClientName);
                 TestScheduler.Start();
 
-                observer.LastValue().First().Name.Should().Equals(nonExistingClientName);
-                observer.LastValue().First().Should().BeOfType<SelectableClientCreationViewModel>();
+                observer.LastEmittedValue().First().Name.Should().Equals(nonExistingClientName);
+                observer.LastEmittedValue().First().Should().BeOfType<SelectableClientCreationViewModel>();
             }
 
             [Theory, LogIfTooSlow]
@@ -329,7 +326,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FilterText.OnNext(name);
                 TestScheduler.Start();
 
-                observer.LastValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+                observer.LastEmittedValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -345,7 +342,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FilterText.OnNext(clients.First().Name);
                 TestScheduler.Start();
 
-                observer.LastValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
+                observer.LastEmittedValue().First().Should().NotBeOfType<SelectableClientCreationViewModel>();
             }
 
             [Fact, LogIfTooSlow]
@@ -363,7 +360,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.FilterText.OnNext("a");
                 TestScheduler.Start();
 
-                var resultClientsNames = observer.LastValue().Select(vm => vm.Name);
+                var resultClientsNames = observer.LastEmittedValue().Select(vm => vm.Name);
                 // First item is skipped because when the filter is not empty,
                 // the collection contains 'Create client XYZ' item which is always shown at the beginning
                 resultClientsNames.Skip(1).Should().BeInAscendingOrder();

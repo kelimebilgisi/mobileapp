@@ -146,6 +146,8 @@ namespace Toggl.Foundation.Analytics
 
         IAnalyticsEvent SyncCompleted { get; }
 
+        IAnalyticsEvent LeakyBucketOverflow { get; }
+
         IAnalyticsEvent<string, string, string> SyncFailed { get; }
 
         IAnalyticsEvent<string> SyncStateTransition { get; }
