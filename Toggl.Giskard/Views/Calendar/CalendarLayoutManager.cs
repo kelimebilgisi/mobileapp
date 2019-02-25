@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Android.OS;
 using Android.Support.V7.Widget;
 using Android.Util;
 using Android.Views;
@@ -18,6 +19,7 @@ namespace Toggl.Giskard.Views.Calendar
         private List<View> anchors = new List<View>();
         private List<View> anchoredViews = new List<View>();
         private SparseArray<View> anchoredViewsPositions = new SparseArray<View>();
+        private AnchorSavedState pendingAnchorSavedState;
 
         public CalendarLayoutManager()
         {
@@ -114,6 +116,42 @@ namespace Toggl.Giskard.Views.Calendar
         {
             //todo: calculate the space taken to fill the available space in the screen with anchors
             return base.ComputeVerticalScrollExtent(state);
+        }
+
+        public override IParcelable OnSaveInstanceState()
+        {
+            var superState = base.OnSaveInstanceState();
+            if (pendingAnchorSavedState != null)
+            {
+                return new AnchorSavedState(pendingAnchorSavedState, superState);
+            }
+
+            var saveState = new AnchorSavedState(superState);
+            if (ChildCount > 0)
+            {
+                var refAnchor = getChildClosestToStart();
+                saveState.TopAnchorPosition = GetPosition(refAnchor);
+                saveState.AnchorOffset = orientationHelper.GetDecoratedStart(refAnchor) - orientationHelper.StartAfterPadding;
+            }
+            else
+            {
+                saveState.InvalidateAnchor();
+            }
+
+            return saveState;
+        }
+
+        public override void OnRestoreInstanceState(IParcelable state)
+        {
+            if (!(state is AnchorSavedState savedState))
+            {
+                base.OnRestoreInstanceState(state);
+                return;
+            }
+
+            base.OnRestoreInstanceState(savedState.SuperState);
+            pendingAnchorSavedState = savedState;
+            RequestLayout();
         }
 
         private View findFirstVisibleChildClosestToStart()
