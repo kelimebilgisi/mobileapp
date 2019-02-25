@@ -18,6 +18,7 @@ using Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog;
 using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
+using Xamarin.Essentials;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -36,7 +37,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private IDisposable delayedDeletionDisposable;
         private long[] timeEntriesToDelete;
 
-        public IObservable<IEnumerable<CollectionSection<DaySummaryViewModel, LogItemViewModel>>> TimeEntries { get; }
+        public IObservable<IEnumerable<AnimatableSectionModel<DaySummaryViewModel, LogItemViewModel>>> TimeEntries { get; }
         public IObservable<bool> Empty { get; }
         public IObservable<int> Count { get; }
         public IObservable<int?> TimeEntriesPendingDeletion { get; }
@@ -80,9 +81,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
                     .CombineLatest(
                         deletingOrPressingUndo,
                         (timeEntries, _) => timeEntries.Where(isNotDeleted))
-                    .CombineLatest(dataSource.Preferences.Current, group)
+                    .Select(group)
                     .CombineLatest(collapsingOrExpanding, (groups, _) => groups)
-                    .Select(groupsFlatteningStrategy.Flatten)
+                    .SelectMany(groupsFlatteningStrategy.Flatten)
                     .AsDriver(schedulerProvider);
 
             Empty = TimeEntries
@@ -109,11 +110,11 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             timeEntriesPendingDeletionSubject.OnNext(null);
         }
 
-        private IEnumerable<CollectionSection<DateTimeOffset, IThreadSafeTimeEntry[]>> group(
-            IEnumerable<IThreadSafeTimeEntry> timeEntries, IThreadSafePreferences preferences)
-            => preferences.CollapseTimeEntries
-                ? TimeEntriesGrouping.GroupSimilar(timeEntries)
-                : TimeEntriesGrouping.WithoutGroupingSimilar(timeEntries);
+        private IEnumerable<IGrouping<DateTime, IThreadSafeTimeEntry>> group(
+            IEnumerable<IThreadSafeTimeEntry> timeEntries)
+            => timeEntries
+                .OrderByDescending(te => te.Start)
+                .GroupBy(te => te.Start.LocalDateTime.Date);
 
         private void toggleGroupExpansion(GroupId groupId)
         {
