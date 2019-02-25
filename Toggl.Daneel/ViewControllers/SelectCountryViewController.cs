@@ -14,7 +14,7 @@ using Toggl.Foundation.MvvmCross.Collections;
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
-    public sealed partial class wSelectCountryViewController : KeyboardAwareViewController<SelectCountryViewModel>, IDismissableViewController
+    public sealed partial class SelectCountryViewController : KeyboardAwareViewController<SelectCountryViewModel>, IDismissableViewController
     {
         private const int rowHeight = 48;
 
