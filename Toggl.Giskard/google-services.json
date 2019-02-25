@@ -58,6 +58,28 @@
           "status": 2
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "{TOGGL_DROID_DEBUG_GOOGLE_SERVICES_MOBILE_SDK_APP_ID}",
+        "android_client_info": {
+          "package_name": "com.toggl.giskard.adhoc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
     }
   ],
   "configuration_version": "1"
