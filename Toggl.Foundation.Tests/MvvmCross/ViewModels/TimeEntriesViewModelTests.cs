@@ -30,7 +30,7 @@ using ThreadingTask = System.Threading.Tasks.Task;
 
 namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 {
-    using TimeEntriesLog = IEnumerable<CollectionSection<DaySummaryViewModel, LogItemViewModel>>;
+    using TimeEntriesLog = IEnumerable<ISectionModel<DaySummaryViewModel, LogItemViewModel>>;
 
     public sealed class TimeEntriesViewModelTests
     {

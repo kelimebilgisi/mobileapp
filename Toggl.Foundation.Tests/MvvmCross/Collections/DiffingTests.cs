@@ -82,7 +82,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -92,7 +92,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -114,7 +114,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -125,7 +125,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (2, "")
@@ -145,7 +145,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -156,7 +156,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (1, ""),
                     (2, ""),
@@ -177,7 +177,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -188,7 +188,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (2, ""),
                     (0, ""),
@@ -209,7 +209,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, ""),
@@ -220,7 +220,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new []
+                TestSectionModel.Create(1, new[]
                 {
                     (0, ""),
                     (1, "u"),
@@ -635,38 +635,5 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
             initial.Apply(differences).Should().BeEquivalentTo(final);
         }
     }
-
-    /*
-    public sealed class StressTests
-    {
-        [Fact, LogIfTooSlow]
-        public void TestStress()
-        {
-
-            func initialValue() -> [NumberSection] {
-                let nSections = 100
-                let nItems = 100
-
-                return (0 ..< nSections).map { (i: Int) in
-                    let items = Array(i * nItems ..< (i + 1) * nItems).map { IntItem(number: $0, date: Date.distantPast) }
-                    return NumberSection(header: "Section \(i + 1)", numbers: items, updated: Date.distantPast)
-                }
-            }
-
-            let initialRandomizedSections = Randomizer(rng: PseudoRandomGenerator(4, 3), sections: initialValue())
-
-            var sections = initialRandomizedSections
-            for i in 0 ..< 1000 {
-                if i % 100 == 0 {
-                    print(i)
-                }
-                let newSections = sections.randomize()
-                let differences = try! Diff.differencesForSectionedView(initialSections: sections.sections, finalSections: newSections.sections)
-
-                XCTAssertEqual(sections.sections.apply(differences), newSections.sections)
-                sections = newSections
-            }
-        }
-    */
 }
 
