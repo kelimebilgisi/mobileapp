@@ -10,8 +10,9 @@ namespace Toggl.Daneel.ViewSources.Generic.TableView
     public delegate UITableViewCell CellConfiguration<TModel>(UITableView tableView, NSIndexPath indexPath, TModel model);
     public delegate UIView HeaderConfiguration<THeader>(UITableView tableView, nint section, THeader header);
 
-    public sealed class CustomTableViewSource<THeader, TItem>
-        : BaseTableViewSource<THeader, TItem>
+    public sealed class CustomTableViewSource<TSection, THeader, TItem>
+        : BaseTableViewSource<TSection, THeader, TItem>
+        where TSection : SectionModel<THeader, TItem>, new()
     {
         private readonly CellConfiguration<TItem> configureCell;
         private readonly HeaderConfiguration<THeader> configureHeader;
@@ -25,7 +26,7 @@ namespace Toggl.Daneel.ViewSources.Generic.TableView
 
         public CustomTableViewSource(
             CellConfiguration<TItem> configureCell,
-            IEnumerable<CollectionSection<THeader, TItem>> sections)
+            IEnumerable<TSection> sections)
             : this(configureCell, null, sections)
         {
         }
@@ -45,7 +46,7 @@ namespace Toggl.Daneel.ViewSources.Generic.TableView
         public CustomTableViewSource(
             CellConfiguration<TItem> configureCell,
             HeaderConfiguration<THeader> configureHeader,
-            IEnumerable<CollectionSection<THeader, TItem>> sections = null)
+            IEnumerable<TSection> sections = null)
             : base(sections)
         {
             Ensure.Argument.IsNotNull(configureCell, nameof(configureCell));
