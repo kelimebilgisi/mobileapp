@@ -75,8 +75,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         public IObservable<bool> ShouldShowStoppedTimeEntryNotification { get; private set; }
         public IObservable<IThreadSafeTimeEntry> CurrentRunningTimeEntry { get; private set; }
 
-        public IObservable<IEnumerable<CollectionSection<DaySummaryViewModel, LogItemViewModel>>> TimeEntries
-            => TimeEntriesViewModel.TimeEntries;
+        public IObservable<IEnumerable<AnimatableSectionModel<DaySummaryViewModel, LogItemViewModel>>> TimeEntries
+            => TimeEntriesViewModel.TimeEntries.ObserveOn(schedulerProvider.MainScheduler);
 
         public RatingViewModel RatingViewModel { get; }
         public SuggestionsViewModel SuggestionsViewModel { get; }

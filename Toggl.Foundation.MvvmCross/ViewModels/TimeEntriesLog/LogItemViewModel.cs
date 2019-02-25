@@ -1,10 +1,12 @@
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Toggl.Foundation.MvvmCross.Collections;
 using Toggl.Multivac;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog
 {
-    public sealed class LogItemViewModel
+    public sealed class LogItemViewModel : IDiffable, IEquatable<LogItemViewModel>
     {
         public GroupId GroupId { get; }
         public long[] RepresentedTimeEntriesIds { get; }
@@ -54,6 +56,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog
             HasTags = hasTags;
             NeedsSync = needsSync;
             CanContinue = canSync && !isInaccessible;
+
+            Identity = isHeader()
+                ? $"G_{representedTimeEntriesIds.First()}".GetHashCode()
+                : representedTimeEntriesIds.First();
         }
 
         public bool Equals(LogItemViewModel other)
@@ -71,7 +77,8 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog
                 && HasProject == other.HasProject
                 && HasTags == other.HasTags
                 && NeedsSync == other.NeedsSync
-                && CanContinue == other.CanContinue;
+                && CanContinue == other.CanContinue
+                && VisualizationIntent == other.VisualizationIntent;
         }
 
         public override bool Equals(object obj)
@@ -99,5 +106,9 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.TimeEntriesLog
         public static bool operator ==(LogItemViewModel left, LogItemViewModel right) => Equals(left, right);
 
         public static bool operator !=(LogItemViewModel left, LogItemViewModel right) => !Equals(left, right);
+        public long Identity { get; }
+
+        private bool isHeader() => VisualizationIntent == LogItemVisualizationIntent.ExpandedGroupHeader ||
+                                   VisualizationIntent == LogItemVisualizationIntent.CollapsedGroupHeader;
     }
 }

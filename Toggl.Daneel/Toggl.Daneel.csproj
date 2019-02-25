@@ -708,7 +708,6 @@
     <Compile Include="Binding\ViewAnimatedVisibilityTargetBinding.cs" />
     <Compile Include="ViewControllers\SyncFailuresViewController.cs" />
     <Compile Include="ViewSources\Generic\CollectionView\ReloadCollectionViewSource.cs" />
-    <Compile Include="ViewSources\Generic\Diffing.cs" />
     <Compile Include="ViewSources\Generic\TableView\BaseTableViewSource.cs" />
     <Compile Include="ViewSources\SelectProjectTableViewSource.cs" />
     <Compile Include="Binding\TextFieldSecureTextEntryTargetBinding.cs" />
