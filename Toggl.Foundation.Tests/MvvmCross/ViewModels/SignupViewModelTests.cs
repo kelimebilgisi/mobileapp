@@ -52,8 +52,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     TimeService,
                     SchedulerProvider,
                     RxActionFactory,
-                    PlatformInfo,
-                    InteractorFactory);
+                    PlatformInfo);
 
             protected override void AdditionalSetup()
             {
@@ -81,8 +80,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useTimeService,
                 bool useSchedulerProvider,
                 bool useRxActionFactory,
-                bool usePlatformInfo,
-                bool useInteractorFactory)
+                bool usePlatformInfo)
             {
                 var apiFactory = useApiFactory ? ApiFactory : null;
                 var userAccessManager = useUserAccessManager ? UserAccessManager : null;
@@ -95,7 +93,6 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var rxActionFactory = useRxActionFactory ? RxActionFactory : null;
                 var timezoneService = usePlatformInfo ? PlatformInfo : null;
-                var interactorFactory = useInteractorFactory ? InteractorFactory : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new SignupViewModel(
@@ -109,8 +106,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         timeService,
                         schedulerProvider,
                         rxActionFactory,
-                        timezoneService,
-                        interactorFactory);
+                        timezoneService);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();

@@ -26,6 +26,8 @@ using Toggl.Ultrawave.Exceptions;
 using Toggl.Ultrawave.Network;
 using System.Reactive;
 using System.Reactive.Disposables;
+using Toggl.Foundation.Interactors.Timezones;
+using Toggl.Foundation.Serialization;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
@@ -52,7 +54,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
         private readonly ISchedulerProvider schedulerProvider;
         private readonly IRxActionFactory rxActionFactory;
         private readonly IPlatformInfo platformInfo;
-        private readonly IInteractorFactory interactorFactory;
 
         private IDisposable getCountrySubscription;
         private IDisposable signupDisposable;
@@ -102,8 +103,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             ITimeService timeService,
             ISchedulerProvider schedulerProvider,
             IRxActionFactory rxActionFactory,
-            IPlatformInfo platformInfo,
-            IInteractorFactory interactorFactory)
+            IPlatformInfo platformInfo)
         {
             Ensure.Argument.IsNotNull(apiFactory, nameof(apiFactory));
             Ensure.Argument.IsNotNull(userAccessManager, nameof(userAccessManager));
@@ -116,7 +116,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
             Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
             Ensure.Argument.IsNotNull(platformInfo, nameof(platformInfo));
-            Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
 
             this.apiFactory = apiFactory;
             this.userAccessManager = userAccessManager;
@@ -129,7 +128,6 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             this.schedulerProvider = schedulerProvider;
             this.rxActionFactory = rxActionFactory;
             this.platformInfo = platformInfo;
-            this.interactorFactory = interactorFactory;
 
             Login = rxActionFactory.FromAsync(login);
             Signup = rxActionFactory.FromAsync(signup);
@@ -279,7 +277,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             isLoadingSubject.OnNext(true);
             errorMessageSubject.OnNext(string.Empty);
 
-            var supportedTimezonesObs = interactorFactory.GetSupportedTimezones().Execute();
+            var supportedTimezonesObs = new GetSupportedTimezonesInteractor(new JsonSerializer()).Execute();
             signupDisposable = supportedTimezonesObs
                 .Select(supportedTimezones => supportedTimezones.FirstOrDefault(tz => platformInfo.TimezoneIdentifier == tz))
                 .SelectMany(timezone
