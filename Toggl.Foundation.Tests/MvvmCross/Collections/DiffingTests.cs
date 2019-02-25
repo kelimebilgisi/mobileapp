@@ -82,7 +82,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -92,7 +92,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -114,7 +114,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -125,7 +125,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (2, "")
@@ -145,7 +145,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -156,7 +156,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (1, ""),
                     (2, ""),
@@ -177,7 +177,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -188,7 +188,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (2, ""),
                     (0, ""),
@@ -209,7 +209,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
         {
             var initial = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, ""),
@@ -220,7 +220,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
 
             var final = new List<TestSectionModel>()
             {
-                TestSectionModel.Create(1, new[]
+                TestSectionModel.Create(1, new []
                 {
                     (0, ""),
                     (1, "u"),
