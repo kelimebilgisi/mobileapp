@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Foundation;
-using MvvmCross.Commands;
 using MvvmCross.Platforms.Ios.Binding.Views;
 using Toggl.Daneel.Views;
 using Toggl.Foundation.MvvmCross.Parameters;
@@ -19,16 +16,16 @@ namespace Toggl.Daneel.ViewSources
         private const string cellIdentifier = nameof(ReportsCalendarViewCell);
 
         private ISubject<ReportsCalendarDayViewModel> dayTaps = new Subject<ReportsCalendarDayViewModel>();
-        
+
         private List<ReportsCalendarPageViewModel> months = new List<ReportsCalendarPageViewModel>();
 
         private ReportsDateRangeParameter currentSelectedDateRange;
 
-        private readonly ISubject<int> decelerationEndedSubject = new Subject<int>();
-        
+        private readonly ISubject<int> currentPageSubject = new Subject<int>();
+
         public readonly IObservable<ReportsCalendarDayViewModel> DayTaps;
 
-        public IObservable<int> DecelerationEndedObservable { get; }
+        public IObservable<int> CurrentPageObservable { get; }
 
 
         public ReportsCalendarCollectionViewSource(UICollectionView collectionView)
@@ -36,7 +33,7 @@ namespace Toggl.Daneel.ViewSources
         {
             collectionView.RegisterNibForCell(ReportsCalendarViewCell.Nib, cellIdentifier);
             DayTaps = dayTaps.AsObservable();
-            DecelerationEndedObservable = decelerationEndedSubject.AsObservable();
+            CurrentPageObservable = currentPageSubject.AsObservable().DistinctUntilChanged();
         }
 
         public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
@@ -88,9 +85,10 @@ namespace Toggl.Daneel.ViewSources
             dayTaps.OnNext(months[indexPath.Section].Days[indexPath.Row]);
         }
 
-        public override void DecelerationEnded(UIScrollView scrollView)
+        public override void Scrolled(UIScrollView scrollView)
         {
-            decelerationEndedSubject.OnNext((int) (CollectionView.ContentOffset.X / CollectionView.Frame.Width));
+            var page = (int) (CollectionView.ContentOffset.X / CollectionView.Frame.Width);
+            currentPageSubject.OnNext(page);
         }
     }
 }
