@@ -399,7 +399,6 @@ namespace Toggl.Giskard.Views.Calendar
                 if (!layoutChunkResult.IgnoreConsumed || layoutState.ScrapList != null || !state.IsPreLayout)
                 {
                     layoutState.Available -= layoutChunkResult.Consumed;
-                    //important for recycling
                     remainingSpace -= layoutChunkResult.Consumed;
                 }
 

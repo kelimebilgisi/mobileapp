@@ -4,7 +4,6 @@ using Android.Runtime;
 using Android.Support.V7.Widget;
 using Android.Views;
 using Java.Interop;
-using Java.Lang;
 using Object = Java.Lang.Object;
 
 namespace Toggl.Giskard.Views.Calendar
