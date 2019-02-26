@@ -330,9 +330,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             [Fact]
             public async ThreadingTask DoesNotHideTheUndoUITooEarly()
             {
-                var observable = viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
+                viewModel.DelayDeleteTimeEntry.Execute(timeEntry);
                 SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks - 1);
-                await observable;
+                await ViewModel.DelayDeleteTimeEntry.Elements;;
 
                 observer.Received().OnNext(true);
                 observer.DidNotReceive().OnNext(false);
@@ -368,10 +368,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
                 var timeEntryB = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
-                var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
+                viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
                 SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
-                var observableB = viewModel.DelayDeleteTimeEntry.Execute(timeEntryB);
-                await observableA;
+                viewModel.DelayDeleteTimeEntry.Execute(timeEntryB);
 
                 InteractorFactory.Received().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();
             }
@@ -381,7 +380,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
-                var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
+                viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
                 SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
                 await viewModel.FinilizeDelayDeleteTimeEntryIfNeeded();
 
@@ -393,7 +392,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 var timeEntryA = new TimeEntryViewModel(new MockTimeEntry { Id = 1, Duration = 123, TagIds = Array.Empty<long>(), Workspace = new MockWorkspace() }, DurationFormat.Classic);
 
-                var observableA = viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
+                viewModel.DelayDeleteTimeEntry.Execute(timeEntryA);
                 SchedulerProvider.TestScheduler.AdvanceBy(Constants.UndoTime.Ticks / 2);
 
                 InteractorFactory.DidNotReceive().DeleteTimeEntry(Arg.Is(timeEntryA.Id)).Execute();

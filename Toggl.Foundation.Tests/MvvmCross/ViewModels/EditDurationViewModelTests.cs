@@ -349,10 +349,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.IsEditingStartTime.Subscribe(startObserver);
                 ViewModel.IsEditingStopTime.Subscribe(stopObserver);
 
-                Observable.Concat(
-                    Observable.Defer(() => ViewModel.EditStartTime.Execute()),
-                    Observable.Defer(() => ViewModel.EditStartTime.Execute())
-                    )
+                ViewModel.EditStartTime.ExecuteSequentally(times: 2)
                     .Subscribe();
 
                 TestScheduler.Start();
@@ -425,10 +422,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.IsEditingStartTime.Subscribe(startObserver);
                 ViewModel.IsEditingStopTime.Subscribe(stopObserver);
 
-                Observable.Concat(
-                        Observable.Defer(() => ViewModel.EditStopTime.Execute()),
-                        Observable.Defer(() => ViewModel.EditStopTime.Execute())
-                    )
+                ViewModel.EditStopTime.ExecuteSequentally()
                     .Subscribe();
 
                 TestScheduler.Start();

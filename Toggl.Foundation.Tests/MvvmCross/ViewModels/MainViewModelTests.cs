@@ -326,8 +326,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
                 var observer = TestScheduler.CreateObserver<Unit>();
-                ViewModel.StartTimeEntry.Execute(useDefaultMode)
-                    .Subscribe(observer);
+                ViewModel.StartTimeEntry.Elements.Subscribe(observer);
+                ViewModel.StartTimeEntry.Execute(useDefaultMode);
+
                 TestScheduler.Start();
 
                 observer.Messages.Count.Should().Be(1);
@@ -537,8 +538,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     .Returns(Observable.Throw<IThreadSafeTimeEntry>(new Exception()));
 
                 var observer = TestScheduler.CreateObserver<Unit>();
-                ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>())
-                    .Subscribe(observer);
+                ViewModel.StopTimeEntry.Elements.Subscribe(observer);
+                ViewModel.StopTimeEntry.Execute(Arg.Any<TimeEntryStopOrigin>());
+
                 TestScheduler.Start();
 
                 observer.Messages.Count().Should().Be(1);
@@ -553,8 +555,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 TestScheduler.AdvanceBy(TimeSpan.FromMilliseconds(50).Ticks);
 
                 var observer = TestScheduler.CreateObserver<Unit>();
-                ViewModel.StopTimeEntry.Execute(TimeEntryStopOrigin.Manual)
-                    .Subscribe(observer);
+                ViewModel.StopTimeEntry.Elements.Subscribe(observer);
+                ViewModel.StopTimeEntry.Execute(TimeEntryStopOrigin.Manual);
+
                 TestScheduler.Start();
 
                 observer.Messages.Count.Should().Be(1);

@@ -151,8 +151,9 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 ViewModel.Password.OnNext(InvalidPassword.ToString());
                 var executionObserver = TestScheduler.CreateObserver<Unit>();
+                ViewModel.Done.Elements.Subscribe(executionObserver);
 
-                ViewModel.Done.Execute().Subscribe(executionObserver);
+                ViewModel.Done.Execute();
 
                 TestScheduler.Start();
                 executionObserver.Messages.Last().Value.Kind.Should().Be(NotificationKind.OnError);

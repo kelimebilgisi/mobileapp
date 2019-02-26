@@ -154,10 +154,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
 
                 var auxObservable = TestScheduler.CreateObserver<Unit>();
 
-                var selectExecutions = Observable.Concat(selectedTags
-                    .Select(tag => Observable.Defer(() => ViewModel.SelectTag.Execute(tag))));
-
-                var saveExecution = Observable.Defer(() => ViewModel.Save.Execute());
+                var selectExecutions = ViewModel.SelectTag.ExecuteSequentally(selectedTags);
+                var saveExecution = ViewModel.Save.ExecuteSequentally();
 
                 Observable
                     .Concat(selectExecutions, saveExecution)

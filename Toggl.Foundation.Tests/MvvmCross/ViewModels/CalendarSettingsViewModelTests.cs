@@ -11,6 +11,7 @@ using NSubstitute;
 using Toggl.Foundation.MvvmCross.ViewModels.Selectable;
 using Toggl.Foundation.MvvmCross.ViewModels.Settings;
 using Toggl.Foundation.Tests.Generators;
+using Toggl.Foundation.Tests.TestExtensions;
 using Toggl.Multivac;
 using Xunit;
 
@@ -119,12 +120,12 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var secondCalendar = new UserCalendar("2", "2", "2");
 
                 var observer = TestScheduler.CreateObserver<Unit>();
-                Observable.Concat(
-                    Observable.Defer(() =>
-                        ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(firstCalendar, false))),
-                    Observable.Defer(() =>
-                        ViewModel.SelectCalendar.Execute(new SelectableUserCalendarViewModel(secondCalendar, false)))
-                ).Subscribe(observer);
+                ViewModel.SelectCalendar.ExecuteSequentally(
+                        new SelectableUserCalendarViewModel(firstCalendar, false),
+                        new SelectableUserCalendarViewModel(secondCalendar, false)
+                    )
+                    .Subscribe(observer);
+
 
                 TestScheduler.Start();
 
