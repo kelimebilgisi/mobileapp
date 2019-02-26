@@ -39,16 +39,6 @@ namespace Toggl.Giskard.Views.Calendar
                 LayoutFromEnd = false;
             }
 
-            public bool IsViewValidAsAnchor(View view)
-            {
-                if (!(view.LayoutParameters is RecyclerView.LayoutParams layoutParams))
-                    return false;
-
-                return !layoutParams.IsItemRemoved
-                       && layoutParams.ViewLayoutPosition >= 0
-                       && layoutParams.ViewLayoutPosition < anchorCount;
-            }
-
             public void AssignCoordinateFromPadding()
             {
                 Coordinate = LayoutFromEnd
