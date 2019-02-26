@@ -62,34 +62,124 @@ namespace Toggl.Giskard.Views.Calendar
 
             if (!anchorInfo.IsValid || pendingScrollPosition != RecyclerView.NoPosition || pendingAnchorSavedState != null)
             {
-                //todo: try restoring anchor info from saved state;
                 anchorInfo.Reset();
                 updateAnchorInfoForLayout(state);
                 anchorInfo.IsValid = true;
             }
 
-            //todo: handle extras needed to support scrollTo
+            int extraForStart;
+            int extraForEnd;
+            var extra = getExtraLayoutSpace(state);
 
-            var extraForStart = orientationHelper.StartAfterPadding;
-            var extraForEnd = orientationHelper.EndPadding;
+            if (layoutState.LastScrollDelta >= 0)
+            {
+                extraForEnd = extra;
+                extraForStart = 0;
+            }
+            else
+            {
+                extraForStart = extra;
+                extraForEnd = 0;
+            }
 
-            //todo: layout extra children to support nice animations if pending scroll position exists
+            extraForStart += orientationHelper.StartAfterPadding;
+            extraForEnd += orientationHelper.EndPadding;
 
-            var startOffset = 0;
-            var endOffset = 0;
+            if (state.IsPreLayout && pendingScrollPosition != RecyclerView.NoPosition
+                                  && pendingScrollPositionOffset != INVALID_OFFSET)
+            {
+                var existingView = FindViewByPosition(pendingScrollPosition);
+                if (existingView != null)
+                {
+                    var currentOffset = orientationHelper.GetDecoratedStart(existingView) - orientationHelper.StartAfterPadding;
+                    int upcomingOffset = pendingScrollPositionOffset - currentOffset;
+
+                    if (upcomingOffset > 0)
+                    {
+                        extraForStart += upcomingOffset;
+                    }
+                    else
+                    {
+                        extraForEnd -= upcomingOffset;
+                    }
+
+                }
+            }
+
+            int startOffset;
+            int endOffset;
 
             anchors.Clear();
             anchoredViews.Clear();
+            anchoredViewsPositions.Clear();
             DetachAndScrapAttachedViews(recycler);
 
             layoutState.IsPreLayout = state.IsPreLayout;
 
-            //fill towards the end
-            updateLayoutStateToFillEnd();
-            layoutState.Extra = extraForEnd;
-            fill(recycler, state);
-            //todo: fill towards the start when we handle saving state
-            //todo: fix possible gaps
+            if (anchorInfo.LayoutFromEnd)
+            {
+                //fill towards the start
+                updateLayoutStateToFillStart();
+                layoutState.Extra = extraForStart;
+                fill(recycler, state);
+                startOffset = layoutState.Offset;
+                var firstElement = layoutState.CurrentAnchorPosition;
+                if (layoutState.Available > 0)
+                {
+                    extraForEnd += layoutState.Available;
+                }
+
+                //fill towards the end
+                updateLayoutStateToFillEnd();
+                layoutState.Extra = extraForEnd;
+                layoutState.CurrentAnchorPosition += layoutState.ItemDirection;
+                fill(recycler, state);
+                endOffset = layoutState.Offset;
+
+                if (layoutState.Available > 0)
+                {
+                    //end could not consume all space
+                    extraForStart = layoutState.Available;
+                    updateLayoutStateToFillStart(firstElement, startOffset);
+                    layoutState.Extra = extraForStart;
+                }
+            }
+            else
+            {
+                //fill towards the end
+                updateLayoutStateToFillEnd();
+                layoutState.Extra = extraForEnd;
+                fill(recycler, state);
+                endOffset = layoutState.Offset;
+                var lastElement = layoutState.CurrentAnchorPosition;
+                if (layoutState.Available > 0)
+                {
+                    extraForStart += layoutState.Available;
+                }
+
+                //fill towards the start
+                updateLayoutStateToFillStart();
+                layoutState.Extra = extraForStart;
+                layoutState.CurrentAnchorPosition += layoutState.ItemDirection;
+                fill(recycler, state);
+                startOffset = layoutState.Offset;
+
+                if (layoutState.Available > 0)
+                {
+                    extraForEnd = layoutState.Available;
+                    updateLayoutStateToFillEnd(lastElement, endOffset);
+                    layoutState.Extra = extraForEnd;
+                    fill(recycler, state);
+                    endOffset = layoutState.Offset;
+                }
+            }
+
+            if (ChildCount > 0)
+            {
+                int fixOffset = fixLayoutStartGap(startOffset, recycler, state);
+                endOffset += fixOffset;
+                fixLayoutEndGap(endOffset + fixOffset, recycler, state);
+            }
 
             if (state.IsPreLayout)
             {
@@ -136,9 +226,25 @@ namespace Toggl.Giskard.Views.Calendar
             return base.ComputeVerticalScrollExtent(state);
         }
 
+        public override void ScrollToPosition(int position)
+        {
+            pendingScrollPosition = position;
+            pendingScrollPositionOffset = INVALID_SCROLLING_OFFSET;
+            pendingAnchorSavedState?.InvalidateAnchor();
+            RequestLayout();
+        }
+
+        public override void SmoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position)
+        {
+            var linearSmoothScroller = new LinearSmoothScroller(recyclerView.Context);
+            linearSmoothScroller.TargetPosition = position;
+            StartSmoothScroll(linearSmoothScroller);
+            base.SmoothScrollToPosition(recyclerView, state, position);
+        }
+
         public override IParcelable OnSaveInstanceState()
         {
-            var superState = base.OnSaveInstanceState();
+            var superState = base.OnSaveInstanceState() ?? new Bundle();
             if (pendingAnchorSavedState != null)
             {
                 return new AnchorSavedState(pendingAnchorSavedState, superState);
@@ -148,6 +254,7 @@ namespace Toggl.Giskard.Views.Calendar
             if (ChildCount > 0)
             {
                 var refAnchor = getChildClosestToStart();
+                saveState.AnchorShouldLayoutFromEnd = false;
                 saveState.TopAnchorPosition = GetPosition(refAnchor);
                 saveState.AnchorOffset = orientationHelper.GetDecoratedStart(refAnchor) - orientationHelper.StartAfterPadding;
             }
@@ -161,6 +268,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         public override void OnRestoreInstanceState(IParcelable state)
         {
+            base.OnRestoreInstanceState(state);
             if (!(state is AnchorSavedState savedState))
             {
                 base.OnRestoreInstanceState(state);
@@ -170,6 +278,37 @@ namespace Toggl.Giskard.Views.Calendar
             base.OnRestoreInstanceState(savedState.SuperState);
             pendingAnchorSavedState = savedState;
             RequestLayout();
+        }
+
+        private int fixLayoutStartGap(int startOffset, RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            var gap = startOffset - orientationHelper.StartAfterPadding;
+            if (gap <= 0)
+            {
+                // nothing to fix
+                return 0;
+            }
+
+            var fixOffset = -scrollBy(gap, recycler, state);
+            startOffset += fixOffset;
+            gap = startOffset - orientationHelper.StartAfterPadding;
+
+            if (gap > 0)
+            {
+                orientationHelper.OffsetChildren(-gap);
+                return fixOffset - gap;
+            }
+
+            return fixOffset;
+        }
+
+        private int fixLayoutEndGap(int endOffset, RecyclerView.Recycler recycler, RecyclerView.State state)
+        {
+            var gap = orientationHelper.EndAfterPadding - endOffset;
+            if (gap <= 0)
+                return 0;
+
+            return -scrollBy(-gap, recycler, state);
         }
 
         private View findFirstVisibleChildClosestToStart()
@@ -523,11 +662,31 @@ namespace Toggl.Giskard.Views.Calendar
             return matchOutOfBounds ?? invalidMatch;
         }
 
+        private void updateLayoutStateToFillStart()
+        {
+            updateLayoutStateToFillStart(anchorInfo.Position, anchorInfo.Coordinate);
+        }
+
         private void updateLayoutStateToFillEnd()
         {
-            layoutState.Offset = anchorInfo.Coordinate;
-            layoutState.Available = orientationHelper.EndAfterPadding - anchorInfo.Coordinate;
-            layoutState.CurrentAnchorPosition = anchorInfo.Position;
+            updateLayoutStateToFillEnd(anchorInfo.Position, anchorInfo.Coordinate);
+        }
+
+        private void updateLayoutStateToFillStart(int anchorPosition, int offset)
+        {
+            layoutState.Offset = offset;
+            layoutState.Available = offset - orientationHelper.StartAfterPadding;
+            layoutState.CurrentAnchorPosition = anchorPosition;
+            layoutState.ItemDirection = TOWARDS_THE_START;
+            layoutState.LayoutDirection = TOWARDS_THE_START;
+            layoutState.ScrollingOffset = INVALID_SCROLLING_OFFSET;
+        }
+
+        private void updateLayoutStateToFillEnd(int anchorPosition, int offset)
+        {
+            layoutState.Offset = offset;
+            layoutState.Available = orientationHelper.EndAfterPadding - offset;
+            layoutState.CurrentAnchorPosition = anchorPosition;
             layoutState.ItemDirection = TOWARDS_THE_END;
             layoutState.LayoutDirection = TOWARDS_THE_END;
             layoutState.ScrollingOffset = INVALID_SCROLLING_OFFSET;
