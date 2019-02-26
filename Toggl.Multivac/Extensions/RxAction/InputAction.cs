@@ -42,9 +42,9 @@ namespace Toggl.Multivac.Extensions
 
     public static class CompletableActionExtensions
     {
-        public static IObservable<Unit> Execute<TInput>(this InputAction<TInput> action, TInput value)
+        public static void Execute<TInput>(this InputAction<TInput> action, TInput value)
         {
-            return action.Execute(value);
+            action.Execute(value);
         }
     }
 }
