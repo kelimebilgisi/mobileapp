@@ -5,7 +5,7 @@ namespace Toggl.Giskard.Views.Calendar
 {
     public partial class CalendarLayoutManager
     {
-        private const int INVALID_OFFSET = int.MinValue;
+        private const int InvalidOffset = int.MinValue;
 
         private struct AnchorInfo
         {
@@ -26,7 +26,7 @@ namespace Toggl.Giskard.Views.Calendar
                 this.anchorCount = anchorCount;
                 OrientationHelper = orientationHelper;
                 Position = RecyclerView.NoPosition;
-                Coordinate = INVALID_OFFSET;
+                Coordinate = InvalidOffset;
                 IsValid = false;
                 LayoutFromEnd = false;
             }
@@ -34,7 +34,7 @@ namespace Toggl.Giskard.Views.Calendar
             public void Reset()
             {
                 Position = RecyclerView.NoPosition;
-                Coordinate = INVALID_OFFSET;
+                Coordinate = InvalidOffset;
                 IsValid = false;
                 LayoutFromEnd = false;
             }

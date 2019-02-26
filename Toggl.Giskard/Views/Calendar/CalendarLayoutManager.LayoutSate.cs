@@ -6,9 +6,9 @@ namespace Toggl.Giskard.Views.Calendar
 {
     public partial class CalendarLayoutManager
     {
-        private const int TOWARDS_THE_END = 1;
-        private const int TOWARDS_THE_START = -1;
-        private const int INVALID_SCROLLING_OFFSET = int.MinValue;
+        private const int TowardsTheEnd = 1;
+        private const int TowardsTheStart = -1;
+        private const int InvalidScrollingOffset = int.MinValue;
 
         private struct LayoutState
         {
@@ -45,8 +45,8 @@ namespace Toggl.Giskard.Views.Calendar
                 CurrentAnchorPosition = 0;
                 LastScrollDelta = 0;
                 Extra = 0;
-                ItemDirection = TOWARDS_THE_END;
-                LayoutDirection = TOWARDS_THE_END;
+                ItemDirection = TowardsTheEnd;
+                LayoutDirection = TowardsTheEnd;
                 Recycle = false;
                 IsPreLayout = false;
                 ScrapList = null;
@@ -59,7 +59,7 @@ namespace Toggl.Giskard.Views.Calendar
             {
                 if (ScrapList != null)
                 {
-                    //todo: check in the scrapList when layouting for predictive animations (if we do it)
+                    //todo: check in the scrapList when laying out for predictive animations (if we do it)
                 }
 
                 var view = recycler.GetViewForPosition(CurrentAnchorPosition);

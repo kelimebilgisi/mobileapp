@@ -24,7 +24,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         private AnchorSavedState pendingAnchorSavedState;
         private int pendingScrollPosition = RecyclerView.NoPosition;
-        private int pendingScrollPositionOffset = INVALID_OFFSET;
+        private int pendingScrollPositionOffset = InvalidOffset;
 
         public CalendarLayoutManager()
         {
@@ -86,7 +86,7 @@ namespace Toggl.Giskard.Views.Calendar
             extraForEnd += orientationHelper.EndPadding;
 
             if (state.IsPreLayout && pendingScrollPosition != RecyclerView.NoPosition
-                                  && pendingScrollPositionOffset != INVALID_OFFSET)
+                                  && pendingScrollPositionOffset != InvalidOffset)
             {
                 var existingView = FindViewByPosition(pendingScrollPosition);
                 if (existingView != null)
@@ -229,7 +229,7 @@ namespace Toggl.Giskard.Views.Calendar
         public override void ScrollToPosition(int position)
         {
             pendingScrollPosition = position;
-            pendingScrollPositionOffset = INVALID_SCROLLING_OFFSET;
+            pendingScrollPositionOffset = InvalidScrollingOffset;
             pendingAnchorSavedState?.InvalidateAnchor();
             RequestLayout();
         }
@@ -370,7 +370,7 @@ namespace Toggl.Giskard.Views.Calendar
         {
             //todo: handle focusable
             var start = layoutState.Available;
-            if (layoutState.ScrollingOffset != INVALID_SCROLLING_OFFSET)
+            if (layoutState.ScrollingOffset != InvalidScrollingOffset)
             {
                 if (layoutState.Available < 0)
                 {
@@ -403,7 +403,7 @@ namespace Toggl.Giskard.Views.Calendar
                     remainingSpace -= layoutChunkResult.Consumed;
                 }
 
-                if (layoutState.ScrollingOffset != INVALID_SCROLLING_OFFSET)
+                if (layoutState.ScrollingOffset != InvalidScrollingOffset)
                 {
                     layoutState.ScrollingOffset += layoutChunkResult.Consumed;
                     if (layoutState.Available < 0)
@@ -436,7 +436,7 @@ namespace Toggl.Giskard.Views.Calendar
             if (!(view.Tag is Anchor anchor)) return;
 
             //todo: check for scrap list if we do predictive animations
-            if (layoutState.LayoutDirection == TOWARDS_THE_END)
+            if (layoutState.LayoutDirection == TowardsTheEnd)
                 addAnchor(view);
             else
                 addAnchor(view, 0);
@@ -450,7 +450,7 @@ namespace Toggl.Giskard.Views.Calendar
             int anchorTop;
             int anchorBottom;
 
-            if (layoutState.LayoutDirection == TOWARDS_THE_START)
+            if (layoutState.LayoutDirection == TowardsTheStart)
             {
                 anchorBottom = layoutState.Offset;
                 anchorTop = layoutState.Offset - layoutChunkResult.Consumed;
@@ -476,7 +476,7 @@ namespace Toggl.Giskard.Views.Calendar
                 var anchoredViewLeft = anchorLeft + anchorData.leftOffset;
                 var anchoredViewTop = anchorTop + anchorData.topOffset;
 
-                if (layoutState.LayoutDirection == TOWARDS_THE_END)
+                if (layoutState.LayoutDirection == TowardsTheEnd)
                 {
                     addAnchoredView(anchoredView, anchorData.adapterPosition);
                 }
@@ -541,7 +541,7 @@ namespace Toggl.Giskard.Views.Calendar
             if (pendingScrollPosition < 0 || pendingScrollPosition >= state.ItemCount)
             {
                 pendingScrollPosition = RecyclerView.NoPosition;
-                pendingScrollPositionOffset = INVALID_OFFSET;
+                pendingScrollPositionOffset = InvalidOffset;
                 //invalid scroll position
                 return false;
             }
@@ -563,7 +563,7 @@ namespace Toggl.Giskard.Views.Calendar
                 return true;
             }
 
-            if (pendingScrollPositionOffset == INVALID_OFFSET)
+            if (pendingScrollPositionOffset == InvalidOffset)
             {
                 var child = FindViewByPosition(pendingScrollPosition);
 
@@ -677,9 +677,9 @@ namespace Toggl.Giskard.Views.Calendar
             layoutState.Offset = offset;
             layoutState.Available = offset - orientationHelper.StartAfterPadding;
             layoutState.CurrentAnchorPosition = anchorPosition;
-            layoutState.ItemDirection = TOWARDS_THE_START;
-            layoutState.LayoutDirection = TOWARDS_THE_START;
-            layoutState.ScrollingOffset = INVALID_SCROLLING_OFFSET;
+            layoutState.ItemDirection = TowardsTheStart;
+            layoutState.LayoutDirection = TowardsTheStart;
+            layoutState.ScrollingOffset = InvalidScrollingOffset;
         }
 
         private void updateLayoutStateToFillEnd(int anchorPosition, int offset)
@@ -687,16 +687,16 @@ namespace Toggl.Giskard.Views.Calendar
             layoutState.Offset = offset;
             layoutState.Available = orientationHelper.EndAfterPadding - offset;
             layoutState.CurrentAnchorPosition = anchorPosition;
-            layoutState.ItemDirection = TOWARDS_THE_END;
-            layoutState.LayoutDirection = TOWARDS_THE_END;
-            layoutState.ScrollingOffset = INVALID_SCROLLING_OFFSET;
+            layoutState.ItemDirection = TowardsTheEnd;
+            layoutState.LayoutDirection = TowardsTheEnd;
+            layoutState.ScrollingOffset = InvalidScrollingOffset;
         }
 
         private void recycleByLayoutState(RecyclerView.Recycler recycler)
         {
             if (!layoutState.Recycle || layoutState.ScrollingOffset < 0) return;
 
-            if (layoutState.LayoutDirection == TOWARDS_THE_START)
+            if (layoutState.LayoutDirection == TowardsTheStart)
             {
                 recycleAnchorsFromEnd(recycler);
                 recycleAnchoredViewsFromEnd(recycler);
@@ -817,7 +817,7 @@ namespace Toggl.Giskard.Views.Calendar
 
             layoutState.Recycle = true;
 
-            var layoutDirection = dy > 0 ? TOWARDS_THE_END : TOWARDS_THE_START;
+            var layoutDirection = dy > 0 ? TowardsTheEnd : TowardsTheStart;
             var absDy = Math.Abs(dy);
 
             updateLayoutState(layoutDirection, absDy, true, state);
@@ -842,7 +842,7 @@ namespace Toggl.Giskard.Views.Calendar
             layoutState.LayoutDirection = layoutDirection;
 
             int scrollingOffset;
-            if (layoutDirection == TOWARDS_THE_END)
+            if (layoutDirection == TowardsTheEnd)
             {
                 var child = getChildClosestToEnd();
                 if (child == null) return;
