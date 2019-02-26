@@ -115,7 +115,7 @@ namespace Toggl.Multivac.Tests
 
                 var action = new RxAction<Unit, string>(_ => observable, testScheduler);
 
-                testScheduler.Schedule(TimeSpan.FromTicks(300), () => action.Execute(Unit.Default).Subscribe(observer));
+                testScheduler.Schedule(TimeSpan.FromTicks(300), () => action.Execute(Unit.Default));
                 testScheduler.Start();
 
                 observer.Messages.AssertEqual(
