@@ -11,7 +11,6 @@ namespace Toggl.Giskard.Views.Calendar
 {
     public partial class CalendarLayoutManager
     {
-
         public class AnchorSavedState : View.BaseSavedState
         {
             public int TopAnchorPosition { get; set; }

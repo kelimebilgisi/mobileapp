@@ -9,7 +9,7 @@ namespace Toggl.Giskard.Views.Calendar
 
         private struct AnchorInfo
         {
-            public OrientationHelper OrientationHelper { get; private set; }
+            private OrientationHelper OrientationHelper { get; set; }
 
             public int Position { get; set; }
 

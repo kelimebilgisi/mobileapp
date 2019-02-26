@@ -433,12 +433,25 @@
     <Compile Include="ViewHolders\ReportsWorkspaceNameViewHolder.cs" />
     <Compile Include="Views\BarChartView.cs" />
     <Compile Include="Views\CalendarRecyclerView.cs" />
-    <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorInfo.cs" />
     <Compile Include="Views\Calendar\CalendarLayoutManager.cs" />
-    <Compile Include="Views\Calendar\CalendarLayoutManager.Inspector.cs" />
-    <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutSate.cs" />
-    <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorSavedState.cs" />
-    <Compile Include="Views\Calendar\CalendarLayoutManager.ScrollHelper.cs" />
+    <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorInfo.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarLayoutManager.Inspector.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutSate.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorSavedState.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarLayoutManager.Recycler.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\CalendarLayoutManager.ScrollHelper.cs">
+      <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
+    </Compile>
     <Compile Include="Views\EditDuration\Shapes\Arc.cs" />
     <Compile Include="Views\EditDuration\Shapes\Cap.cs" />
     <Compile Include="Views\EditDuration\Shapes\ClockDial.cs" />
