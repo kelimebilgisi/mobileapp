@@ -17,6 +17,11 @@ Debug keystore information (MacOS):
 - Store password: `android`
 - Key password: `android`
 
+**⚠ Notice:** The debug binary by default only support ARM architecture, so you must either:
+
+- Have a device or simulator running ARM
+- Check `x86` (or whatever your device architecture is) in Toggl.Giskard > Options > Android Build > Advanced tab
+
 On Visual Studio:
 1. Select the Toggl.Giskard > Options > Android Build > Uncheck `Use Shared Mono Runtime`; 
 2. Select from Visual Studio top menu: Build > Archive for publishing (this takes a while);
