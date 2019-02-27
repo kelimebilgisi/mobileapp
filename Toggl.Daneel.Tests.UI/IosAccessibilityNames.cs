@@ -71,7 +71,7 @@
 
     public static class Client
     {
-        public const string AddFilterTextField = "";
+        public const string AddFilterTextField = "AddFilterTextField";
     }
 
     public static class NewProject

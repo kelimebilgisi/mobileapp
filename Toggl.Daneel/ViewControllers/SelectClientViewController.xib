@@ -42,6 +42,7 @@
                 <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Add/filter clients" textAlignment="natural" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="SXB-BA-XID">
                     <rect key="frame" x="38" y="53" width="321" height="48"/>
                     <color key="tintColor" red="0.29803921570000003" green="0.85098039219999999" blue="0.3921568627" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <accessibility key="accessibilityConfiguration" label="AddFilterTextField"/>
                     <constraints>
                         <constraint firstAttribute="height" constant="48" id="uaP-5a-0Pv"/>
                     </constraints>
