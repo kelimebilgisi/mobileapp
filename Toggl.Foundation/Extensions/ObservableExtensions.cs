@@ -40,5 +40,9 @@ namespace Toggl.Foundation.Extensions
         public static IObservable<ITransition> OnErrorReturnResult<T>(this IObservable<ITransition> observable, StateResult<T> errorResult)
             where T : Exception
             => observable.Catch((T exception) => Observable.Return(errorResult.Transition(exception)));
+
+        public static IObservable<T1> CombineLatest<T1, T2>(this IObservable<T1> observable,
+            IObservable<T2> otherObservable)
+            => observable.CombineLatest(otherObservable, (t1, t2) => t1);
     }
 }

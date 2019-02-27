@@ -8,6 +8,7 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Toggl.Foundation.Analytics;
 using Toggl.Foundation.DataSources;
+using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Helper;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.Models.Interfaces;
@@ -78,11 +79,10 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             TimeEntries =
                 interactorFactory.ObserveAllTimeEntriesVisibleToTheUser().Execute()
                     .Select(timeEntries => timeEntries.Where(isNotRunning))
-                    .CombineLatest(
-                        deletingOrPressingUndo,
-                        (timeEntries, _) => timeEntries.Where(isNotDeleted))
+                    .CombineLatest(deletingOrPressingUndo)
+                    .Select(timeEntries => timeEntries.Where(isNotDeleted))
                     .Select(group)
-                    .CombineLatest(collapsingOrExpanding, (groups, _) => groups)
+                    .CombineLatest(collapsingOrExpanding)
                     .SelectMany(groupsFlatteningStrategy.Flatten)
                     .AsDriver(schedulerProvider);
 
