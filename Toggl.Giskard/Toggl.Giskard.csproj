@@ -440,7 +440,7 @@
     <Compile Include="Views\Calendar\CalendarLayoutManager.Inspector.cs">
       <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
     </Compile>
-    <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutSate.cs">
+    <Compile Include="Views\Calendar\CalendarLayoutManager.LayoutState.cs">
       <DependentUpon>CalendarLayoutManager.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\CalendarLayoutManager.AnchorSavedState.cs">

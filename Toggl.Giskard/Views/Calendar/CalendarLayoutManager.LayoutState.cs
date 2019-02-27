@@ -52,7 +52,7 @@ namespace Toggl.Giskard.Views.Calendar
                 ScrapList = null;
             }
 
-            public bool HasMore()
+            public bool HasMoreAnchorsToLayout()
                 => CurrentAnchorPosition >= 0 && CurrentAnchorPosition < anchorCount;
 
             public View Next(RecyclerView.Recycler recycler)

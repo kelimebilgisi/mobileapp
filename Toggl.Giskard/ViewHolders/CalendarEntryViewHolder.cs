@@ -18,6 +18,5 @@ namespace Toggl.Giskard.ViewHolders
         {
             label = itemView.FindViewById<TextView>(Resource.Id.EntryLabel);
         }
-
     }
 }

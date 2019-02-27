@@ -116,7 +116,7 @@ namespace Toggl.Giskard.Views.Calendar
 
             layoutState.IsPreLayout = state.IsPreLayout;
 
-            if (anchorInfo.LayoutFromEnd)
+            if (anchorInfo.LayoutFillingStartsFromEnd)
             {
                 //fill towards the start
                 updateLayoutStateToFillStart();
@@ -382,7 +382,7 @@ namespace Toggl.Giskard.Views.Calendar
 
             var remainingSpace = layoutState.Available + layoutState.Extra;
 
-            while (remainingSpace > 0 && layoutState.HasMore())
+            while (remainingSpace > 0 && layoutState.HasMoreAnchorsToLayout())
             {
                 layoutChunkResult.ResetInternal();
 
@@ -469,27 +469,27 @@ namespace Toggl.Giskard.Views.Calendar
 
             foreach (var anchorData in anchor.AnchoredData)
             {
-                if (anchoredViewsPositions.Get(anchorData.adapterPosition) != null) continue;
+                if (anchoredViewsPositions.Get(anchorData.AdapterPosition) != null) continue;
 
-                var anchoredView = recycler.GetViewForPosition(anchorData.adapterPosition);
-                var anchoredViewLeft = anchorLeft + anchorData.leftOffset;
-                var anchoredViewTop = anchorTop + anchorData.topOffset;
+                var anchoredView = recycler.GetViewForPosition(anchorData.AdapterPosition);
+                var anchoredViewLeft = anchorLeft + anchorData.LeftOffset;
+                var anchoredViewTop = anchorTop + anchorData.TopOffset;
 
                 if (layoutState.LayoutDirection == TowardsTheEnd)
                 {
-                    addAnchoredView(anchoredView, anchorData.adapterPosition);
+                    addAnchoredView(anchoredView, anchorData.AdapterPosition);
                 }
                 else
                 {
-                    addAnchoredView(anchoredView, anchorData.adapterPosition, 0);
+                    addAnchoredView(anchoredView, anchorData.AdapterPosition, 0);
                 }
 
-                MeasureChildWithMargins(anchoredView, anchorData.width, anchorData.height);
+                MeasureChildWithMargins(anchoredView, anchorData.Width, anchorData.Height);
                 LayoutDecoratedWithMargins(anchoredView,
                     anchoredViewLeft,
                     anchoredViewTop,
-                    anchoredViewLeft + anchorData.width,
-                    anchoredViewTop + anchorData.height);
+                    anchoredViewLeft + anchorData.Width,
+                    anchoredViewTop + anchorData.Height);
             }
         }
 
@@ -549,8 +549,8 @@ namespace Toggl.Giskard.Views.Calendar
 
             if (pendingAnchorSavedState != null && pendingAnchorSavedState.HasValidAnchor())
             {
-                anchorInfo.LayoutFromEnd = pendingAnchorSavedState.AnchorShouldLayoutFromEnd;
-                if (anchorInfo.LayoutFromEnd)
+                anchorInfo.LayoutFillingStartsFromEnd = pendingAnchorSavedState.AnchorShouldLayoutFromEnd;
+                if (anchorInfo.LayoutFillingStartsFromEnd)
                 {
                     anchorInfo.Coordinate = orientationHelper.EndAfterPadding - pendingAnchorSavedState.AnchorOffset;
                 }
@@ -572,7 +572,7 @@ namespace Toggl.Giskard.Views.Calendar
                     if (startGap < 0)
                     {
                         anchorInfo.Coordinate = orientationHelper.StartAfterPadding;
-                        anchorInfo.LayoutFromEnd = false;
+                        anchorInfo.LayoutFillingStartsFromEnd = false;
                         return true;
                     }
 
@@ -580,11 +580,11 @@ namespace Toggl.Giskard.Views.Calendar
                     if (endGap < 0)
                     {
                         anchorInfo.Coordinate = orientationHelper.EndAfterPadding;
-                        anchorInfo.LayoutFromEnd = true;
+                        anchorInfo.LayoutFillingStartsFromEnd = true;
                         return true;
                     }
 
-                    anchorInfo.Coordinate = anchorInfo.LayoutFromEnd
+                    anchorInfo.Coordinate = anchorInfo.LayoutFillingStartsFromEnd
                         ? orientationHelper.GetDecoratedEnd(child) + orientationHelper.TotalSpaceChange
                         : orientationHelper.GetDecoratedStart(child);
                 }
@@ -593,7 +593,7 @@ namespace Toggl.Giskard.Views.Calendar
                     if (ChildCount > 0)
                     {
                         var anchorPosition = GetPosition(GetChildAt(0));
-                        anchorInfo.LayoutFromEnd = pendingScrollPosition >= anchorPosition;
+                        anchorInfo.LayoutFillingStartsFromEnd = pendingScrollPosition >= anchorPosition;
                     }
                     anchorInfo.AssignCoordinateFromPadding();
                 }
@@ -601,7 +601,7 @@ namespace Toggl.Giskard.Views.Calendar
                 return true;
             }
 
-            anchorInfo.LayoutFromEnd = false;
+            anchorInfo.LayoutFillingStartsFromEnd = false;
             anchorInfo.Coordinate = orientationHelper.StartAfterPadding + pendingScrollPosition;
 
             return true;

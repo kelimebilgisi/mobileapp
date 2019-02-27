@@ -14,10 +14,9 @@ namespace Toggl.Giskard.Adapters.Calendar
     public class CalendarAdapter : RecyclerView.Adapter
     {
         private readonly int screenWidth;
-        private const int AnchorViewType = 1;
-        private const int AnchoredViewType = 2;
-
-        private readonly int anchorCount = Constants.HoursPerDay;
+        private const int anchorViewType = 1;
+        private const int anchoredViewType = 2;
+        private const int anchorCount = Constants.HoursPerDay;
 
         private IReadOnlyList<Anchor> anchors;
 
@@ -48,9 +47,9 @@ namespace Toggl.Giskard.Adapters.Calendar
         {
             switch (viewType)
             {
-                case AnchorViewType:
+                case anchorViewType:
                     return new AnchorViewHolder(new View(parent.Context));
-                case AnchoredViewType:
+                case anchoredViewType:
                     return new CalendarEntryViewHolder(LayoutInflater.From(parent.Context).Inflate(Resource.Layout.CalendarEntryCell, parent, false));
                 default:
                     throw new InvalidOperationException($"Invalid view type {viewType}");
@@ -60,9 +59,9 @@ namespace Toggl.Giskard.Adapters.Calendar
         public override int GetItemViewType(int position)
         {
             if (position < anchorCount)
-                return AnchorViewType;
+                return anchorViewType;
 
-            return AnchoredViewType;
+            return anchoredViewType;
         }
 
         public override int ItemCount => anchorCount + items.Count;
