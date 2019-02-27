@@ -23,10 +23,14 @@ On Visual Studio:
 3. Now you have a new apk at `Toggl/bin/Debug/com.toggl.giskard.debug.apk`
 4. You will have a new screen open, but you can get there by going to Build > ViewArchives;
 5. Select the apk you just archived > Click in the bottom of the page "Sign and Distribute" > Ad Hoc > androiddebugkey (create it if you don't have it) > Next > Publish > Select a folder
-5.1 If you don't have the androiddebugkey ready, click on "Import an Existing Key" and fill in the inputs with the values above. You can create a new one if you want, it doesn't matter much.
-5.1.1 When creating a new signing key, you can choose the name, store password and key password as you wish. 
+
+- 5.1 If you don't have the androiddebugkey ready, click on "Import an Existing Key" and fill in the inputs with the values above. You can create a new one if you want, it doesn't matter much.
+
+- 5.1.1 When creating a new signing key, you can choose the name, store password and key password as you wish. 
+
 6. You have the signed APK
-6.1 You'll want the apk without the -Signed suffix, if you try running the tests with it, you'll get the following error:
+
+- 6.1 You'll want the apk without the -Signed suffix, if you try running the tests with it, you'll get the following error:
 ```
 SetUp : System.Exception : Mono Shared Runtime is not supported. This can be resolved by changing the project configuration or using a Release build.
 ```

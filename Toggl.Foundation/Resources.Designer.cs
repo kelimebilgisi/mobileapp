@@ -766,6 +766,12 @@ namespace Toggl.Foundation {
             }
         }
         
+        public static string TimezonesJson {
+            get {
+                return ResourceManager.GetString("TimezonesJson", resourceCulture);
+            }
+        }
+        
         public static string GetPasswordResetLink {
             get {
                 return ResourceManager.GetString("GetPasswordResetLink", resourceCulture);

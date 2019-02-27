@@ -21,9 +21,11 @@ namespace Toggl.Tests.UI
         }
 
         [Test]
-        public void SigningUpWithCorrectCredentialsLeadsToTheMainScreen()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void SigningUpWithCorrectCredentialsLeadsToTheMainScreen(bool useUnicodeEmail)
         {
-            var email = randomEmail();
+            var email = useUnicodeEmail ? randomUnicodeEmail() : randomEmail();
             var password = "qwerty123";
 
             app.Tap(SignUp.EmailText);
@@ -74,7 +76,70 @@ namespace Toggl.Tests.UI
             app.WaitForNoElement(Main.StartTimeEntryButton);
         }
 
+        [Test]
+        public void TheSelectCountrySearchFiltersCountriesByName()
+        {
+            var countryNameToSearch = "Japan";
+
+            app.WaitForDefaultCountryToBeAutoSelected();
+            app.Tap(SignUp.PickCountry);
+            app.WaitForElement(SelectCountry.SearchCountryField);
+
+            app.WaitForNoElement(countryNameToSearch);
+
+            app.Tap(SelectCountry.SearchCountryField);
+            app.EnterText(countryNameToSearch);
+            app.WaitForElementWithText(SelectCountry.CountryNameLabel, countryNameToSearch);
+        }
+
+        [Test]
+        public void TheSelectCountryBackButtonGoesBackToTheSignUpScreen()
+        {
+            app.WaitForDefaultCountryToBeAutoSelected();
+
+            app.Tap(SignUp.PickCountry);
+            app.WaitForElement(SelectCountry.SearchCountryField);
+            app.DismissKeyboard();
+            app.NavigateBack();
+            app.WaitForElement(SignUp.PickCountry);
+        }
+
+
+        [Test]
+        public void SelectingACountryFromTheCountryListDisplaysItsNameInTheSignUpScreen()
+        {
+            var countryNameToSearch = "Japan";
+            app.WaitForDefaultCountryToBeAutoSelected();
+            app.Tap(SignUp.PickCountry);
+            app.WaitForElement(SelectCountry.SearchCountryField);
+
+            app.WaitForNoElement(countryNameToSearch);
+            app.Tap(SelectCountry.SearchCountryField);
+            app.EnterText(countryNameToSearch);
+            app.WaitForElementWithText(SelectCountry.CountryNameLabel, countryNameToSearch);
+            app.Tap(x => x.Marked(SelectCountry.CountryNameLabel).Text(countryNameToSearch));
+
+            app.WaitForElementWithText(SignUp.PickCountry, countryNameToSearch);
+        }
+
+        [Test]
+        public void TheSelectCountryCanBeOpenedAgainAfterItIsClosed()
+        {
+            app.WaitForDefaultCountryToBeAutoSelected();
+            app.Tap(SignUp.PickCountry);
+            app.WaitForElement(SelectCountry.SearchCountryField);
+
+            app.NavigateBack();
+            app.WaitForElement(SignUp.PickCountry);
+            app.Tap(SignUp.PickCountry);
+
+            app.WaitForElement(SelectCountry.SearchCountryField);
+        }
+
         private string randomEmail()
             => $"{Guid.NewGuid().ToString()}@toggl.space";
+
+        private string randomUnicodeEmail()
+            => $"{Guid.NewGuid().ToString()}用@टा子.广रкψSöф告.example.com";
     }
 }

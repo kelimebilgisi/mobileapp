@@ -33,6 +33,13 @@ namespace Toggl.Tests.UI
         public const string GdprButton = "AcceptButton";
         public const string GdprCancelButton = "";
         public const string ErrorLabel = "SignUpError";
+        public const string PickCountry = "SignUpCountryName";
+    }
+
+    public static class SelectCountry
+    {
+        public const string SearchCountryField = "FilterEditText";
+        public const string CountryNameLabel = "NameTextView";
     }
 
     public static class Main
@@ -62,6 +69,7 @@ namespace Toggl.Tests.UI
     public static class EditTimeEntry
     {
         public const string EditTags = "EditTimeEntryTagsContainer";
+        public const string DeleteButton = "EditTimeEntryDelete";
     }
 
     public static class NewProject

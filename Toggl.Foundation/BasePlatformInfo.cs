@@ -13,7 +13,9 @@ namespace Toggl.Foundation
         public Platform Platform { get; }
 
         public string HelpUrl { get; }
-        
+
+        public virtual string TimezoneIdentifier { get; }
+
         public virtual string Version { get; } = AppInfo.VersionString;
 
         public virtual string BuildNumber { get; } = AppInfo.BuildString;

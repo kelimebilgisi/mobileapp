@@ -22,6 +22,7 @@ namespace Toggl.Ultrawave.Network
         public CountryEndpoints Countries => new CountryEndpoints(baseUrl);
         public LocationEndpoints Location => new LocationEndpoints(baseUrl);
         public FeedbackEndpoints Feedback => new FeedbackEndpoints(baseUrl);
+        public TimezoneEndpoints Timezones => new TimezoneEndpoints(baseUrl);
 
         public ReportsEndpoints ReportsEndpoints { get; }
 

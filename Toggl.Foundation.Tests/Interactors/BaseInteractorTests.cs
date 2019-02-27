@@ -10,6 +10,7 @@ using Toggl.Ultrawave.Network;
 using Toggl.Foundation.Services;
 using Toggl.Foundation.Sync;
 using Toggl.Foundation.Diagnostics;
+using Toggl.Ultrawave;
 using Toggl.Foundation.Login;
 
 namespace Toggl.Foundation.Tests
@@ -19,6 +20,7 @@ namespace Toggl.Foundation.Tests
         protected IIdProvider IdProvider { get; } = Substitute.For<IIdProvider>();
         protected ITimeService TimeService { get; } = Substitute.For<ITimeService>();
         protected ITogglDataSource DataSource { get; } = Substitute.For<ITogglDataSource>();
+        protected ITogglApi Api { get; } = Substitute.For<ITogglApi>();
         protected IUserPreferences UserPreferences { get; } = Substitute.For<IUserPreferences>();
         protected IAnalyticsService AnalyticsService { get; } = Substitute.For<IAnalyticsService>();
         protected IIntentDonationService IntentDonationService { get; } = Substitute.For<IIntentDonationService>();
@@ -44,6 +46,7 @@ namespace Toggl.Foundation.Tests
                 IdProvider,
                 TimeService,
                 DataSource,
+                Api,
                 UserPreferences,
                 AnalyticsService,
                 NotificationService,

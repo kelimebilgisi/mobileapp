@@ -18,7 +18,7 @@
                 <outlet property="SaveButton" destination="hjx-0o-EI5" id="name-outlet-hjx-0o-EI5"/>
                 <outlet property="TagsTableView" destination="5dy-Z6-wg6" id="name-outlet-5dy-Z6-wg6"/>
                 <outlet property="TextField" destination="Oy7-SV-cuq" id="name-outlet-Oy7-SV-cuq"/>
-                <outlet property="TitleLabel" destination="s6h-5g-H2v" id="bGH-CT-mbL"/>
+                <outlet property="TitleLabel" destination="s6h-5g-H2v" id="axa-Xd-cGE"/>
                 <outlet property="view" destination="2" id="RRd-Eg-VrN"/>
             </connections>
         </placeholder>

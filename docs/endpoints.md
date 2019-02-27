@@ -79,3 +79,7 @@ These endpoints are prefixed with `https://mobile.toggl.com/reports/api/v3/` (`m
 
 * `POST workspace/{workspace_id}/projects/summary`
 * `POST workspace/{workspace_id}/search/projects`
+
+# Timezone Endpoints
+
+* `GET /timezones` 

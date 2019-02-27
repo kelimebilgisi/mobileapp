@@ -47,7 +47,8 @@ namespace Toggl.Ultrawave.ApiClients
             Email email,
             Password password,
             bool termsAccepted,
-            int countryId
+            int countryId,
+            string timezone
         )
         {
             if (!email.IsValid)
@@ -62,7 +63,8 @@ namespace Toggl.Ultrawave.ApiClients
                     InitialPricingPlan = PricingPlans.Free
                 },
                 TermsAccepted = termsAccepted,
-                CountryId = countryId
+                CountryId = countryId,
+                Timezone = timezone
             };
             var json = serializer.Serialize(dto, SerializationReason.Post, null);
             return SendRequest<User>(endPoints.Post, new HttpHeader[0], json)
@@ -72,7 +74,7 @@ namespace Toggl.Ultrawave.ApiClients
                         : Observable.Throw<IUser>(badRequestException));
         }
 
-        public IObservable<IUser> SignUpWithGoogle(string googleToken, bool termsAccepted, int countryId)
+        public IObservable<IUser> SignUpWithGoogle(string googleToken, bool termsAccepted, int countryId, string timezone)
         {
             Ensure.Argument.IsNotNull(googleToken, nameof(googleToken));
             var parameters = new GoogleSignUpParameters
@@ -83,7 +85,8 @@ namespace Toggl.Ultrawave.ApiClients
                     InitialPricingPlan = PricingPlans.Free
                 },
                 TermsAccepted = termsAccepted,
-                CountryId = countryId
+                CountryId = countryId,
+                Timezone = timezone
             };
 
             var json = serializer.Serialize(parameters, SerializationReason.Post, null);
@@ -113,6 +116,8 @@ namespace Toggl.Ultrawave.ApiClients
             public bool TermsAccepted { get; set; }
 
             public int CountryId { get; set; }
+
+            public string Timezone { get; set; }
         }
 
         [Preserve(AllMembers = true)]
@@ -126,6 +131,8 @@ namespace Toggl.Ultrawave.ApiClients
             public bool TermsAccepted { get; set; }
 
             public int CountryId { get; set; }
+
+            public string Timezone { get; set; }
         }
     }
 }

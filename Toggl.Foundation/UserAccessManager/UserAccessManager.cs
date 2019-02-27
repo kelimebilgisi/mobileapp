@@ -80,7 +80,7 @@ namespace Toggl.Foundation.Login
                 .SelectMany(_ => googleService.GetAuthToken())
                 .SelectMany(loginWithGoogle);
 
-        public IObservable<ITogglDataSource> SignUp(Email email, Password password, bool termsAccepted, int countryId)
+        public IObservable<ITogglDataSource> SignUp(Email email, Password password, bool termsAccepted, int countryId, string timezone)
         {
             if (!email.IsValid)
                 throw new ArgumentException($"A valid {nameof(email)} must be provided when trying to signup");
@@ -89,19 +89,19 @@ namespace Toggl.Foundation.Login
 
             return database
                 .Clear()
-                .SelectMany(_ => signUp(email, password, termsAccepted, countryId))
+                .SelectMany(_ => signUp(email, password, termsAccepted, countryId, timezone))
                 .Select(User.Clean)
                 .SelectMany(database.User.Create)
                 .Select(dataSourceFromUser)
                 .Do(shortcutCreator.OnLogin);
         }
 
-        public IObservable<ITogglDataSource> SignUpWithGoogle(bool termsAccepted, int countryId)
+        public IObservable<ITogglDataSource> SignUpWithGoogle(bool termsAccepted, int countryId, string timezone)
             => database
                 .Clear()
                 .SelectMany(_ => googleService.LogOutIfNeeded())
                 .SelectMany(_ => googleService.GetAuthToken())
-                .SelectMany(authToken => signUpWithGoogle(authToken, termsAccepted, countryId));
+                .SelectMany(authToken => signUpWithGoogle(authToken, termsAccepted, countryId, timezone));
 
         public IObservable<string> ResetPassword(Email email)
         {
@@ -168,20 +168,20 @@ namespace Toggl.Foundation.Login
                 .Do(userLoggedInSubject.OnNext);
         }
 
-        private IObservable<IUser> signUp(Email email, Password password, bool termsAccepted, int countryId)
+        private IObservable<IUser> signUp(Email email, Password password, bool termsAccepted, int countryId, string timezone)
         {
             return apiFactory
                 .CreateApiWith(Credentials.None)
                 .User
-                .SignUp(email, password, termsAccepted, countryId);
+                .SignUp(email, password, termsAccepted, countryId, timezone);
         }
 
 
-        private IObservable<ITogglDataSource> signUpWithGoogle(string googleToken, bool termsAccepted, int countryId)
+        private IObservable<ITogglDataSource> signUpWithGoogle(string googleToken, bool termsAccepted, int countryId, string timezone)
         {
             var api = apiFactory.CreateApiWith(Credentials.None);
             return api.User
-                .SignUpWithGoogle(googleToken, termsAccepted, countryId)
+                .SignUpWithGoogle(googleToken, termsAccepted, countryId, timezone)
                 .Select(User.Clean)
                 .SelectMany(database.User.Create)
                 .Select(dataSourceFromUser)

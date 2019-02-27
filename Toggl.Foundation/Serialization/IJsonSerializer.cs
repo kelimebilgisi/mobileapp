@@ -2,7 +2,7 @@
 
 namespace Toggl.Foundation.Serialization
 {
-    internal interface IJsonSerializer
+    public interface IJsonSerializer
     {
         T Deserialize<T>(string json);
     }

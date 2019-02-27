@@ -94,6 +94,21 @@ namespace Toggl.Daneel.Views.Calendar
                 return false;
         }
 
+        [Export("gestureRecognizer:shouldReceiveTouch:")]
+        public bool ShouldReceiveTouch(UIGestureRecognizer gestureRecognizer, UITouch touch)
+        {
+            if (gestureRecognizer == longPressGestureRecognizer)
+            {
+                var point = touch.LocationInView(CollectionView);
+                var thereIsAnItemAtPoint = dataSource.CalendarItemAtPoint(point) != null;
+                var isNotEditing = dataSource.IsEditing == false;
+
+                return thereIsAnItemAtPoint && isNotEditing;
+            }
+
+            return true;
+        }
+
         private void onLongPress(UILongPressGestureRecognizer gesture)
         {
             var point = gesture.LocationInView(CollectionView);

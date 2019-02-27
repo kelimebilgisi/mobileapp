@@ -11,6 +11,7 @@ namespace Toggl.Foundation
         string PhoneModel { get; }
         string BuildNumber { get; }
         string OperatingSystem { get; }
+        string TimezoneIdentifier { get; }
     }
 
     public enum Platform

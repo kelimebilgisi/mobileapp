@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
 using FluentAssertions;
@@ -148,7 +149,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUp(Email.Empty, "dummyButValidPassword".ToPassword(), true, 237)
+                    .SignUp(Email.Empty, "dummyButValidPassword".ToPassword(), true, 237, "Europe/Tallinn")
                     .Wait();
 
                 signingUp.Should().Throw<ArgumentException>();
@@ -160,7 +161,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUp(Email.From(emailString), "dummyButValidPassword".ToPassword(), true, 237)
+                    .SignUp(Email.From(emailString), "dummyButValidPassword".ToPassword(), true, 237, "Europe/Tallinn")
                     .Wait();
 
                 signingUp.Should().Throw<ArgumentException>();
@@ -181,7 +182,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUp(RandomEmail.GenerateValid(), empty.ToPassword(), true, 237)
+                    .SignUp(RandomEmail.GenerateValid(), empty.ToPassword(), true, 237, "Europe/Tallinn")
                     .Wait();
 
                 signingUp.Should().Throw<BadRequestException>();
@@ -198,7 +199,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 var user = await unauthenticatedTogglApi
                     .User
-                    .SignUp(email, seeminglyEmpty.ToPassword(), true, 237);
+                    .SignUp(email, seeminglyEmpty.ToPassword(), true, 237, "Europe/Tallinn");
 
                 user.Id.Should().BeGreaterThan(0);
                 user.Email.Should().Be(email);
@@ -211,7 +212,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 var user = await unauthenticatedTogglApi
                     .User
-                    .SignUp(emailAddress, "somePassword".ToPassword(), true, 237);
+                    .SignUp(emailAddress, "somePassword".ToPassword(), true, 237, "Europe/Tallinn");
 
                 user.Email.Should().Be(emailAddress);
             }
@@ -220,11 +221,11 @@ namespace Toggl.Ultrawave.Tests.Integration
             public async Task FailsWhenTheEmailIsAlreadyTaken()
             {
                 var email = RandomEmail.GenerateValid();
-                await unauthenticatedTogglApi.User.SignUp(email, "somePassword".ToPassword(), true, 237);
+                await unauthenticatedTogglApi.User.SignUp(email, "somePassword".ToPassword(), true, 237, "Europe/Tallinn");
 
                 Action secondSigningUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUp(email, "thePasswordIsNotImportant".ToPassword(), true, 237)
+                    .SignUp(email, "thePasswordIsNotImportant".ToPassword(), true, 237, "Europe/Tallinn")
                     .Wait();
 
                 secondSigningUp.Should().Throw<EmailIsAlreadyUsedException>();
@@ -235,9 +236,9 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 var email = RandomEmail.GenerateValid();
                 var password = "somePassword".ToPassword();
-                await unauthenticatedTogglApi.User.SignUp(email, password, true, 237);
+                await unauthenticatedTogglApi.User.SignUp(email, password, true, 237, null);
 
-                Action secondSigningUp = () => unauthenticatedTogglApi.User.SignUp(email, password, true, 237).Wait();
+                Action secondSigningUp = () => unauthenticatedTogglApi.User.SignUp(email, password, true, 237, null).Wait();
 
                 secondSigningUp.Should().Throw<EmailIsAlreadyUsedException>();
             }
@@ -248,7 +249,7 @@ namespace Toggl.Ultrawave.Tests.Integration
                 var emailAddress = RandomEmail.GenerateValid();
                 var password = Guid.NewGuid().ToString().ToPassword();
 
-                var signedUpUser = await unauthenticatedTogglApi.User.SignUp(emailAddress, password, true, 237);
+                var signedUpUser = await unauthenticatedTogglApi.User.SignUp(emailAddress, password, true, 237, null);
                 var credentials = Credentials.WithPassword(emailAddress, password);
                 var togglApi = TogglApiWith(credentials);
                 var user = await togglApi.User.Get();
@@ -265,7 +266,7 @@ namespace Toggl.Ultrawave.Tests.Integration
                 var email = Email.From($"{emailPrefix}@{Guid.NewGuid().ToString()}.com");
                 var password = Guid.NewGuid().ToString().ToPassword();
 
-                var user = await unauthenticatedTogglApi.User.SignUp(email, password, true, 237);
+                var user = await unauthenticatedTogglApi.User.SignUp(email, password, true, 237, null);
                 var credentials = Credentials.WithPassword(email, password);
                 var togglApi = TogglApiWith(credentials);
                 var workspace = await togglApi.Workspaces.GetById(user.DefaultWorkspaceId.Value);
@@ -284,7 +285,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 Action signingUpWithoutAcceptingTerms =
                     () => unauthenticatedTogglApi.User
-                        .SignUp(email, password, termsAccepted, countryId)
+                        .SignUp(email, password, termsAccepted, countryId, null)
                         .Wait();
 
                 signingUpWithoutAcceptingTerms.Should().Throw<BadRequestException>();
@@ -303,7 +304,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 var user = await unauthenticatedTogglApi
                     .User
-                    .SignUp(email, password, termsNotAccepted, countryId);
+                    .SignUp(email, password, termsNotAccepted, countryId, null);
 
                 user.Id.Should().BeGreaterThan(0);
                 user.Email.Should().Be(email);
@@ -321,7 +322,38 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUp(email, password, true, countryId)
+                    .SignUp(email, password, true, countryId, null)
+                    .Wait();
+
+                signingUp.Should().Throw<BadRequestException>();
+            }
+
+            [Fact, LogTestInfo]
+            public async Task SucceedsForSupportedTimezone()
+            {
+                var email = RandomEmail.GenerateValid();
+                var password = "s3cr3tzzz".ToPassword();
+
+                var timezones = unauthenticatedTogglApi.Timezones.GetAll().Wait();
+                var aRandomSupportTimezone = timezones.OrderBy(s => Guid.NewGuid()).First();
+
+                var user = await unauthenticatedTogglApi
+                    .User
+                    .SignUp(email, password, true, 237, aRandomSupportTimezone);
+
+                user.Id.Should().BeGreaterThan(0);
+                user.Email.Should().Be(email);
+            }
+
+            [Fact, LogTestInfo]
+            public async Task FailsForNonSupportedTimezone()
+            {
+                var email = RandomEmail.GenerateValid();
+                var password = "s3cr3tzzz".ToPassword();
+
+                Action signingUp = () => unauthenticatedTogglApi
+                    .User
+                    .SignUp(email, password, true, 237, "A-made-up-tz")
                     .Wait();
 
                 signingUp.Should().Throw<BadRequestException>();
@@ -342,7 +374,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signingUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(null, true, 237)
+                    .SignUpWithGoogle(null, true, 237, null)
                     .Wait();
 
                 signingUp.Should().Throw<ArgumentException>();
@@ -354,7 +386,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(string.Empty, true, 237)
+                    .SignUpWithGoogle(string.Empty, true, 237, null)
                     .Wait();
 
                 signUp.Should().Throw<UnauthorizedException>();
@@ -367,7 +399,7 @@ namespace Toggl.Ultrawave.Tests.Integration
             {
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(notAToken, true, 237)
+                    .SignUpWithGoogle(notAToken, true, 237, null)
                     .Wait();
 
                 signUp.Should().Throw<ServiceUnavailableException>();
@@ -380,7 +412,7 @@ namespace Toggl.Ultrawave.Tests.Integration
 
                 Action signUp = () => unauthenticatedTogglApi
                     .User
-                    .SignUpWithGoogle(jwt, true, 237)
+                    .SignUpWithGoogle(jwt, true, 237, null)
                     .Wait();
 
                 signUp.Should().Throw<ServiceUnavailableException>();

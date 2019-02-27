@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SignUpTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForgotPasswordTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReportsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EditTimeEntryTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Helpers\" />

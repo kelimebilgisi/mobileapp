@@ -20,5 +20,6 @@ namespace Toggl.Ultrawave
         IProjectsSummaryApi ProjectsSummary { get; }
         IWorkspaceFeaturesApi WorkspaceFeatures { get; }
         IFeedbackApi Feedback { get; }
+        ITimeZonesApi Timezones { get; }
     }
 }

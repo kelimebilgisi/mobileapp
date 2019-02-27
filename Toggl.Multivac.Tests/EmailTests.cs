@@ -39,6 +39,20 @@ namespace Toggl.Multivac.Tests
 
                 email.IsValid.Should().BeTrue();
             }
+
+            [Theory, LogIfTooSlow]
+            [InlineData("用户@例子.广告")]
+            [InlineData("अजय@डाटा.भारत")]
+            [InlineData("квіточка@пошта.укр")]
+            [InlineData("θσερ@εχαμπλε.ψομ")]
+            [InlineData("Dörte@Sörensen.example.com")]
+            [InlineData("коля@пример.рф")]
+            public void ReturnsNewEmailWithTrimmedEndSpaces(string emailString)
+            {
+                var email = Email.From(emailString);
+
+                email.IsValid.Should().BeTrue();
+            }
         }
 
         public sealed class TheToStringMethod

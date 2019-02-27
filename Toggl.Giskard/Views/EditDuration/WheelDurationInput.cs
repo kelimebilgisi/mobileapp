@@ -129,7 +129,7 @@ namespace Toggl.Giskard.Views.EditDuration
                 var actualDuration = input.IsEmpty ? originalDuration : input.ToTimeSpan();
                 Text = actualDuration.AsDurationString();
                 durationSubject.OnNext(actualDuration);
-                SetFocusable(ViewFocusability.NotFocusable);
+                Focusable = false;
             }
 
             base.OnFocusChanged(gainFocus, direction, previouslyFocusedRect);
@@ -142,7 +142,7 @@ namespace Toggl.Giskard.Views.EditDuration
 
         private void initialize()
         {
-            SetFocusable(ViewFocusability.NotFocusable);
+            Focusable = false;
             Duration = durationSubject.DistinctUntilChanged();
 
             AddTextChangedListener(this);

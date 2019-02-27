@@ -1,20 +1,23 @@
-﻿using MvvmCross.Binding.BindingContext;
-using MvvmCross.Platforms.Ios.Binding;
+﻿using System;
+using System.Collections.Generic;
+using System.Reactive.Linq;
 using Toggl.Daneel.Presentation.Attributes;
-using Toggl.Daneel.ViewSources;
 using Toggl.Foundation.MvvmCross.ViewModels;
 using UIKit;
-using Toggl.Daneel.Extensions;
 using Toggl.Foundation.MvvmCross.Helper;
 using System.Threading.Tasks;
-using Toggl.Foundation;
+using Toggl.Daneel.Extensions;
+using Toggl.Daneel.Extensions.Reactive;
+using Toggl.Daneel.Views.Tag;
+using Toggl.Daneel.ViewSources;
+using Toggl.Multivac.Extensions;
 
 namespace Toggl.Daneel.ViewControllers
 {
     [ModalCardPresentation]
     public sealed partial class SelectTagsViewController : KeyboardAwareViewController<SelectTagsViewModel>, IDismissableViewController
     {
-        public SelectTagsViewController() 
+        public SelectTagsViewController()
             : base(nameof(SelectTagsViewController))
         {
         }
@@ -23,61 +26,50 @@ namespace Toggl.Daneel.ViewControllers
         {
             base.ViewDidLoad();
 
-            TitleLabel.Text = Resources.Tags;
-            EmptyStateLabel.Text = Resources.EmptyTagText;
-            SaveButton.SetTitle(Resources.Save, UIControlState.Normal);
+            var tableViewSource = new SelectTagsTableViewSource(TagsTableView);
 
-            var source = new SelectTagsTableViewSource(TagsTableView);
-            TagsTableView.Source = source;
-            TagsTableView.TableFooterView = new UIView();
+            tableViewSource.Rx().ModelSelected()
+                .Subscribe(ViewModel.SelectTag.Inputs)
+                .DisposedBy(DisposeBag);
 
-            var bindingSet = this.CreateBindingSet<SelectTagsViewController, SelectTagsViewModel>();
+            ViewModel.Tags
+                .Subscribe(TagsTableView.Rx().ReloadItems(tableViewSource))
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(EmptyStateImage)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.IsEmpty);
-                
-            bindingSet.Bind(EmptyStateLabel)
-                      .For(v => v.BindVisible())
-                      .To(vm => vm.IsEmpty);
+            ViewModel.IsEmpty
+                .Subscribe(EmptyStateImage.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            //Table view
-            bindingSet.Bind(source).To(vm => vm.Tags);
+            ViewModel.IsEmpty
+                .Subscribe(EmptyStateLabel.Rx().IsVisible())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(source)
-                      .For(v => v.CurrentQuery)
-                      .To(vm => vm.Text);
+            ViewModel.FilterText
+                .Subscribe(TextField.Rx().TextObserver())
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(source)
-                      .For(v => v.CreateTagCommand)
-                      .To(vm => vm.CreateTagCommand);
+            CloseButton.Rx()
+                .BindAction(ViewModel.Close)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(source)
-                      .For(v => v.SuggestCreation)
-                      .To(vm => vm.SuggestCreation);
-                           
-            //Text
-            bindingSet.Bind(TextField).To(vm => vm.Text);
+            SaveButton.Rx()
+                .BindAction(ViewModel.Save)
+                .DisposedBy(DisposeBag);
 
-            bindingSet.Bind(TextField)
-                      .For(v => v.BindPlaceholder())
-                      .To(vm => vm.PlaceholderText);
+            TextField.Rx().Text()
+                .Subscribe(ViewModel.FilterText)
+                .DisposedBy(DisposeBag);
+        }
 
-            //Commands
-            bindingSet.Bind(CloseButton).To(vm => vm.CloseCommand);
-            bindingSet.Bind(SaveButton).To(vm => vm.SaveCommand);
-            bindingSet.Bind(source)
-                      .For(v => v.SelectionChangedCommand)
-                      .To(vm => vm.SelectTagCommand);
-
-            bindingSet.Apply();
-
+        public override void ViewWillAppear(bool animated)
+        {
+            base.ViewWillAppear(animated);
             TextField.BecomeFirstResponder();
         }
 
         public async Task<bool> Dismiss()
         {
-            await ViewModel.CloseCommand.ExecuteAsync();
+            await ViewModel.Close.Execute();
             return true;
         }
 

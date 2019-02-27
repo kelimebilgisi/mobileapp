@@ -386,7 +386,6 @@
     <Compile Include="Views\ReportsCalendarView.cs" />
     <Compile Include="Views\SelectProjectRecyclerView.cs" />
     <Compile Include="Adapters\MainRecyclerAdapter.cs" />
-    <Compile Include="Views\SelectTagsRecyclerView.cs" />
     <Compile Include="TemplateSelectors\SelectProjectTemplateSelector.cs" />
     <Compile Include="Startup\SetupTargetFactories.cs">
       <DependentUpon>SetupTargetFactories.tt</DependentUpon>
@@ -547,6 +546,9 @@
     <Compile Include="Startup\ApplicationLifecycleObserver.cs" />
     <Compile Include="Services\BackgroundSyncServiceAndroid.cs" />
     <Compile Include="Services\BackgroundSyncJobSchedulerService.cs" />
+    <Compile Include="Activities\SelectTagsActivity.ViewBinds.cs" />
+    <Compile Include="ViewHolders\Tags\TagCreationSelectionViewHolder.cs" />
+    <Compile Include="ViewHolders\Tags\TagSelectionViewHolder.cs" />
     <Compile Include="Adapters\SelectDateFormatRecyclerAdapter.cs" />
     <Compile Include="ViewHolders\SelectDateFormatViewHolder.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />

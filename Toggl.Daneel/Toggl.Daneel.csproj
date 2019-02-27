@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Xamarin.Build.Download.0.4.11\build\Xamarin.Build.Download.props" Condition="Exists('..\packages\Xamarin.Build.Download.0.4.11\build\Xamarin.Build.Download.props')" />
   <PropertyGroup>
@@ -596,7 +596,6 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\WorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\Suggestions\SuggestionsEmptyViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\MvxCreateEntityViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\SelectableTagViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\WorkspaceViewCell.xib" />
     <InterfaceDefinition Include="ViewControllers\ReportsCalendarViewController.xib" />
     <InterfaceDefinition Include="Views\Reports\ReportsCalendarViewCell.xib" />
@@ -644,6 +643,8 @@
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
     <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
+    <InterfaceDefinition Include="Views\Tag\CreateTagViewCell.xib" />
+    <InterfaceDefinition Include="Views\Tag\NewTagViewCell.xib" />
     <InterfaceDefinition Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.xib" />
     <InterfaceDefinition Include="Cells\TimeEntriesLog\TimeEntriesLogViewCell.xib" />
   </ItemGroup>
@@ -885,10 +886,6 @@
     <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.cs" />
     <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.designer.cs">
       <DependentUpon>MvxCreateEntityViewCell.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Views\EntityCreation\SelectableTagViewCell.cs" />
-    <Compile Include="Views\EntityCreation\SelectableTagViewCell.designer.cs">
-      <DependentUpon>SelectableTagViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Views\EntityCreation\WorkspaceViewCell.cs" />
     <Compile Include="Views\EntityCreation\WorkspaceViewCell.designer.cs">
@@ -1164,7 +1161,16 @@
     <Compile Include="Extensions\IThreadSafeTimeEntryExtensions.cs" />
     <Compile Include="PlatformInfoIos.cs" />
     <Compile Include="Services\BackgroundSyncServiceIos.cs" />
+    <Compile Include="Views\Tag\CreateTagViewCell.cs" />
+    <Compile Include="Views\Tag\CreateTagViewCell.designer.cs">
+      <DependentUpon>CreateTagViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Tag\NewTagViewCell.cs" />
+    <Compile Include="Views\Tag\NewTagViewCell.designer.cs">
+      <DependentUpon>NewTagViewCell.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewZoomHelper.cs" />
     <Compile Include="ViewSources\Generic\TableView\CustomTableViewSource.cs" />
     <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.cs" />
     <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.designer.cs">

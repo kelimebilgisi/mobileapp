@@ -92,7 +92,7 @@ namespace Toggl.Tests.UI
 
             app.PullToRefresh();
 
-            app.WaitForElement(projectName);
+            app.WaitForElement(e => e.All().Property("text").Contains(projectName));
         }
 
         [Test]
@@ -197,6 +197,60 @@ namespace Toggl.Tests.UI
             {
                 app.WaitForElement(tag);
             }
+        }
+
+        [Test]
+        public void SelectingExistingProjectWorks()
+        {
+            var projectName = "Random project name";
+
+            // Create a time entry with a new project
+            app.CreateProjectInStartView(projectName);
+            app.Tap(StartTimeEntry.DoneButton);
+            app.Tap(Main.StopTimeEntryButton);
+
+            // Delete the time entry
+            app.OpenEditView();
+            app.Tap(EditTimeEntry.DeleteButton);
+            var deleteActionButton = app.Query(e => e.All().Property("text").Contains("Delete"))[3];
+            app.TapCoordinates(deleteActionButton.Rect.CenterX, deleteActionButton.Rect.CenterY);
+
+            // Create a new entry to with the project from before
+            app.Tap(Main.StartTimeEntryButton);
+            app.EnterText($"@");
+            app.Tap(projectName);
+            app.Tap(StartTimeEntry.DoneButton);
+            app.Tap(Main.StopTimeEntryButton);
+
+            app.PullToRefresh();
+
+            app.WaitForElement(e => e.All().Property("text").Contains(projectName));
+        }
+
+        [Test]
+        public void SelectingNoProjectWorks()
+        {
+            var projectName = "Random project name";
+
+            // Create a time entry with project
+            app.CreateProjectInStartView(projectName);
+            app.Tap(StartTimeEntry.DoneButton);
+            app.Tap(Main.StopTimeEntryButton);
+
+            // Delete the time entry
+            app.OpenEditView();
+            app.Tap(EditTimeEntry.DeleteButton);
+            var deleteActionButton = app.Query(e => e.All().Property("text").Contains("Delete"))[3];
+            app.TapCoordinates(deleteActionButton.Rect.CenterX, deleteActionButton.Rect.CenterY);
+
+            // Create a time entrty by selecting no project
+            app.Tap(Main.StartTimeEntryButton);
+            app.EnterText($"@");
+            app.Tap(q => q.Class("StartTimeEntryProjectsViewCell").Child(0));
+            app.Tap(StartTimeEntry.DoneButton);
+            app.Tap(Main.StopTimeEntryButton);
+
+            app.WaitForNoElement(e => e.All().Property("text").Contains(projectName));
         }
     }
 }

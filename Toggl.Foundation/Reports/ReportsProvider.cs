@@ -46,10 +46,6 @@ namespace Toggl.Foundation.Reports
                 .GetByWorkspace(workspaceId, startDate, endDate)
                 .SelectMany(response => summaryReportFromResponse(response, workspaceId));
 
-        public IObservable<ITimeEntriesTotals> GetTotals(
-            long userId, long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate)
-            => timeEntriesReportsApi.GetTotals(userId, workspaceId, startDate, endDate);
-
         private IObservable<ProjectSummaryReport> summaryReportFromResponse(IProjectsSummary response, long workspaceId)
         {
             IObservable<ChartSegment[]> summarySegments = getChartSegmentsForWorkspace(response, workspaceId);

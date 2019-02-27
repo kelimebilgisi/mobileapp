@@ -62,7 +62,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
         private readonly BehaviorSubject<string> currentDateRangeStringSubject = new BehaviorSubject<string>(string.Empty);
         private readonly Subject<DateTimeOffset> startDateSubject = new Subject<DateTimeOffset>();
         private readonly Subject<DateTimeOffset> endDateSubject = new Subject<DateTimeOffset>();
-        private readonly ISubject<TimeSpan> totalTimeSubject = new Subject<TimeSpan>();
+        private readonly ISubject<TimeSpan> totalTimeSubject = new BehaviorSubject<TimeSpan>(TimeSpan.Zero);
         private readonly ISubject<float?> billablePercentageSubject = new Subject<float?>();
         private readonly ISubject<IReadOnlyList<ChartSegment>> segmentsSubject = new Subject<IReadOnlyList<ChartSegment>>();
 
@@ -83,7 +83,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
         public IObservable<bool> IsLoadingObservable { get; }
 
         public IObservable<TimeSpan> TotalTimeObservable
-            => totalTimeSubject.StartWith(TimeSpan.Zero);
+            => totalTimeSubject.AsObservable();
 
         public IObservable<bool> TotalTimeIsZeroObservable
             => TotalTimeObservable.Select(time => time.Ticks == 0);
@@ -147,7 +147,7 @@ namespace Toggl.Foundation.MvvmCross.ViewModels.Reports
             calendarViewModel = new ReportsCalendarViewModel(timeService, dialogService, dataSource, intentDonationService, rxActionFactory);
 
             var totalsObservable = reportSubject
-                .SelectMany(_ => dataSource.ReportsProvider.GetTotals(userId, workspaceId, startDate, endDate))
+                .SelectMany(_ => interactorFactory.GetReportsTotals(userId, workspaceId, startDate, endDate).Execute())
                 .Catch<ITimeEntriesTotals, OfflineException>(_ => Observable.Return<ITimeEntriesTotals>(null))
                 .Where(report => report != null);
             BarChartViewModel = new ReportsBarChartViewModel(schedulerProvider, dataSource.Preferences, totalsObservable);

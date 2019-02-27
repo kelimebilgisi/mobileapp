@@ -96,13 +96,13 @@ namespace Toggl.Ultrawave.Tests.ApiClients
         public class TheSignUpMethod : Base
         {
             protected override IObservable<IUser> CallEndpoint(IUserApi api)
-                => api.SignUp(Email.From("a@b.com"), Password.Empty, true, 237);
+                => api.SignUp(Email.From("a@b.com"), Password.Empty, true, 237, null);
         }
 
         public class TheSignUpWithGoogleMethod : Base
         {
             protected override IObservable<IUser> CallEndpoint(IUserApi api)
-                => api.SignUpWithGoogle("", true, 237);
+                => api.SignUpWithGoogle("", true, 237, null);
         }
     }
 }

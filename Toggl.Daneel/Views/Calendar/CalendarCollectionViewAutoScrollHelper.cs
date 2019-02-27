@@ -46,7 +46,7 @@ namespace Toggl.Daneel.Views.Calendar
             Layout = layout;
             CollectionView = collectionView;
 
-            autoScrollAmount = CalendarCollectionViewLayout.HourHeight / 4;
+            autoScrollAmount = Layout.HourHeight / 4;
         }
 
         public CalendarCollectionViewAutoScrollHelper(IntPtr handle) : base(handle)

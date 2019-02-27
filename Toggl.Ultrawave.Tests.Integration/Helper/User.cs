@@ -42,7 +42,7 @@ namespace Toggl.Ultrawave.Tests.Integration
         private static async Task<IUser> createUser(Email email, Password password)
         {
             var api = Helper.TogglApiFactory.TogglApiWith(Credentials.None);
-            var user = await api.User.SignUp(email, password, true, 237);
+            var user = await api.User.SignUp(email, password, true, 237, "Europe/Tallinn");
 
             // This is to make integration tests run slightly slower to prevent SecureChannelFailure
             // errors caused by too many HTTP calls in quick succession in most cases

@@ -51,7 +51,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     LastTimeUsageStorage,
                     TimeService,
                     SchedulerProvider,
-                    RxActionFactory);
+                    RxActionFactory,
+                    PlatformInfo);
 
             protected override void AdditionalSetup()
             {
@@ -78,7 +79,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 bool useLastTimeUsageStorage,
                 bool useTimeService,
                 bool useSchedulerProvider,
-                bool useRxActionFactory)
+                bool useRxActionFactory,
+                bool usePlatformInfo)
             {
                 var apiFactory = useApiFactory ? ApiFactory : null;
                 var userAccessManager = useUserAccessManager ? UserAccessManager : null;
@@ -90,6 +92,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 var timeService = useTimeService ? TimeService : null;
                 var schedulerProvider = useSchedulerProvider ? SchedulerProvider : null;
                 var rxActionFactory = useRxActionFactory ? RxActionFactory : null;
+                var timezoneService = usePlatformInfo ? PlatformInfo : null;
 
                 Action tryingToConstructWithEmptyParameters =
                     () => new SignupViewModel(
@@ -102,7 +105,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         lastTimeUsageService,
                         timeService,
                         schedulerProvider,
-                        rxActionFactory);
+                        rxActionFactory,
+                        timezoneService);
 
                 tryingToConstructWithEmptyParameters
                     .Should().Throw<ArgumentNullException>();
@@ -269,7 +273,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.GoogleSignup.Execute();
 
                 TestScheduler.Start();
-                UserAccessManager.DidNotReceive().SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>());
+                UserAccessManager.DidNotReceive().SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>());
             }
 
             [Fact, LogIfTooSlow]
@@ -277,7 +281,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 NavigationService.Navigate<TermsOfServiceViewModel, bool>().Returns(true);
                 UserAccessManager
-                    .SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>())
+                    .SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>())
                     .Returns(Observable.Throw<ITogglDataSource>(new Exception()));
 
                 ViewModel.GoogleSignup.Execute();
@@ -308,19 +312,19 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     ViewModel.GoogleSignup.Execute();
 
                     TestScheduler.Start();
-                    UserAccessManager.Received().SignUpWithGoogle(true, Arg.Any<int>());
+                    UserAccessManager.Received().SignUpWithGoogle(true, Arg.Any<int>(), Arg.Any<string>());
                 }
 
                 [Fact, LogIfTooSlow]
                 public void DoesNothingWhenThePageIsCurrentlyLoading()
                 {
                     var never = Observable.Never<ITogglDataSource>();
-                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>()).Returns(never);
+                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>()).Returns(never);
                     ViewModel.GoogleSignup.Execute();
                     ViewModel.GoogleSignup.Execute();
 
                     TestScheduler.Start();
-                    UserAccessManager.Received(1).SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>());
+                    UserAccessManager.Received(1).SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>());
                 }
 
                 [Fact, LogIfTooSlow]
@@ -329,7 +333,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var observer = TestScheduler.CreateObserver<bool>();
                     ViewModel.IsLoading.Subscribe(observer);
 
-                    UserAccessManager.SignUpWithGoogle(true, Arg.Any<int>()).Returns(
+                    UserAccessManager.SignUpWithGoogle(true, Arg.Any<int>(), Arg.Any<string>()).Returns(
                         Observable.Never<ITogglDataSource>());
 
                     ViewModel.GoogleSignup.Execute();
@@ -344,7 +348,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public void TracksGoogleSignupEvent()
                 {
-                    UserAccessManager.SignUpWithGoogle(true, Arg.Any<int>()).Returns(
+                    UserAccessManager.SignUpWithGoogle(true, Arg.Any<int>(), Arg.Any<string>()).Returns(
                         Observable.Return(Substitute.For<ITogglDataSource>()));
 
                     ViewModel.GoogleSignup.Execute();
@@ -359,7 +363,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var observer = TestScheduler.CreateObserver<bool>();
                     ViewModel.IsLoading.Subscribe(observer);
 
-                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>()).Returns(
+                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>()).Returns(
                         Observable.Throw<ITogglDataSource>(new GoogleLoginException(false)));
 
                     ViewModel.GoogleSignup.Execute();
@@ -375,7 +379,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 [Fact, LogIfTooSlow]
                 public void DoesNotNavigateWhenTheLoginFails()
                 {
-                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>()).Returns(
+                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>()).Returns(
                         Observable.Throw<ITogglDataSource>(new GoogleLoginException(false)));
 
                     ViewModel.GoogleSignup.Execute();
@@ -392,7 +396,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     var errorTextObserver = TestScheduler.CreateObserver<string>();
                     ViewModel.ErrorMessage.Subscribe(errorTextObserver);
 
-                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>()).Returns(
+                    UserAccessManager.SignUpWithGoogle(Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>()).Returns(
                         Observable.Throw<ITogglDataSource>(new GoogleLoginException(true)));
 
                     ViewModel.GoogleSignup.Execute();
@@ -421,7 +425,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         ViewModel.Initialize().Wait();
 
                         UserAccessManager
-                            .SignUpWithGoogle(true, Arg.Any<int>())
+                            .SignUpWithGoogle(true, Arg.Any<int>(), Arg.Any<string>())
                             .Returns(Observable.Return(DataSource));
 
                         NavigationService.Navigate<TermsOfServiceViewModel, bool>().Returns(true);
@@ -524,7 +528,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     )
                 );
                 UserAccessManager
-                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), true, Arg.Any<int>())
+                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), true, Arg.Any<int>(), Arg.Any<string>())
                     .Returns(
                         Observable.Throw<ITogglDataSource>(exception)
                     );
@@ -635,7 +639,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     Arg.Any<Email>(),
                     Arg.Any<Password>(),
                     Arg.Any<bool>(),
-                    Arg.Any<int>());
+                    Arg.Any<int>(),
+                    Arg.Any<string>());
             }
 
             [Fact, LogIfTooSlow]
@@ -643,7 +648,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
             {
                 NavigationService.Navigate<TermsOfServiceViewModel, bool>().Returns(true);
                 UserAccessManager
-                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>())
+                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>())
                     .Returns(Observable.Throw<ITogglDataSource>(new Exception()));
 
                 ViewModel.Signup.Execute();
@@ -692,7 +697,8 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         ValidEmail,
                         ValidPassword,
                         true,
-                        Arg.Any<int>());
+                        Arg.Any<int>(),
+                        Arg.Any<string>());
                 }
 
                 [Fact, LogIfTooSlow]
@@ -717,7 +723,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                         ViewModel.SetEmail(ValidEmail);
                         ViewModel.SetPassword(ValidPassword);
                         UserAccessManager
-                            .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>())
+                            .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>())
                             .Returns(Observable.Return(DataSource));
                         NavigationService.Navigate<TermsOfServiceViewModel, bool>().Returns(true);
                     }
@@ -760,7 +766,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                     private void prepareException(Exception exception)
                     {
                         UserAccessManager
-                            .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>())
+                            .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>())
                             .Returns(Observable.Throw<ITogglDataSource>(exception));
                     }
 
@@ -978,7 +984,7 @@ namespace Toggl.Foundation.Tests.MvvmCross.ViewModels
                 ViewModel.SetPassword(ValidPassword);
                 NavigationService.Navigate<TermsOfServiceViewModel, bool>().Returns(true);
                 UserAccessManager
-                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>())
+                    .SignUp(Arg.Any<Email>(), Arg.Any<Password>(), Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<string>())
                     .Returns(Observable.Never<ITogglDataSource>());
                 ViewModel.Signup.Execute();
 

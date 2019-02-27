@@ -3,97 +3,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks;
-using MvvmCross.Commands;
 using MvvmCross.Navigation;
 using MvvmCross.ViewModels;
-using PropertyChanged;
 using Toggl.Foundation.Autocomplete.Suggestions;
 using Toggl.Foundation.DataSources;
 using Toggl.Foundation.Diagnostics;
 using Toggl.Foundation.Extensions;
 using Toggl.Foundation.Interactors;
 using Toggl.Foundation.MvvmCross.Extensions;
+using Toggl.Foundation.Services;
 using Toggl.Multivac;
 using Toggl.Multivac.Extensions;
-using static Toggl.Foundation.Helper.Constants;
 
 namespace Toggl.Foundation.MvvmCross.ViewModels
 {
     [Preserve(AllMembers = true)]
     public sealed class SelectTagsViewModel : MvxViewModel<(long[] tagIds, long workspaceId), long[]>
     {
-        private readonly ITogglDataSource dataSource;
         private readonly IInteractorFactory interactorFactory;
         private readonly IMvxNavigationService navigationService;
         private readonly IStopwatchProvider stopwatchProvider;
-
-        private readonly Subject<string> textSubject = new Subject<string>();
-        private readonly BehaviorSubject<bool> hasTagsSubject = new BehaviorSubject<bool>(false);
+        private readonly ISchedulerProvider schedulerProvider;
         private readonly HashSet<long> selectedTagIds = new HashSet<long>();
 
         private long[] defaultResult;
         private long workspaceId;
         private IStopwatch navigationFromEditTimeEntryStopwatch;
 
-        public string Text { get; set; } = "";
+        public IObservable<IEnumerable<SelectableTagBaseViewModel>> Tags { get; private set; }
+        public IObservable<bool> IsEmpty { get; private set; }
+        public BehaviorSubject<string> FilterText { get; } = new BehaviorSubject<string>(String.Empty);
+        public UIAction Close { get; }
+        public UIAction Save { get; }
 
-        public bool SuggestCreation
-        {
-            get
-            {
-                var text = Text.Trim();
-                return !string.IsNullOrEmpty(text)
-                       && Tags.None(tag => tag.Name.IsSameCaseInsensitiveTrimedTextAs(text))
-                       && text.IsAllowedTagByteSize();
-            }
-        }
-
-        public bool IsFilterEmpty => string.IsNullOrWhiteSpace(Text);
-
-        public MvxObservableCollection<SelectableTagViewModel> Tags { get; }
-            = new MvxObservableCollection<SelectableTagViewModel>();
-
-        public bool IsEmpty { get; set; } = false;
-
-        [DependsOn(nameof(IsEmpty))]
-        public string PlaceholderText
-            => IsEmpty
-            ? Resources.EnterTag
-            : Resources.AddFilterTags;
-
-        public IMvxAsyncCommand CloseCommand { get; }
-
-        public IMvxAsyncCommand SaveCommand { get; }
-
-        public IMvxAsyncCommand CreateTagCommand { get; }
-
-        public IMvxCommand ClearTextCommand { get; }
-
-        public IMvxCommand<SelectableTagViewModel> SelectTagCommand { get; }
+        public InputAction<SelectableTagBaseViewModel> SelectTag { get; }
 
         public SelectTagsViewModel(
-            ITogglDataSource dataSource,
             IMvxNavigationService navigationService,
+            IStopwatchProvider stopwatchProvider,
             IInteractorFactory interactorFactory,
-            IStopwatchProvider stopwatchProvider)
+            ISchedulerProvider schedulerProvider,
+            IRxActionFactory rxActionFactory)
         {
-            Ensure.Argument.IsNotNull(dataSource, nameof(dataSource));
             Ensure.Argument.IsNotNull(navigationService, nameof(navigationService));
-            Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
             Ensure.Argument.IsNotNull(stopwatchProvider, nameof(stopwatchProvider));
+            Ensure.Argument.IsNotNull(interactorFactory, nameof(interactorFactory));
+            Ensure.Argument.IsNotNull(rxActionFactory, nameof(rxActionFactory));
+            Ensure.Argument.IsNotNull(schedulerProvider, nameof(schedulerProvider));
 
-            this.dataSource = dataSource;
             this.navigationService = navigationService;
-            this.interactorFactory = interactorFactory;
             this.stopwatchProvider = stopwatchProvider;
+            this.interactorFactory = interactorFactory;
+            this.schedulerProvider = schedulerProvider;
 
-            CloseCommand = new MvxAsyncCommand(close);
-            SaveCommand = new MvxAsyncCommand(save);
-            CreateTagCommand = new MvxAsyncCommand(createTag);
-            SelectTagCommand = new MvxCommand<SelectableTagViewModel>(selectTag);
-            ClearTextCommand = new MvxCommand(clearText);
+            Close = rxActionFactory.FromAsync(close);
+            Save = rxActionFactory.FromAsync(save);
+            SelectTag = rxActionFactory.FromAsync<SelectableTagBaseViewModel>(selectTag);
         }
 
         public override void Prepare((long[] tagIds, long workspaceId) parameter)
@@ -110,21 +76,46 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             navigationFromEditTimeEntryStopwatch = stopwatchProvider.Get(MeasuredOperation.OpenSelectTagsView);
             stopwatchProvider.Remove(MeasuredOperation.OpenSelectTagsView);
 
-            var initialHasTags = dataSource.Tags
-               .GetAll()
-               .Select(tags => tags.Where(tag => tag.WorkspaceId == workspaceId).Any());
+            var filteredTags = FilterText
+                .StartWith(string.Empty)
+                .Select(text => text?.Trim() ?? string.Empty)
+                .SelectMany(text => getSuggestions(text))
+                .Select(pair =>
+                {
+                    var queryText = pair.Item1;
+                    var suggestions = pair.Item2;
 
-            hasTagsSubject.AsObservable()
-                          .Merge(initialHasTags)
-                          .Subscribe(hasTags => IsEmpty = !hasTags);
+                    var tagSuggestionInWorkspace = suggestions
+                        .Cast<TagSuggestion>()
+                        .Where(s => s.WorkspaceId == workspaceId);
 
-            textSubject.AsObservable()
-                       .StartWith(Text)
-                       .Select(text => text.SplitToQueryWords())
-                       .SelectMany(wordsToQuery => interactorFactory.GetTagsAutocompleteSuggestions(wordsToQuery).Execute())
-                       .Select(suggestions => suggestions.Cast<TagSuggestion>())
-                       .Select(suggestions => suggestions.Where(s => s.WorkspaceId == workspaceId))
-                       .Subscribe(onTags);
+                    var suggestCreation = !string.IsNullOrEmpty(queryText)
+                                          && tagSuggestionInWorkspace.None(tag
+                                              => tag.Name.IsSameCaseInsensitiveTrimedTextAs(queryText))
+                                          && queryText.IsAllowedTagByteSize();
+
+                    var selectableViewModels = tagSuggestionInWorkspace
+                        .OrderByDescending(tag => defaultResult.Contains(tag.TagId))
+                        .ThenBy(tag => tag.Name)
+                        .Select(toSelectableTagViewModel);
+
+                    if (suggestCreation)
+                    {
+                        return selectableViewModels.Prepend(new SelectableTagCreationViewModel(queryText, workspaceId));
+                    }
+
+                    return selectableViewModels;
+                })
+                .ShareReplay();
+
+            Tags = filteredTags
+                .AsDriver(new SelectableTagBaseViewModel[0], schedulerProvider);
+
+            IsEmpty = filteredTags
+                .Select(tags => tags.Any())
+                .Invert()
+                .DistinctUntilChanged()
+                .AsDriver(schedulerProvider);
         }
 
         public override void ViewAppeared()
@@ -134,52 +125,44 @@ namespace Toggl.Foundation.MvvmCross.ViewModels
             navigationFromEditTimeEntryStopwatch = null;
         }
 
-        private void OnTextChanged()
+        private SelectableTagBaseViewModel toSelectableTagViewModel(TagSuggestion tagSuggestion)
+            => new SelectableTagViewModel(
+                tagSuggestion.TagId,
+                tagSuggestion.Name,
+                selectedTagIds.Contains(tagSuggestion.TagId),
+                workspaceId);
+
+        private IObservable<(string, IEnumerable<AutocompleteSuggestion>)> getSuggestions(string text)
         {
-            textSubject.OnNext(Text.Trim());
+            var wordsToQuery = text.SplitToQueryWords();
+            return interactorFactory
+                .GetTagsAutocompleteSuggestions(wordsToQuery).Execute()
+                .Select(suggestions => (text, suggestions));
         }
 
-        private void onTags(IEnumerable<TagSuggestion> tags)
+        private async Task selectTag(SelectableTagBaseViewModel tag)
         {
-            Tags.Clear();
+            switch (tag)
+            {
+                case SelectableTagCreationViewModel t:
+                    var createdTag = await interactorFactory.CreateTag(t.Name, t.WorkspaceId).Execute();
+                    selectedTagIds.Add(createdTag.Id);
+                    FilterText.OnNext(string.Empty);
+                    break;
+                case SelectableTagViewModel t:
+                    if (!selectedTagIds.Remove(t.Id))
+                    {
+                        selectedTagIds.Add(t.Id);
+                    }
 
-            var sortedTags = tags.Select(createSelectableTag)
-                                 .OrderByDescending(tag => tag.Selected)
-                                 .ThenBy(tag => tag.Name);
-
-            Tags.AddRange(sortedTags);
+                    FilterText.OnNext(FilterText.Value);
+                    break;
+            }
         }
-
-        private SelectableTagViewModel createSelectableTag(TagSuggestion tagSuggestion)
-            => new SelectableTagViewModel(tagSuggestion, selectedTagIds.Contains(tagSuggestion.TagId));
 
         private Task close()
             => navigationService.Close(this, defaultResult);
 
         private Task save() => navigationService.Close(this, selectedTagIds.ToArray());
-
-        private void selectTag(SelectableTagViewModel tag)
-        {
-            tag.Selected = !tag.Selected;
-
-            if (tag.Selected)
-                selectedTagIds.Add(tag.Id);
-            else
-                selectedTagIds.Remove(tag.Id);
-        }
-
-        private async Task createTag()
-        {
-            var createdTag = await interactorFactory.CreateTag(Text.Trim(), workspaceId).Execute();
-            selectedTagIds.Add(createdTag.Id);
-            Text = "";
-
-            hasTagsSubject.OnNext(true);
-        }
-
-        private void clearText()
-        {
-            Text = "";
-        }
     }
 }

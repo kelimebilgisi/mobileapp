@@ -1,4 +1,5 @@
 ﻿using System;
+using Foundation;
 using Toggl.Foundation;
 
 namespace Toggl.Daneel
@@ -12,6 +13,7 @@ namespace Toggl.Daneel
 
         public override string PhoneModel => toDeviceModel(base.PhoneModel);
 
+        public override string TimezoneIdentifier => NSTimeZone.LocalTimeZone.Name;
         private static string toDeviceModel(string identifier)
         {
             switch (identifier)

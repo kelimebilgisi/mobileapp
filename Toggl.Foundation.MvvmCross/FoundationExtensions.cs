@@ -61,6 +61,7 @@ namespace Toggl.Foundation.MvvmCross
                         foundation.AnalyticsService)
                     .RegisterServices();
 
+                Mvx.RegisterSingleton<ITogglApi>(api);
                 Mvx.ConstructAndRegisterSingleton<IInteractorFactory, InteractorFactory>();
                 Mvx.ConstructAndRegisterSingleton<IAutocompleteProvider, AutocompleteProvider>();
 

@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.Net;
+using System.Net.Http;
 using Toggl.Multivac;
 using Toggl.Ultrawave.ApiClients;
 using Toggl.Ultrawave.ApiClients.Interfaces;
@@ -34,6 +35,7 @@ namespace Toggl.Ultrawave
             TimeEntriesReports = new TimeEntriesReportsApi(endpoints, apiClient, serializer, credentials);
             WorkspaceFeatures = new WorkspaceFeaturesApi(endpoints, apiClient, serializer, credentials);
             Feedback = new FeedbackApiClient(endpoints, apiClient, serializer, credentials);
+            Timezones = new TimezonesApi(endpoints, apiClient, serializer, credentials);
         }
 
         public ITagsApi Tags { get; }
@@ -51,6 +53,7 @@ namespace Toggl.Ultrawave
         public IProjectsSummaryApi ProjectsSummary { get; }
         public IWorkspaceFeaturesApi WorkspaceFeatures { get; }
         public IFeedbackApi Feedback { get; }
+        public ITimeZonesApi Timezones { get; }
     }
 
     public static class TogglApiFactory

@@ -7,8 +7,5 @@ namespace Toggl.Foundation.Reports
     {
         IObservable<ProjectSummaryReport> GetProjectSummary(
             long workspaceId, DateTimeOffset startDate, DateTimeOffset? endDate);
-
-        IObservable<ITimeEntriesTotals> GetTotals(
-            long userId, long workspaceId, DateTimeOffset startDate, DateTimeOffset endDate);
     }
 }
