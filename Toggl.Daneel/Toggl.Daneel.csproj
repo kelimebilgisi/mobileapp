@@ -596,7 +596,6 @@
     <InterfaceDefinition Include="Views\StartTimeEntry\WorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\Suggestions\SuggestionsEmptyViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\MvxCreateEntityViewCell.xib" />
-    <InterfaceDefinition Include="Views\EntityCreation\SelectableTagViewCell.xib" />
     <InterfaceDefinition Include="Views\EntityCreation\WorkspaceViewCell.xib" />
     <InterfaceDefinition Include="ViewControllers\ReportsCalendarViewController.xib" />
     <InterfaceDefinition Include="Views\Reports\ReportsCalendarViewCell.xib" />
@@ -644,6 +643,8 @@
     <InterfaceDefinition Include="Cells\Settings\UpcomingEventsOptionCell.xib" />
     <InterfaceDefinition Include="ViewControllers\SelectDefaultWorkspaceViewController.xib" />
     <InterfaceDefinition Include="Cells\SelectDefaultWorkspaceTableViewCell.xib" />
+    <InterfaceDefinition Include="Views\Tag\CreateTagViewCell.xib" />
+    <InterfaceDefinition Include="Views\Tag\NewTagViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveWorkspaceHeaderViewCell.xib" />
     <InterfaceDefinition Include="Views\StartTimeEntry\ReactiveTaskSuggestionViewCell.xib" />
@@ -889,10 +890,6 @@
     <Compile Include="Views\EntityCreation\MvxCreateEntityViewCell.designer.cs">
       <DependentUpon>MvxCreateEntityViewCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="Views\EntityCreation\SelectableTagViewCell.cs" />
-    <Compile Include="Views\EntityCreation\SelectableTagViewCell.designer.cs">
-      <DependentUpon>SelectableTagViewCell.cs</DependentUpon>
-    </Compile>
     <Compile Include="Views\EntityCreation\WorkspaceViewCell.cs" />
     <Compile Include="Views\EntityCreation\WorkspaceViewCell.designer.cs">
       <DependentUpon>WorkspaceViewCell.cs</DependentUpon>
@@ -980,7 +977,6 @@
     <Compile Include="ViewControllers\SelectBeginningOfWeekViewController.designer.cs">
       <DependentUpon>SelectBeginningOfWeekViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\BeginningOfWeekTableViewSource.cs" />
     <Compile Include="Views\Settings\DayOfWeekViewCell.cs" />
     <Compile Include="Views\Settings\DayOfWeekViewCell.designer.cs">
       <DependentUpon>DayOfWeekViewCell.cs</DependentUpon>
@@ -1005,7 +1001,6 @@
     <Compile Include="ViewControllers\Settings\AboutViewController.designer.cs">
       <DependentUpon>AboutViewController.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\LicensesTableViewSource.cs" />
     <Compile Include="Binding\ViewVisibilityWithFadeTargetBinding.cs" />
     <Compile Include="Binding\ImageViewAnimatedImageTargetBinding.cs" />
     <Compile Include="Extensions\TimeEntriesLogViewCellExtensions.cs" />
@@ -1142,7 +1137,6 @@
     <Compile Include="Cells\Settings\UpcomingEventsOptionCell.designer.cs">
       <DependentUpon>UpcomingEventsOptionCell.cs</DependentUpon>
     </Compile>
-    <Compile Include="ViewSources\UpcomingEventsNotificationSettingsSource.cs" />
     <Compile Include="Extensions\ScrollViewExtensions.cs" />
     <Compile Include="Presentation\Attributes\TabPresentationAttribute.cs" />
     <Compile Include="Views\Calendar\CalendarCollectionViewAutoScrollHelper.cs" />
@@ -1170,6 +1164,14 @@
     <Compile Include="Extensions\IThreadSafeTimeEntryExtensions.cs" />
     <Compile Include="PlatformInfoIos.cs" />
     <Compile Include="Services\BackgroundSyncServiceIos.cs" />
+    <Compile Include="Views\Tag\CreateTagViewCell.cs" />
+    <Compile Include="Views\Tag\CreateTagViewCell.designer.cs">
+      <DependentUpon>CreateTagViewCell.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Tag\NewTagViewCell.cs" />
+    <Compile Include="Views\Tag\NewTagViewCell.designer.cs">
+      <DependentUpon>NewTagViewCell.cs</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
     <Compile Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.cs" />
     <Compile Include="Views\StartTimeEntry\ReactiveProjectSuggestionViewCell.designer.cs">
