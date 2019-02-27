@@ -266,6 +266,9 @@
                     <constraint firstAttribute="trailing" secondItem="2Q5-T6-UvK" secondAttribute="trailing" constant="27" id="xx9-4r-fxJ"/>
                 </constraints>
             </tableViewCellContentView>
+            <accessibility key="accessibilityConfiguration" label="TimeEntryRow">
+                <bool key="isElement" value="YES"/>
+            </accessibility>
             <connections>
                 <outlet property="BillableIcon" destination="Arb-iG-IM3" id="MHp-Pv-hnS"/>
                 <outlet property="ContinueButton" destination="Re8-uD-vpm" id="name-outlet-Re8-uD-vpm"/>

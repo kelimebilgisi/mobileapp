@@ -52,6 +52,7 @@
         public const string StartTimeEntryButton = "MainStartTimeEntry";
         public const string StopTimeEntryButton = "MainStopTimeEntry";
         public const string TimeEntriesCollection = "TimeEntriesCollection";
+        public const string TimeEntryRow = "TimeEntryRow";
     }
 
     public static class StartTimeEntry
@@ -66,7 +67,9 @@
     public static class EditTimeEntry
     {
         public const string EditTags = "EditTimeEntryTags";
+        public const string Confirm = "EditTimeEntryConfirm";
         public const string DeleteButton = "EditTimeEntryDelete";
+        public const string EditDescription = "EditTimeEntryDescription";
     }
 
     public static class NewProject

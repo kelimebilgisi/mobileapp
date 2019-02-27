@@ -44,6 +44,7 @@ namespace Toggl.Tests.UI
 
     public static class Main
     {
+        public const string TimeEntryRow = "MainTimeEntryRow";
         public const string TimeEntriesCollection = "MainRecyclerView";
         public static readonly Func<AppQuery, AppQuery> StartTimeEntryButton = x => x.Id("MainPlayButton");
         public static readonly Func<AppQuery, AppQuery> StopTimeEntryButton = x => x.Id("MainStopButton");
@@ -68,8 +69,10 @@ namespace Toggl.Tests.UI
 
     public static class EditTimeEntry
     {
-        public const string EditTags = "EditTimeEntryTagsContainer";
+        public const string Confirm = "EditTimeEntryConfirmButton";
         public const string DeleteButton = "EditTimeEntryDelete";
+        public const string EditTags = "EditTimeEntryTagsContainer";
+        public const string EditDescription = "EditTimeEntryDescriptionTextField";
     }
 
     public static class NewProject

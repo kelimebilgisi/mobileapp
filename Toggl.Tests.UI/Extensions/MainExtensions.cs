@@ -1,5 +1,6 @@
 ﻿using System;
 using Xamarin.UITest;
+using Xamarin.UITest.Queries;
 
 namespace Toggl.Tests.UI.Extensions
 {
@@ -29,11 +30,24 @@ namespace Toggl.Tests.UI.Extensions
             app.WaitForElement(Main.StopTimeEntryButton);
         }
 
+        public static void TapOnTimeEntryWithDescription(this IApp app, string description)
+        {
+            Func<AppQuery, AppQuery> timeEntryCellSelector = x => x.Marked(Main.TimeEntryRow).Descendant().Text(description);
+            app.WaitForElement(timeEntryCellSelector);
+            app.Tap(timeEntryCellSelector);
+        }
+
         public static void PullToRefresh(this IApp app)
         {
             app.WaitForNoElement(query => query.Text("Synced"));
             app.ScrollUp(Main.TimeEntriesCollection, ScrollStrategy.Gesture);
             app.WaitForNoElement(query => query.Text("Synced"));
+        }
+
+        public static void StopTimeEntry(this IApp app)
+        {
+            app.WaitForElement(Main.StopTimeEntryButton);
+            app.Tap(Main.StopTimeEntryButton);
         }
     }
 }

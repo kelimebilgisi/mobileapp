@@ -8,7 +8,6 @@ namespace Toggl.Tests.UI
         public static AndroidApp GetApp()
             => ConfigureApp
                 .Android
-                .ApkFile("../../bin/Release/com.toggl.giskard.apk")
                 .EnableLocalScreenshots()
                 .StartApp();
     }
