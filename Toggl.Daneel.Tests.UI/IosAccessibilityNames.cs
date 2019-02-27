@@ -69,6 +69,11 @@
         public const string DeleteButton = "EditTimeEntryDelete";
     }
 
+    public static class Client
+    {
+        public const string AddFilterTextField = "";
+    }
+
     public static class NewProject
     {
         public const string ChangeClient = "ChangeClientButton";

@@ -122,22 +122,26 @@ namespace Toggl.Tests.UI
             var clientName = "The World Wide Web";
             app.EnterText(description);
 
+            // First create a client
             app.EnterText($"@{projectName}");
             app.TapCreateProject(projectName);
             app.Tap(NewProject.ChangeClient);
+            app.Tap(Client.AddFilterTextField);
             app.EnterText(clientName);
             app.TapCreateClient(clientName);
-
             app.CloseSelectProjectDialog();
+
+
+            // Create a project and associate with the created client
             app.TapCreateProject(projectName);
             app.Tap(NewProject.ChangeClient);
+            app.Tap(Client.AddFilterTextField);
             app.EnterText(clientName);
-
             app.TapSelectClient(clientName);
-
             app.WaitForElement(NewProject.CreateButton);
             app.Tap(NewProject.CreateButton);
 
+            // Start the TE
             app.Tap(StartTimeEntry.DoneButton);
             app.Tap(Main.StopTimeEntryButton);
 

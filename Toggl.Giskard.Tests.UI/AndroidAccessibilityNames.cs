@@ -72,11 +72,19 @@ namespace Toggl.Tests.UI
         public const string DeleteButton = "EditTimeEntryDelete";
     }
 
+    public static class Client
+    {
+        public const string AddFilterTextField = "FilterEditText";
+        public const string ClientCreationCellId = "NameTextView";
+
+    }
+
     public static class NewProject
     {
         public const string ChangeClient = "ChangeClientButton";
         public const string CreateButton = "CreateProjectButton";
         public const string ChangeWorkspace = "ChangeWorkspaceButton";
         public const string TogglePrivateProject = "PrivateProjectSwitchContainer";
+
     }
 }

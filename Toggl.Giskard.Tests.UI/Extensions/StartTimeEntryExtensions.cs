@@ -1,4 +1,4 @@
-﻿using Xamarin.UITest;
+using Xamarin.UITest;
 
 namespace Toggl.Tests.UI.Extensions
 {
@@ -34,12 +34,13 @@ namespace Toggl.Tests.UI.Extensions
 
         public static void TapSelectClient(this IApp app, string clientName)
         {
-            tapAndWaitForElement(app, clientName);
+            app.Tap(query => query.Marked(clientName).Id(Client.ClientCreationCellId));
         }
 
         public static void CloseSelectProjectDialog(this IApp app)
         {
-            //TODO: Implement me
+            app.DismissKeyboard();
+            app.NavigateBack();
         }
 
         private static void tapAndWaitForElement(IApp app, string query)
