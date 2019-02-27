@@ -131,7 +131,6 @@ namespace Toggl.Tests.UI
             app.TapCreateClient(clientName);
             app.CloseSelectProjectDialog();
 
-
             // Create a project and associate with the created client
             app.TapCreateProject(projectName);
             app.Tap(NewProject.ChangeClient);
@@ -144,7 +143,6 @@ namespace Toggl.Tests.UI
             // Start the TE
             app.Tap(StartTimeEntry.DoneButton);
             app.Tap(Main.StopTimeEntryButton);
-
             app.PullToRefresh();
 
             app.WaitForElement(clientName);
