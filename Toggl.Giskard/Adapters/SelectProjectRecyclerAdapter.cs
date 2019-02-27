@@ -15,15 +15,12 @@ using Toggl.Giskard.Views;
 
 namespace Toggl.Giskard.Adapters
 {
-    public sealed class SelectProjectRecyclerAdapter :
-        CreateSuggestionGroupedTableViewSource<WorkspaceGroupedCollection<AutocompleteSuggestion>, AutocompleteSuggestion>
+    public sealed class SelectProjectRecyclerAdapter : BaseRecyclerAdapter<AutocompleteSuggestion>
     {
-        public IMvxCommand<ProjectSuggestion> ToggleTasksCommand { get; set; }
 
-        public bool UseGrouping { get; set; }
-
-        protected override MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>> Collection
-            => ItemsSource as MvxObservableCollection<WorkspaceGroupedCollection<AutocompleteSuggestion>>;
+        private const int projectSuggestionViewType = 1;
+        private const int taskSuggestionViewType = 2;
+        private const int createEntitySuggestionViewType = 3;
 
         public SelectProjectRecyclerAdapter()
         {
@@ -34,58 +31,38 @@ namespace Toggl.Giskard.Adapters
         {
         }
 
-        public override int ItemCount
+        public override int GetItemViewType(int position)
         {
-            get
+            var item = GetItem(position);
+            switch (item)
             {
-                if (Collection.Count == 0)
-                    return IsSuggestingCreation ? 1 : 0;
-
-                return base.ItemCount - (UseGrouping ? 0 : 1);
+                case ProjectSuggestion _:
+                    return projectSuggestionViewType;
+                case TaskSuggestion _:
+                    return taskSuggestionViewType;
+                case CreateEntitySuggestion _:
+                    return createEntitySuggestionViewType;
+                default:
+                    throw new Exception("Invalid item type");
             }
         }
 
-        public override object GetItem(int viewPosition)
+        protected override BaseRecyclerViewHolder<SelectableTagBaseViewModel> CreateViewHolder(ViewGroup parent, LayoutInflater inflater, int viewType)
         {
-            if (UseGrouping)
-                return base.GetItem(viewPosition);
-
-            if (IsSuggestingCreation && viewPosition == 0)
-                return GetCreateSuggestionItem();
-
-            var actualPosition = viewPosition - (IsSuggestingCreation ? 1 : 0);
-            return Collection.First()[actualPosition];
-        }
-
-        public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
-        {
-            if (viewType != SelectProjectTemplateSelector.ProjectSuggestion)
-                return base.OnCreateViewHolder(parent, viewType);
-
-            var itemBindingContext = new MvxAndroidBindingContext(parent.Context, BindingContext.LayoutInflaterHolder);
-            var inflatedView = InflateViewForHolder(parent, viewType, itemBindingContext);
-
-            var viewHolder = new SelectProjectWithExpandableTasksRecyclerViewHolder(
-                inflatedView, itemBindingContext, Resource.Id.SelectProjectToggleTasksButton)
+            switch (viewType)
             {
-                Click = ItemClick,
-                LongClick = ItemLongClick,
-                ToggleTasksCommand = ToggleTasksCommand
-            };
-
-            return viewHolder;
+                case projectSuggestionViewType:
+                    var inflatedView = inflater.Inflate(Resource.Layout.SelectProjectActivityProjectCell, parent, false);
+                    return new ProjectSelectionProjectViewHolder(inflatedView);
+                case taskSuggestionViewType:
+                    var inflatedCreationView = inflater.Inflate(Resource.Layout.SelectProjectActivityTaskCell, parent, false);
+                    return new ProjectSelectionTaskViewHolder(inflatedCreationView);
+                case createEntitySuggestionViewType:
+                    var inflatedCreationView = inflater.Inflate(Resource.Layout.EntityCreationActivityCell, parent, false);
+                    return new ProjectCreationSelectionViewHolder(inflatedCreationView);
+                default:
+                    throw new Exception("Unsupported view type");
+            }
         }
-
-        protected override void OnItemsSourceCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            base.OnItemsSourceCollectionChanged(sender, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-        }
-
-        protected override int SuggestCreationViewType
-            => SelectProjectTemplateSelector.CreateEntity;
-
-        protected override object GetCreateSuggestionItem()
-            => $"{Resources.CreateProject} \"{Text}\"";
     }
-
 }
