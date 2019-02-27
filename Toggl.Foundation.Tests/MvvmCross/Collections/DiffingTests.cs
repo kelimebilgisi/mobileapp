@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Toggl.Daneel.Tests.Unit.Extensions;
 using Toggl.Daneel.ViewSources.Generic;
@@ -633,6 +634,51 @@ namespace Toggl.Foundation.Tests.MvvmCross.Collections
             var differences = diff.computeDifferences();
 
             initial.Apply(differences).Should().BeEquivalentTo(final);
+        }
+
+        [Fact, LogIfTooSlow]
+        public void TestPerformance() {
+
+            List<TestSectionModel> initialValue()
+            {
+                var nSections = 500;
+                var nItems = 500;
+
+                return Enumerable.Range(0, nSections)
+                    .Select(s =>
+                    {
+                        var items = Enumerable.Range(0, nItems)
+                            .Select(i => new TestItem(s * nSections + i, $"{s}:{i}"));
+                        var newSection = new TestSectionModel();
+                        newSection.Initialize(new DiffableInt(s), items);
+                        return newSection;
+                    })
+                    .ToList();
+            }
+
+            var initial = initialValue();
+            var final = randomize(initial.Select(section =>
+            {
+                var newSection = new TestSectionModel();
+                newSection.Initialize(section.Header, randomize(section.Items));
+                return newSection;
+            })).ToList();
+
+            var start = DateTimeOffset.Now;
+
+            var diffing = new Diffing<TestSectionModel, DiffableInt, TestItem>(initial, final);
+            var differences = diffing.computeDifferences();
+            var end = DateTimeOffset.Now;
+
+            initial.Apply(differences).Should().BeEquivalentTo(final);
+            var difference = end - start;
+            difference.Seconds.Should().BeLessThan(3);
+        }
+
+        private static IEnumerable<T> randomize<T>(IEnumerable<T> source)
+        {
+            Random rnd = new Random();
+            return source.OrderBy((item) => rnd.Next());
         }
     }
 }
