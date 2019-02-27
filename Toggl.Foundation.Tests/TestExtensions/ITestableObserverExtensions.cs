@@ -11,7 +11,7 @@ namespace Toggl.Foundation.Tests.TestExtensions
             => observer.Messages.Single().Value.Value;
 
         public static T LastEmittedValue<T>(this ITestableObserver<T> observer)
-            => observer.Messages.Last().Value.Value;
+            => observer.Values().Last();
 
         public static IEnumerable<T> Values<T>(this ITestableObserver<T> observer)
             => observer.Messages
