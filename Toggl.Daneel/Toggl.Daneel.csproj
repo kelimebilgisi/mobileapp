@@ -1170,6 +1170,7 @@
       <DependentUpon>NewTagViewCell.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions\TimeSpanExtensions.cs" />
+    <Compile Include="Views\Calendar\CalendarCollectionViewZoomHelper.cs" />
     <Compile Include="ViewSources\Generic\TableView\CustomTableViewSource.cs" />
     <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.cs" />
     <Compile Include="Cells\TimeEntriesLog\TimeEntriesLogHeaderView.designer.cs">

@@ -105,6 +105,7 @@ namespace Toggl.Daneel.ViewSources
         protected override UICollectionViewCell GetOrCreateCellFor(UICollectionView collectionView, NSIndexPath indexPath, object item)
         {
             var cell = collectionView.DequeueReusableCell(itemReuseIdentifier, indexPath) as CalendarItemView;
+            cell.Layout = layout;
             cell.Item = calendarItems[(int)indexPath.Item];
             cell.IsEditing = IsEditing && indexPath == editingItemIndexPath;
             return cell;
